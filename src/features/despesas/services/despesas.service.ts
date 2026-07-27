@@ -11,6 +11,7 @@ import type { DespesaFixa, CategoriaDespesaFixa } from '../types';
 
 interface LinhaDespesaFixa {
   id: string;
+  empresa_id: string | null;
   descricao: string;
   categoria: CategoriaDespesaFixa;
   valor: number;
@@ -23,6 +24,7 @@ interface LinhaDespesaFixa {
 function linhaParaDespesa(l: LinhaDespesaFixa): DespesaFixa {
   return {
     id: l.id,
+    empresaId: l.empresa_id ?? '',
     descricao: l.descricao,
     categoria: l.categoria,
     valor: String(l.valor),
@@ -35,6 +37,7 @@ function linhaParaDespesa(l: LinhaDespesaFixa): DespesaFixa {
 
 function despesaParaLinha(d: DespesaFixa) {
   return {
+    empresa_id: d.empresaId || null,
     descricao: d.descricao,
     categoria: d.categoria,
     valor: Number(d.valor),
@@ -45,11 +48,14 @@ function despesaParaLinha(d: DespesaFixa) {
   };
 }
 
-/** Lista despesas fixas. Por padrão só as ativas. */
-export async function listarDespesasFixas(opts: { somenteAtivas?: boolean } = {}): Promise<DespesaFixa[]> {
-  const { somenteAtivas = true } = opts;
+/** Lista despesas fixas. Por padrão só as ativas; `empresaId` filtra por empresa. */
+export async function listarDespesasFixas(
+  opts: { somenteAtivas?: boolean; empresaId?: string } = {},
+): Promise<DespesaFixa[]> {
+  const { somenteAtivas = true, empresaId } = opts;
   let query = supabase.from('despesas_fixas').select('*').order('descricao');
   if (somenteAtivas) query = query.eq('ativo', true);
+  if (empresaId) query = query.eq('empresa_id', empresaId);
 
   const { data, error } = await query;
   if (error) throw error;

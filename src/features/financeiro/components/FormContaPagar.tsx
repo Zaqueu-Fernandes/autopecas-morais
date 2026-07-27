@@ -17,6 +17,7 @@ import {
   type ErrosValidacao,
 } from '../types';
 import { type Fornecedor, listarFornecedores } from '@/features/cadastros';
+import { type Empresa, listarEmpresas } from '@/features/empresa';
 
 interface Props {
   onSalvar: (d: DadosContaPagar) => Promise<void> | void;
@@ -30,9 +31,15 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [salvando, setSalvando] = useState(false);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
 
   useEffect(() => {
     listarFornecedores().then(setFornecedores).catch(() => setFornecedores([]));
+    listarEmpresas().then((lista) => {
+      setEmpresas(lista);
+      if (lista.length === 1) set({ empresaId: lista[0].id });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function set(patch: Partial<DadosContaPagar>) {
@@ -58,6 +65,23 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
       </div>
 
       <div className="fin-grid">
+        <div className="fin-campo">
+          <label>Empresa (CNPJ) *</label>
+          <select
+            value={dados.empresaId}
+            onChange={(e) => set({ empresaId: e.target.value })}
+            aria-invalid={!!erros.empresaId}
+          >
+            <option value="">— selecione —</option>
+            {empresas.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.nomeFantasia}
+              </option>
+            ))}
+          </select>
+          {erros.empresaId && <span className="fin-erro">{erros.empresaId}</span>}
+        </div>
+
         <div className="fin-campo">
           <label>Categoria *</label>
           <select value={dados.categoria} onChange={(e) => set({ categoria: e.target.value as CategoriaPagar })}>

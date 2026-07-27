@@ -17,6 +17,7 @@ import {
   ROTULO_CATEGORIA_PAGAR,
   ROTULO_CATEGORIA_RECEBER,
 } from '@/features/financeiro';
+import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { CartaoResumo } from '@/features/dashboard';
 
 function primeiroDiaDoMes(): string {
@@ -37,15 +38,24 @@ function rotuloCategoria(tipo: 'pagar' | 'receber', categoria: string): string {
 export function FluxoCaixaPage() {
   const [inicio, setInicio] = useState(primeiroDiaDoMes());
   const [fim, setFim] = useState(hojeISO());
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [empresaId, setEmpresaId] = useState('');
   const [resultado, setResultado] = useState<ResultadoFluxoCaixa | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    listarEmpresas().then((lista) => {
+      setEmpresas(lista);
+      if (lista.length > 0) setEmpresaId((atual) => atual || lista[0].id!);
+    });
+  }, []);
 
   async function carregar() {
     setCarregando(true);
     setErro(null);
     try {
-      setResultado(await buscarFluxoCaixa(inicio, fim));
+      setResultado(await buscarFluxoCaixa(inicio, fim, empresaId || undefined));
     } catch {
       setErro('Não foi possível carregar o fluxo de caixa.');
     } finally {
@@ -56,7 +66,7 @@ export function FluxoCaixaPage() {
   useEffect(() => {
     carregar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inicio, fim]);
+  }, [inicio, fim, empresaId]);
 
   return (
     <div className="pg">
@@ -65,6 +75,14 @@ export function FluxoCaixaPage() {
       </div>
 
       <div className="pg-filtros">
+        <select value={empresaId} onChange={(e) => setEmpresaId(e.target.value)}>
+          {empresas.length === 0 && <option value="">Nenhuma empresa cadastrada</option>}
+          {empresas.map((emp) => (
+            <option key={emp.id} value={emp.id}>
+              {emp.nomeFantasia}
+            </option>
+          ))}
+        </select>
         <label className="fin-campo-inline">
           De
           <input type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} />

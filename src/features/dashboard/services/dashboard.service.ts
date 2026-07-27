@@ -8,6 +8,10 @@
  * não por data de pagamento: o fato gerador é a venda, não o recebimento.
  * Despesa do mês é contada por vencimento (a conta pertence àquele mês),
  * independente de já ter sido paga.
+ *
+ * `empresaId` filtra tudo por uma empresa (CNPJ) só — o financeiro é
+ * separado por empresa justamente pra dar pra monitorar o limite do MEI de
+ * cada CNPJ individualmente (ver CLAUDE.md).
  */
 
 import { supabase } from '@/lib/supabase';
@@ -24,7 +28,7 @@ export interface ResumoDashboard {
   aPagarVencidoQtd: number;
 }
 
-export async function buscarResumoDashboard(): Promise<ResumoDashboard> {
+export async function buscarResumoDashboard(empresaId?: string): Promise<ResumoDashboard> {
   const agora = new Date();
   const inicioAno = new Date(agora.getFullYear(), 0, 1).toISOString();
   const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString();
@@ -32,12 +36,14 @@ export async function buscarResumoDashboard(): Promise<ResumoDashboard> {
   const inicioMesData = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString().slice(0, 10);
   const fimMesData = new Date(agora.getFullYear(), agora.getMonth() + 1, 0).toISOString().slice(0, 10);
 
-  const { data: receitasAno, error: erroReceitas } = await supabase
+  let queryReceitas = supabase
     .from('financeiro')
     .select('valor, created_at')
     .eq('tipo', 'receber')
     .in('categoria', ['servico_os', 'venda_balcao'])
     .gte('created_at', inicioAno);
+  if (empresaId) queryReceitas = queryReceitas.eq('empresa_id', empresaId);
+  const { data: receitasAno, error: erroReceitas } = await queryReceitas;
   if (erroReceitas) throw erroReceitas;
 
   const faturamentoAno = (receitasAno ?? []).reduce((soma, r) => soma + Number(r.valor), 0);
@@ -45,28 +51,26 @@ export async function buscarResumoDashboard(): Promise<ResumoDashboard> {
     .filter((r) => r.created_at >= inicioMes)
     .reduce((soma, r) => soma + Number(r.valor), 0);
 
-  const { data: despesasDoMes, error: erroDespesasMes } = await supabase
+  let queryDespesasMes = supabase
     .from('financeiro')
     .select('valor')
     .eq('tipo', 'pagar')
     .gte('vencimento', inicioMesData)
     .lte('vencimento', fimMesData);
+  if (empresaId) queryDespesasMes = queryDespesasMes.eq('empresa_id', empresaId);
+  const { data: despesasDoMes, error: erroDespesasMes } = await queryDespesasMes;
   if (erroDespesasMes) throw erroDespesasMes;
   const despesasMes = (despesasDoMes ?? []).reduce((soma, r) => soma + Number(r.valor), 0);
 
-  const { data: receberPendente, error: erroReceber } = await supabase
-    .from('financeiro')
-    .select('valor')
-    .eq('tipo', 'receber')
-    .eq('pago', false);
+  let queryReceber = supabase.from('financeiro').select('valor').eq('tipo', 'receber').eq('pago', false);
+  if (empresaId) queryReceber = queryReceber.eq('empresa_id', empresaId);
+  const { data: receberPendente, error: erroReceber } = await queryReceber;
   if (erroReceber) throw erroReceber;
   const aReceberPendente = (receberPendente ?? []).reduce((soma, r) => soma + Number(r.valor), 0);
 
-  const { data: pagarPendente, error: erroPagar } = await supabase
-    .from('financeiro')
-    .select('valor, vencimento')
-    .eq('tipo', 'pagar')
-    .eq('pago', false);
+  let queryPagar = supabase.from('financeiro').select('valor, vencimento').eq('tipo', 'pagar').eq('pago', false);
+  if (empresaId) queryPagar = queryPagar.eq('empresa_id', empresaId);
+  const { data: pagarPendente, error: erroPagar } = await queryPagar;
   if (erroPagar) throw erroPagar;
 
   const aPagarPendente = (pagarPendente ?? []).reduce((soma, r) => soma + Number(r.valor), 0);

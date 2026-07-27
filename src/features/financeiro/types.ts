@@ -51,6 +51,8 @@ export const ROTULO_FORMA_PAGAMENTO: Record<FormaPagamento, string> = {
 
 export interface LancamentoFinanceiro {
   id?: string;
+  /** A qual empresa (CNPJ) este lançamento pertence — separa o faturamento entre empresas. */
+  empresaId: string | null;
   tipo: TipoFinanceiro;
   categoria: CategoriaPagar | CategoriaReceber;
   descricao: string;
@@ -74,6 +76,7 @@ export const semErros = (e: ErrosValidacao) => Object.keys(e).length === 0;
 // ---- Conta a pagar (lançamento manual) --------------------------------------
 
 export interface DadosContaPagar {
+  empresaId: string;
   categoria: CategoriaPagar;
   descricao: string;
   valor: string;
@@ -83,6 +86,7 @@ export interface DadosContaPagar {
 }
 
 export const dadosContaPagarVazio = (): DadosContaPagar => ({
+  empresaId: '',
   categoria: 'despesa_variavel',
   descricao: '',
   valor: '',
@@ -93,6 +97,7 @@ export const dadosContaPagarVazio = (): DadosContaPagar => ({
 
 export function validarContaPagar(d: DadosContaPagar): ErrosValidacao {
   const erros: ErrosValidacao = {};
+  if (!d.empresaId) erros.empresaId = 'Selecione a empresa.';
   if (!d.descricao.trim()) erros.descricao = 'Descreva a conta.';
   const valor = Number(d.valor);
   if (!d.valor.trim() || Number.isNaN(valor) || valor <= 0)
@@ -126,12 +131,14 @@ export const ROTULO_SITUACAO: Record<SituacaoRecebimento, string> = {
 };
 
 export interface DadosFaturamento {
+  empresaId: string;
   situacao: SituacaoRecebimento;
   formaPagamento: FormaPagamento | '';
   vencimento: string; // yyyy-mm-dd, só usado em a_prazo
 }
 
 export const dadosFaturamentoVazio = (): DadosFaturamento => ({
+  empresaId: '',
   situacao: 'a_vista',
   formaPagamento: '',
   vencimento: '',
@@ -139,6 +146,7 @@ export const dadosFaturamentoVazio = (): DadosFaturamento => ({
 
 export function validarFaturamento(d: DadosFaturamento): ErrosValidacao {
   const erros: ErrosValidacao = {};
+  if (!d.empresaId) erros.empresaId = 'Selecione a empresa.';
   if (d.situacao === 'a_vista' && !d.formaPagamento)
     erros.formaPagamento = 'Selecione a forma de pagamento.';
   if (d.situacao === 'a_prazo' && !d.vencimento)

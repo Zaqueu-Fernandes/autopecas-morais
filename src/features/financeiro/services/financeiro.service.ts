@@ -11,6 +11,7 @@ import type { LancamentoFinanceiro, TipoFinanceiro, FormaPagamento } from '../ty
 
 interface LinhaFinanceiro {
   id: string;
+  empresa_id: string | null;
   tipo: TipoFinanceiro;
   categoria: string;
   descricao: string;
@@ -31,6 +32,7 @@ interface LinhaFinanceiro {
 function linhaParaLancamento(l: LinhaFinanceiro): LancamentoFinanceiro {
   return {
     id: l.id,
+    empresaId: l.empresa_id,
     tipo: l.tipo,
     categoria: l.categoria as LancamentoFinanceiro['categoria'],
     descricao: l.descricao,
@@ -49,11 +51,14 @@ function linhaParaLancamento(l: LinhaFinanceiro): LancamentoFinanceiro {
   };
 }
 
-/** Lista lançamentos, mais recentes primeiro. Filtros opcionais por tipo/pago. */
-export async function listarFinanceiro(opts: { tipo?: TipoFinanceiro; pago?: boolean } = {}): Promise<LancamentoFinanceiro[]> {
+/** Lista lançamentos, mais recentes primeiro. Filtros opcionais por tipo/pago/empresa. */
+export async function listarFinanceiro(
+  opts: { tipo?: TipoFinanceiro; pago?: boolean; empresaId?: string } = {},
+): Promise<LancamentoFinanceiro[]> {
   let query = supabase.from('financeiro').select('*').order('vencimento', { ascending: true, nullsFirst: false });
   if (opts.tipo) query = query.eq('tipo', opts.tipo);
   if (opts.pago !== undefined) query = query.eq('pago', opts.pago);
+  if (opts.empresaId) query = query.eq('empresa_id', opts.empresaId);
 
   const { data, error } = await query;
   if (error) throw error;
@@ -64,6 +69,7 @@ export async function criarLancamento(l: LancamentoFinanceiro): Promise<Lancamen
   const { data, error } = await supabase
     .from('financeiro')
     .insert({
+      empresa_id: l.empresaId,
       tipo: l.tipo,
       categoria: l.categoria,
       descricao: l.descricao,

@@ -1,58 +1,71 @@
 /**
  * ============================================================================
- * ACESSO AO BANCO — CONFIGURAÇÃO DA EMPRESA
+ * ACESSO AO BANCO — EMPRESAS
  * ============================================================================
- * Único lugar que fala com a tabela `empresa_config`. Singleton: sempre lê/
- * atualiza a primeira (e única) linha. Se não existir nenhuma, cria na
- * primeira vez que a tela salvar (ver DashboardPage).
+ * Único lugar que fala com a tabela `empresa_config`. Não é mais singleton —
+ * pode ter várias empresas (CNPJs) cadastradas.
  */
 
 import { supabase } from '@/lib/supabase';
-import type { ConfigEmpresa, RegimeTributario } from '../types';
+import type { Empresa, RegimeTributario } from '../types';
 
-interface LinhaEmpresaConfig {
+interface LinhaEmpresa {
   id: string;
+  nome_fantasia: string | null;
+  cnpj: string | null;
   regime: RegimeTributario;
   limite_anual_mei: number;
-  nome_fantasia: string | null;
 }
 
-function linhaParaConfig(l: LinhaEmpresaConfig): ConfigEmpresa {
+function linhaParaEmpresa(l: LinhaEmpresa): Empresa {
   return {
     id: l.id,
+    nomeFantasia: l.nome_fantasia ?? '',
+    cnpj: l.cnpj ?? '',
     regime: l.regime,
     limiteAnualMei: String(l.limite_anual_mei),
-    nomeFantasia: l.nome_fantasia ?? '',
   };
 }
 
-/** Devolve a configuração da empresa, ou null se ainda não foi configurada. */
-export async function buscarConfigEmpresa(): Promise<ConfigEmpresa | null> {
-  const { data, error } = await supabase.from('empresa_config').select('*').limit(1).maybeSingle();
-  if (error) throw error;
-  return data ? linhaParaConfig(data as LinhaEmpresaConfig) : null;
+function empresaParaLinha(e: Empresa) {
+  return {
+    nome_fantasia: e.nomeFantasia,
+    cnpj: e.cnpj || null,
+    regime: e.regime,
+    limite_anual_mei: Number(e.limiteAnualMei) || 0,
+  };
 }
 
-/** Cria a configuração (primeira vez) ou atualiza a existente. */
-export async function salvarConfigEmpresa(c: ConfigEmpresa): Promise<ConfigEmpresa> {
-  const payload = {
-    regime: c.regime,
-    limite_anual_mei: Number(c.limiteAnualMei),
-    nome_fantasia: c.nomeFantasia,
-  };
-
-  if (c.id) {
-    const { data, error } = await supabase
-      .from('empresa_config')
-      .update(payload)
-      .eq('id', c.id)
-      .select()
-      .single();
-    if (error) throw error;
-    return linhaParaConfig(data as LinhaEmpresaConfig);
-  }
-
-  const { data, error } = await supabase.from('empresa_config').insert(payload).select().single();
+/** Lista todas as empresas cadastradas, ordenadas por nome. */
+export async function listarEmpresas(): Promise<Empresa[]> {
+  const { data, error } = await supabase.from('empresa_config').select('*').order('nome_fantasia');
   if (error) throw error;
-  return linhaParaConfig(data as LinhaEmpresaConfig);
+  return (data as LinhaEmpresa[]).map(linhaParaEmpresa);
+}
+
+export async function criarEmpresa(empresa: Empresa): Promise<Empresa> {
+  const { data, error } = await supabase
+    .from('empresa_config')
+    .insert(empresaParaLinha(empresa))
+    .select()
+    .single();
+  if (error) throw error;
+  return linhaParaEmpresa(data as LinhaEmpresa);
+}
+
+export async function atualizarEmpresa(empresa: Empresa): Promise<Empresa> {
+  if (!empresa.id) throw new Error('Empresa sem id não pode ser atualizada.');
+  const { data, error } = await supabase
+    .from('empresa_config')
+    .update(empresaParaLinha(empresa))
+    .eq('id', empresa.id)
+    .select()
+    .single();
+  if (error) throw error;
+  return linhaParaEmpresa(data as LinhaEmpresa);
+}
+
+/** Cria se a empresa ainda não tem id, ou atualiza caso já exista. */
+export async function salvarEmpresa(empresa: Empresa): Promise<Empresa> {
+  return empresa.id ? atualizarEmpresa(empresa) : criarEmpresa(empresa);
 }

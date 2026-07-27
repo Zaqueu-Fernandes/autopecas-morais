@@ -21,6 +21,7 @@ export async function finalizarVenda(input: {
   const { vendaId, clienteId, valorTotal, dados } = input;
 
   const base = {
+    empresaId: dados.empresaId,
     tipo: 'receber' as const,
     categoria: 'venda_balcao' as const,
     descricao: `Venda de balcão`,

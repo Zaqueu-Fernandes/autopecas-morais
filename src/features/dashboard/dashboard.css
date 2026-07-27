@@ -80,6 +80,12 @@
 .dash-mei-perigo .dash-mei-mensagem { color: #991b1b; }
 .dash-mei-me p { font-size: 13px; color: #5b6270; margin: 6px 0 0; }
 
+/* Monitores de várias empresas lado a lado */
+.dash-monitores { display: flex; gap: 16px; flex-wrap: wrap; }
+.dash-monitor-empresa { flex: 1 1 320px; }
+.dash-monitor-empresa h3 { font-size: 13px; color: #5b6270; margin: 0 0 6px; font-weight: 600; }
+.dash-monitor-empresa .dash-mei { margin-bottom: 0; }
+
 @media (max-width: 520px) {
   .dash-grid { grid-template-columns: 1fr 1fr; }
 }

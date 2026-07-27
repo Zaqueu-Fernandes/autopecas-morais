@@ -17,23 +17,29 @@ import {
   type ErrosValidacao,
 } from '../types';
 import { type Fornecedor, listarFornecedores } from '@/features/cadastros';
+import { type Empresa, listarEmpresas } from '@/features/empresa';
 
 interface Props {
   inicial?: DespesaFixa;
+  empresaIdPadrao?: string;
   onSalvar: (d: DespesaFixa) => Promise<void> | void;
   onCancelar?: () => void;
 }
 
 const CATEGORIAS = Object.keys(ROTULO_CATEGORIA_DESPESA) as CategoriaDespesaFixa[];
 
-export function FormDespesaFixa({ inicial, onSalvar, onCancelar }: Props) {
-  const [despesa, setDespesa] = useState<DespesaFixa>(inicial ?? despesaFixaVazia());
+export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar }: Props) {
+  const [despesa, setDespesa] = useState<DespesaFixa>(
+    inicial ?? { ...despesaFixaVazia(), empresaId: empresaIdPadrao ?? '' },
+  );
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [salvando, setSalvando] = useState(false);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
 
   useEffect(() => {
     listarFornecedores().then(setFornecedores).catch(() => setFornecedores([]));
+    listarEmpresas().then(setEmpresas).catch(() => setEmpresas([]));
   }, []);
 
   function set(patch: Partial<DespesaFixa>) {
@@ -59,6 +65,23 @@ export function FormDespesaFixa({ inicial, onSalvar, onCancelar }: Props) {
       </div>
 
       <div className="dsp-grid">
+        <div className="dsp-campo">
+          <label>Empresa (CNPJ) *</label>
+          <select
+            value={despesa.empresaId}
+            onChange={(e) => set({ empresaId: e.target.value })}
+            aria-invalid={!!erros.empresaId}
+          >
+            <option value="">— selecione —</option>
+            {empresas.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.nomeFantasia}
+              </option>
+            ))}
+          </select>
+          {erros.empresaId && <span className="dsp-erro">{erros.empresaId}</span>}
+        </div>
+
         <div className="dsp-campo dsp-col-2">
           <label>Descrição *</label>
           <input

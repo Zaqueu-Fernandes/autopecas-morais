@@ -38,6 +38,31 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 - Já capturar no MEI os dados que o ME vai precisar (endereço completo,
   tipo PF/PJ do cliente, separação peça x serviço).
 
+### Múltiplas empresas (feature já pronta em src/features/empresa)
+
+- empresa_config NÃO é singleton — pode ter várias empresas (CNPJs),
+  cada uma com seu próprio regime/limite MEI (aba Empresas). Existe
+  justamente pra quem opera mais de um CNPJ na mesma oficina física e
+  precisa monitorar o limite do MEI de cada um separadamente.
+- Clientes, veículos, estoque e Ordens de Serviço continuam
+  COMPARTILHADOS entre as empresas (é a mesma oficina) — só o financeiro
+  é dividido: `financeiro.empresa_id` e `despesas_fixas.empresa_id`
+  dizem a qual empresa cada lançamento/despesa pertence.
+- Ao faturar OS, finalizar venda ou lançar conta a pagar, o usuário
+  escolhe a empresa no formulário (FormFaturamento, FormFinalizarVenda,
+  FormContaPagar, FormDespesaFixa) — se só existe uma empresa
+  cadastrada, ela é pré-selecionada automaticamente.
+- Dashboard mostra o monitor MEI de TODAS as empresas lado a lado
+  (MonitorMeiEmpresa) + os KPIs financeiros detalhados de UMA empresa
+  selecionada por vez. Fluxo de Caixa e a lista do Financeiro também
+  filtram por empresa.
+- ATENÇÃO (avisado ao usuário, decisão dele/contador): se a intenção for
+  a MESMA operação faturando por dois CNPJs MEI só pra dividir e não
+  estourar o limite de cada um, isso pode ser visto pela Receita como
+  faturamento de um negócio só (risco de descaracterização do MEI). Essa
+  feature serve tanto pra esse uso quanto pra empresas legitimamente
+  distintas — não é papel do sistema decidir isso.
+
 ### Estoque (feature já pronta em src/features/estoque)
 
 - O saldo real vem SEMPRE do razão (movimentacao_estoque). pecas.qtd é só

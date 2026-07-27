@@ -3,7 +3,9 @@
  * PÁGINA — DESPESAS FIXAS
  * ============================================================================
  * Cadastra as despesas recorrentes (aluguel, internet, DAS...) e gera as
- * contas do mês (lançamentos em Financeiro) com um clique.
+ * contas do mês (lançamentos em Financeiro) com um clique. Cada despesa
+ * pertence a uma empresa (CNPJ) — o filtro/seleção de empresa decide tanto o
+ * que aparece na lista quanto pra qual empresa "Gerar contas" vai rodar.
  */
 
 import { useEffect, useState } from 'react';
@@ -18,9 +20,12 @@ import {
   gerarContasDoMes,
   ROTULO_CATEGORIA_DESPESA,
 } from '@/features/despesas';
+import { type Empresa, listarEmpresas } from '@/features/empresa';
 
 export function DespesasFixasPage() {
   const [despesas, setDespesas] = useState<DespesaFixa[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [empresaId, setEmpresaId] = useState('');
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -30,11 +35,18 @@ export function DespesasFixasPage() {
   const [gerando, setGerando] = useState(false);
   const [resultado, setResultado] = useState<ResultadoGeracao | null>(null);
 
+  useEffect(() => {
+    listarEmpresas().then((lista) => {
+      setEmpresas(lista);
+      if (lista.length > 0) setEmpresaId((atual) => atual || lista[0].id!);
+    });
+  }, []);
+
   async function carregar() {
     setCarregando(true);
     setErro(null);
     try {
-      setDespesas(await listarDespesasFixas());
+      setDespesas(await listarDespesasFixas({ empresaId: empresaId || undefined }));
     } catch {
       setErro('Não foi possível carregar as despesas fixas.');
     } finally {
@@ -44,7 +56,8 @@ export function DespesasFixasPage() {
 
   useEffect(() => {
     carregar();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [empresaId]);
 
   async function handleSalvar(d: DespesaFixa) {
     await salvarDespesaFixa(d);
@@ -60,10 +73,11 @@ export function DespesasFixasPage() {
   }
 
   async function handleGerar() {
+    if (!empresaId) return;
     setGerando(true);
     setResultado(null);
     try {
-      setResultado(await gerarContasDoMes());
+      setResultado(await gerarContasDoMes(empresaId));
     } finally {
       setGerando(false);
     }
@@ -73,6 +87,7 @@ export function DespesasFixasPage() {
     return (
       <FormDespesaFixa
         inicial={despesaEmEdicao ?? undefined}
+        empresaIdPadrao={empresaId}
         onSalvar={handleSalvar}
         onCancelar={() => {
           setMostrarForm(false);
@@ -101,7 +116,15 @@ export function DespesasFixasPage() {
       </div>
 
       <div className="pg-filtros">
-        <button type="button" className="dsp-btn-sec" onClick={handleGerar} disabled={gerando}>
+        <select value={empresaId} onChange={(e) => setEmpresaId(e.target.value)}>
+          {empresas.length === 0 && <option value="">Nenhuma empresa cadastrada</option>}
+          {empresas.map((emp) => (
+            <option key={emp.id} value={emp.id}>
+              {emp.nomeFantasia}
+            </option>
+          ))}
+        </select>
+        <button type="button" className="dsp-btn-sec" onClick={handleGerar} disabled={gerando || !empresaId}>
           <RefreshCw size={14} className={gerando ? 'dsp-icone-girando' : ''} />
           {gerando ? 'Gerando…' : `Gerar contas de ${mesReferencia}`}
         </button>

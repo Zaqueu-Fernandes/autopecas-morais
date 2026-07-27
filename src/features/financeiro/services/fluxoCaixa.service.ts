@@ -42,16 +42,14 @@ interface LinhaMovimento {
   data_pagamento: string;
 }
 
-/** `inicio`/`fim` no formato yyyy-mm-dd (inclusive dos dois lados). */
-export async function buscarFluxoCaixa(inicio: string, fim: string): Promise<ResultadoFluxoCaixa> {
+/** `inicio`/`fim` no formato yyyy-mm-dd (inclusive dos dois lados). `empresaId` filtra por empresa. */
+export async function buscarFluxoCaixa(inicio: string, fim: string, empresaId?: string): Promise<ResultadoFluxoCaixa> {
   const inicioISO = new Date(`${inicio}T00:00:00`).toISOString();
   const fimISO = new Date(`${fim}T23:59:59.999`).toISOString();
 
-  const { data: anteriores, error: erroAnteriores } = await supabase
-    .from('financeiro')
-    .select('tipo, valor')
-    .eq('pago', true)
-    .lt('data_pagamento', inicioISO);
+  let queryAnteriores = supabase.from('financeiro').select('tipo, valor').eq('pago', true).lt('data_pagamento', inicioISO);
+  if (empresaId) queryAnteriores = queryAnteriores.eq('empresa_id', empresaId);
+  const { data: anteriores, error: erroAnteriores } = await queryAnteriores;
   if (erroAnteriores) throw erroAnteriores;
 
   const saldoAnterior = (anteriores ?? []).reduce(
@@ -59,13 +57,15 @@ export async function buscarFluxoCaixa(inicio: string, fim: string): Promise<Res
     0,
   );
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('financeiro')
     .select('id, tipo, categoria, descricao, valor, data_pagamento')
     .eq('pago', true)
     .gte('data_pagamento', inicioISO)
     .lte('data_pagamento', fimISO)
     .order('data_pagamento', { ascending: true });
+  if (empresaId) query = query.eq('empresa_id', empresaId);
+  const { data, error } = await query;
   if (error) throw error;
 
   let saldo = saldoAnterior;

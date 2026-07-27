@@ -26,8 +26,9 @@ function calcularVencimento(referencia: Date, diaVencimento: number): string {
   return data.toISOString().slice(0, 10);
 }
 
-export async function gerarContasDoMes(referencia: Date = new Date()): Promise<ResultadoGeracao> {
-  const despesas = await listarDespesasFixas({ somenteAtivas: true });
+/** Gera as contas do mês só pra despesas de uma empresa (CNPJ) específica. */
+export async function gerarContasDoMes(empresaId: string, referencia: Date = new Date()): Promise<ResultadoGeracao> {
+  const despesas = await listarDespesasFixas({ somenteAtivas: true, empresaId });
   let criadas = 0;
   let jaExistiam = 0;
 
@@ -35,6 +36,7 @@ export async function gerarContasDoMes(referencia: Date = new Date()): Promise<R
     const vencimento = calcularVencimento(referencia, Number(despesa.diaVencimento));
     try {
       await criarLancamento({
+        empresaId: despesa.empresaId,
         tipo: 'pagar',
         categoria: despesa.categoria,
         descricao: despesa.descricao,

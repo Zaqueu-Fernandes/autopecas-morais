@@ -26,6 +26,7 @@ export async function faturarOS(input: {
   const { osId, clienteId, valorTotal, dados } = input;
 
   const base = {
+    empresaId: dados.empresaId,
     tipo: 'receber' as const,
     categoria: 'servico_os' as const,
     descricao: `Faturamento da OS`,

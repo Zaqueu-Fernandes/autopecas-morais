@@ -1,45 +1,47 @@
 /**
  * ============================================================================
- * FORMULÁRIO — CONFIGURAÇÃO DA EMPRESA
+ * FORMULÁRIO — EMPRESA (CNPJ/MEI)
  * ============================================================================
  * Regime (MEI ↔ ME) é o interruptor central da arquitetura de negócio (ver
- * CLAUDE.md) — migrar de MEI pra ME é só trocar esse campo aqui.
+ * CLAUDE.md) — migrar de MEI pra ME é só trocar esse campo aqui. Cada
+ * empresa cadastrada tem seu próprio faturamento monitorado separadamente
+ * (ver Dashboard) — útil pra quem opera mais de um CNPJ na mesma oficina.
  */
 
 import { useState } from 'react';
 import {
-  type ConfigEmpresa,
+  type Empresa,
   type RegimeTributario,
-  validarConfigEmpresa,
+  validarEmpresa,
   semErros,
   ROTULO_REGIME,
   type ErrosValidacao,
 } from '../types';
 
 interface Props {
-  inicial: ConfigEmpresa;
-  onSalvar: (c: ConfigEmpresa) => Promise<void> | void;
+  inicial: Empresa;
+  onSalvar: (e: Empresa) => Promise<void> | void;
   onCancelar?: () => void;
 }
 
 const REGIMES = Object.keys(ROTULO_REGIME) as RegimeTributario[];
 
-export function FormConfigEmpresa({ inicial, onSalvar, onCancelar }: Props) {
-  const [config, setConfig] = useState<ConfigEmpresa>(inicial);
+export function FormEmpresa({ inicial, onSalvar, onCancelar }: Props) {
+  const [empresa, setEmpresa] = useState<Empresa>(inicial);
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [salvando, setSalvando] = useState(false);
 
-  function set(patch: Partial<ConfigEmpresa>) {
-    setConfig((c) => ({ ...c, ...patch }));
+  function set(patch: Partial<Empresa>) {
+    setEmpresa((e) => ({ ...e, ...patch }));
   }
 
   async function handleSalvar() {
-    const e = validarConfigEmpresa(config);
+    const e = validarEmpresa(empresa);
     setErros(e);
     if (!semErros(e)) return;
     setSalvando(true);
     try {
-      await onSalvar(config);
+      await onSalvar(empresa);
     } finally {
       setSalvando(false);
     }
@@ -48,18 +50,30 @@ export function FormConfigEmpresa({ inicial, onSalvar, onCancelar }: Props) {
   return (
     <div className="emp-form">
       <div className="emp-form-head">
-        <h2>{config.id ? 'Editar configuração da empresa' : 'Configurar empresa'}</h2>
+        <h2>{empresa.id ? 'Editar empresa' : 'Nova empresa'}</h2>
       </div>
 
       <div className="emp-campo">
-        <label>Nome da oficina *</label>
+        <label>Nome da empresa *</label>
         <input
-          value={config.nomeFantasia}
+          value={empresa.nomeFantasia}
           onChange={(e) => set({ nomeFantasia: e.target.value })}
           aria-invalid={!!erros.nomeFantasia}
           autoFocus
         />
         {erros.nomeFantasia && <span className="emp-erro">{erros.nomeFantasia}</span>}
+      </div>
+
+      <div className="emp-campo">
+        <label>CNPJ *</label>
+        <input
+          inputMode="numeric"
+          value={empresa.cnpj}
+          onChange={(e) => set({ cnpj: e.target.value })}
+          placeholder="00.000.000/0001-00"
+          aria-invalid={!!erros.cnpj}
+        />
+        {erros.cnpj && <span className="emp-erro">{erros.cnpj}</span>}
       </div>
 
       <div className="emp-campo">
@@ -69,7 +83,7 @@ export function FormConfigEmpresa({ inicial, onSalvar, onCancelar }: Props) {
             <button
               key={r}
               type="button"
-              className={config.regime === r ? 'ativo' : ''}
+              className={empresa.regime === r ? 'ativo' : ''}
               onClick={() => set({ regime: r })}
             >
               {ROTULO_REGIME[r]}
@@ -78,12 +92,12 @@ export function FormConfigEmpresa({ inicial, onSalvar, onCancelar }: Props) {
         </div>
       </div>
 
-      {config.regime === 'MEI' && (
+      {empresa.regime === 'MEI' && (
         <div className="emp-campo">
           <label>Limite anual de faturamento MEI (R$) *</label>
           <input
             inputMode="decimal"
-            value={config.limiteAnualMei}
+            value={empresa.limiteAnualMei}
             onChange={(e) => set({ limiteAnualMei: e.target.value })}
             aria-invalid={!!erros.limiteAnualMei}
           />

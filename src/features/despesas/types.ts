@@ -27,6 +27,8 @@ export const ROTULO_CATEGORIA_DESPESA: Record<CategoriaDespesaFixa, string> = {
 
 export interface DespesaFixa {
   id?: string;
+  /** A qual empresa (CNPJ) esta despesa pertence — as contas geradas herdam essa empresa. */
+  empresaId: string;
   descricao: string;
   categoria: CategoriaDespesaFixa;
   valor: string; // texto no formulário; vira number ao salvar
@@ -37,6 +39,7 @@ export interface DespesaFixa {
 }
 
 export const despesaFixaVazia = (): DespesaFixa => ({
+  empresaId: '',
   descricao: '',
   categoria: 'despesa_fixa',
   valor: '',
@@ -51,6 +54,7 @@ export const semErros = (e: ErrosValidacao) => Object.keys(e).length === 0;
 
 export function validarDespesaFixa(d: DespesaFixa): ErrosValidacao {
   const erros: ErrosValidacao = {};
+  if (!d.empresaId) erros.empresaId = 'Selecione a empresa.';
   if (!d.descricao.trim()) erros.descricao = 'Descreva a despesa.';
   const valor = Number(d.valor);
   if (!d.valor.trim() || Number.isNaN(valor) || valor <= 0)

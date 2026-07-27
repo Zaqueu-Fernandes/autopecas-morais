@@ -1,20 +1,20 @@
 /**
  * ============================================================================
- * EMPRESA (configuração) — PONTO DE ENTRADA
+ * EMPRESA (multi-CNPJ) — PONTO DE ENTRADA
  * ============================================================================
- * import { FormConfigEmpresa, buscarConfigEmpresa } from '@/features/empresa';
+ * import { FormEmpresa, listarEmpresas } from '@/features/empresa';
  * import '@/features/empresa/empresa.css';
  */
 
-export { FormConfigEmpresa } from './components/FormConfigEmpresa';
+export { FormEmpresa } from './components/FormEmpresa';
 export * from './services/empresa.service';
 
 export {
-  configEmpresaVazia,
-  validarConfigEmpresa,
+  empresaVazia,
+  validarEmpresa,
   semErros,
   ROTULO_REGIME,
   type RegimeTributario,
-  type ConfigEmpresa,
+  type Empresa,
   type ErrosValidacao,
 } from './types';

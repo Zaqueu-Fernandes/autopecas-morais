@@ -2,9 +2,9 @@
  * ============================================================================
  * PÁGINA — FINANCEIRO
  * ============================================================================
- * Lista lançamentos (a pagar e a receber) com filtro por tipo/status. Permite
- * lançar uma conta a pagar manual e quitar (marcar como pago/recebido)
- * qualquer lançamento pendente.
+ * Lista lançamentos (a pagar e a receber) com filtro por tipo/status/empresa.
+ * Permite lançar uma conta a pagar manual e quitar (marcar como pago/
+ * recebido) qualquer lançamento pendente.
  */
 
 import { useEffect, useState } from 'react';
@@ -23,6 +23,7 @@ import {
   ROTULO_CATEGORIA_PAGAR,
   ROTULO_CATEGORIA_RECEBER,
 } from '@/features/financeiro';
+import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { buscarResumoDashboard } from '@/features/dashboard';
 
 type FiltroTipo = TipoFinanceiro | 'todos';
@@ -48,24 +49,34 @@ function primeiroDiaDoMes(): string {
 
 export function FinanceiroPage() {
   const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>('todos');
   const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>('pendentes');
+  const [filtroEmpresa, setFiltroEmpresa] = useState<string>('');
 
   const [mostrarForm, setMostrarForm] = useState(false);
   const [lancamentoParaQuitar, setLancamentoParaQuitar] = useState<LancamentoFinanceiro | null>(null);
+
+  function nomeEmpresa(id: string | null): string {
+    return empresas.find((e) => e.id === id)?.nomeFantasia ?? '—';
+  }
 
   async function carregar() {
     setCarregando(true);
     setErro(null);
     try {
-      setLancamentos(
-        await listarFinanceiro({
+      const [lista, listaEmpresas] = await Promise.all([
+        listarFinanceiro({
           tipo: filtroTipo === 'todos' ? undefined : filtroTipo,
           pago: filtroStatus === 'todos' ? undefined : filtroStatus === 'quitados',
+          empresaId: filtroEmpresa || undefined,
         }),
-      );
+        listarEmpresas(),
+      ]);
+      setLancamentos(lista);
+      setEmpresas(listaEmpresas);
     } catch {
       setErro('Não foi possível carregar o financeiro.');
     } finally {
@@ -76,21 +87,22 @@ export function FinanceiroPage() {
   useEffect(() => {
     carregar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtroTipo, filtroStatus]);
+  }, [filtroTipo, filtroStatus, filtroEmpresa]);
 
   async function handleSalvarContaPagar(d: DadosContaPagar) {
     if (caiNoMesAtual(d.vencimento)) {
-      const resumo = await buscarResumoDashboard();
+      const resumo = await buscarResumoDashboard(d.empresaId);
       const projetado = resumo.resultadoMes - Number(d.valor);
       if (resumo.resultadoMes >= 0 && projetado < 0) {
         const confirmar = window.confirm(
-          `Essa conta vai deixar o resultado do mês negativo (R$ ${projetado.toFixed(2)}). Confirma mesmo assim?`,
+          `Essa conta vai deixar o resultado do mês desta empresa negativo (R$ ${projetado.toFixed(2)}). Confirma mesmo assim?`,
         );
         if (!confirmar) return;
       }
     }
 
     await criarLancamento({
+      empresaId: d.empresaId,
       tipo: 'pagar',
       categoria: d.categoria,
       descricao: d.descricao,
@@ -115,11 +127,11 @@ export function FinanceiroPage() {
 
     if (lancamentoParaQuitar.tipo === 'pagar') {
       const hoje = new Date().toISOString().slice(0, 10);
-      const fluxo = await buscarFluxoCaixa(primeiroDiaDoMes(), hoje);
+      const fluxo = await buscarFluxoCaixa(primeiroDiaDoMes(), hoje, lancamentoParaQuitar.empresaId ?? undefined);
       const projetado = fluxo.saldoFinal - lancamentoParaQuitar.valor;
       if (fluxo.saldoFinal >= 0 && projetado < 0) {
         const confirmar = window.confirm(
-          `Esse pagamento vai deixar o saldo de caixa do mês negativo (R$ ${projetado.toFixed(2)}). Confirma mesmo assim?`,
+          `Esse pagamento vai deixar o saldo de caixa do mês desta empresa negativo (R$ ${projetado.toFixed(2)}). Confirma mesmo assim?`,
         );
         if (!confirmar) return;
       }
@@ -154,6 +166,14 @@ export function FinanceiroPage() {
       </div>
 
       <div className="pg-filtros">
+        <select value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)}>
+          <option value="">Todas as empresas</option>
+          {empresas.map((emp) => (
+            <option key={emp.id} value={emp.id}>
+              {emp.nomeFantasia}
+            </option>
+          ))}
+        </select>
         <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value as FiltroTipo)}>
           <option value="todos">Pagar e receber</option>
           <option value="pagar">Só a pagar</option>
@@ -173,6 +193,7 @@ export function FinanceiroPage() {
         <table className="pg-tabela">
           <thead>
             <tr>
+              <th>Empresa</th>
               <th>Tipo</th>
               <th>Categoria</th>
               <th>Descrição</th>
@@ -185,6 +206,7 @@ export function FinanceiroPage() {
           <tbody>
             {lancamentos.map((l) => (
               <tr key={l.id}>
+                <td>{nomeEmpresa(l.empresaId)}</td>
                 <td>
                   <span className={`fin-badge-tipo fin-badge-${l.tipo}`}>
                     {l.tipo === 'pagar' ? 'Pagar' : 'Receber'}
@@ -210,7 +232,7 @@ export function FinanceiroPage() {
             ))}
             {lancamentos.length === 0 && (
               <tr>
-                <td colSpan={7}>Nenhum lançamento encontrado.</td>
+                <td colSpan={8}>Nenhum lançamento encontrado.</td>
               </tr>
             )}
           </tbody>
