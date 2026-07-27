@@ -36,13 +36,19 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 - Já capturar no MEI os dados que o ME vai precisar (endereço completo,
   tipo PF/PJ do cliente, separação peça x serviço).
 
-### Estoque
+### Estoque (feature já pronta em src/features/estoque)
 
 - O saldo real vem SEMPRE do razão (movimentacao_estoque). pecas.qtd é só
   cache. Nunca editar pecas.qtd na mão — sempre via movimento.
 - Baixa de peça acontece no momento do USO (na OS ou venda), não no pagamento.
+  A tela de Estoque só oferece Entrada (compra) e Ajuste (correção manual,
+  com motivo obrigatório); registrarSaida existe no service mas fica reservado
+  para as features de OS e Venda de balcão, que sabem a origem da baixa.
 - Custo: modelo SIMPLES — último custo sobrescreve pecas.preco_custo. Mas
   gravar o custo histórico em movimentacao_estoque.custo_unit sempre.
+- movimentacao_estoque é um razão contábil (append-only): a aplicação só
+  cria linhas, nunca edita/apaga uma movimentação existente.
+- Peça não é excluída (pode ter histórico) — só desativada (pecas.ativo).
 
 ### Ordem de Serviço
 
