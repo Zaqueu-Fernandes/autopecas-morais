@@ -6,10 +6,10 @@
  * import '@/cadastros/cadastros.css';
  */
 
-export { FormCliente } from './FormCliente';
-export { FormFornecedor } from './FormFornecedor';
-export { CamposEndereco } from './CamposEndereco';
-export { buscarCEP, formatarCEP, limparCEP } from './cep';
+export { FormCliente } from './components/FormCliente';
+export { FormFornecedor } from './components/FormFornecedor';
+export { CamposEndereco } from './components/CamposEndereco';
+export { buscarCEP, formatarCEP, limparCEP } from './services/cep';
 export type { ResultadoCEP, EnderecoViaCEP } from './cep';
 export {
   clienteVazio,

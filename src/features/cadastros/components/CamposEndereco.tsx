@@ -11,8 +11,8 @@
  */
 
 import React, { useRef, useState } from 'react';
-import type { Endereco, ErrosValidacao } from './types';
-import { buscarCEP, formatarCEP } from './cep';
+import type { Endereco, ErrosValidacao } from '../types';
+import { buscarCEP, formatarCEP } from '../services/cep';
 
 interface Props {
   valor: Endereco;

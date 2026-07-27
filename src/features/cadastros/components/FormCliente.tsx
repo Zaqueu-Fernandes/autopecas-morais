@@ -16,7 +16,7 @@ import {
   validarCliente,
   semErros,
   type ErrosValidacao,
-} from './types';
+} from '../types';
 import { CamposEndereco } from './CamposEndereco';
 
 interface Props {
