@@ -71,6 +71,9 @@
   margin-top: 16px;
 }
 .os-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--os-btn);
   color: var(--os-btn-texto);
   border: 0;
@@ -79,9 +82,16 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(20, 20, 20, .08);
+  transition: box-shadow .15s ease, filter .15s ease, transform .05s ease;
 }
+.os-btn:hover:not(:disabled) { box-shadow: 0 2px 6px rgba(20, 20, 20, .14); filter: brightness(1.06); }
+.os-btn:active:not(:disabled) { transform: scale(.97); }
 .os-btn:disabled { opacity: .6; cursor: default; }
 .os-btn-sec {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--os-sec);
   color: var(--os-texto);
   border: 0;
@@ -89,7 +99,10 @@
   padding: 8px 14px;
   font-size: 13px;
   cursor: pointer;
+  transition: filter .15s ease, transform .05s ease;
 }
+.os-btn-sec:hover { filter: brightness(.96); }
+.os-btn-sec:active { transform: scale(.97); }
 
 /* Itens da OS */
 .os-itens { font-size: 13px; color: #1f2430; }
@@ -120,13 +133,19 @@
 .os-itens-valor { font-weight: 600; text-align: right; }
 .os-itens-motivo { font-size: 11px; color: #5b6270; text-decoration: none; }
 .os-itens-lista li button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   border: 0;
   background: none;
   color: #dc2626;
   font-size: 12px;
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background-color .12s ease;
 }
+.os-itens-lista li button:hover { background: #fee2e2; }
 .os-itens-total {
   text-align: right;
   font-weight: 700;
@@ -147,12 +166,19 @@
 /* Detalhe da OS */
 .os-detalhe { max-width: 900px; }
 .os-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   border: 0;
   background: none;
   color: #D62839;
   font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   padding: 0 0 12px;
+  transition: gap .15s ease;
+}
+.os-voltar:hover { gap: 8px;
 }
 .os-detalhe-head {
   display: flex;

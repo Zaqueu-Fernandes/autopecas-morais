@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { ShoppingCart, ArrowRight } from 'lucide-react';
 import {
   type VendaBalcaoResumo,
   DetalheVenda,
@@ -65,7 +66,7 @@ export function VendasBalcaoPage() {
       <div className="pg-head">
         <h1>Vendas de Balcão</h1>
         <button type="button" className="vd-btn" onClick={handleNovaVenda} disabled={abrindo}>
-          {abrindo ? 'Abrindo…' : '+ Nova venda'}
+          <ShoppingCart size={16} /> {abrindo ? 'Abrindo…' : 'Nova venda'}
         </button>
       </div>
 
@@ -94,7 +95,7 @@ export function VendasBalcaoPage() {
                 </td>
                 <td className="pg-acoes-linha">
                   <button type="button" onClick={() => setVendaSelecionadaId(v.id!)}>
-                    Abrir
+                    Abrir <ArrowRight size={13} />
                   </button>
                 </td>
               </tr>

@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { PackagePlus, SlidersHorizontal } from 'lucide-react';
 import type { DadosEntrada, DadosAjuste, Movimentacao } from '../types';
 import { listarMovimentacoesPorPeca, registrarEntrada, registrarAjuste } from '../services/movimentacao.service';
 import { FormMovimentacao } from './FormMovimentacao';
@@ -83,11 +84,11 @@ export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
       <div className="est-movs-head">
         <strong>Movimentações</strong>
         <span className="est-movs-acoes-topo">
-          <button type="button" className="est-btn-sec" onClick={() => setAcaoAberta('entrada')}>
-            + Entrada
+          <button type="button" className="est-btn" onClick={() => setAcaoAberta('entrada')}>
+            <PackagePlus size={16} /> Entrada
           </button>
           <button type="button" className="est-btn-sec" onClick={() => setAcaoAberta('ajuste')}>
-            Ajustar
+            <SlidersHorizontal size={15} /> Ajustar
           </button>
         </span>
       </div>

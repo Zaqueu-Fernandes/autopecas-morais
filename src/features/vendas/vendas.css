@@ -66,6 +66,9 @@
   margin-top: 16px;
 }
 .vd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--vd-btn);
   color: var(--vd-btn-texto);
   border: 0;
@@ -74,9 +77,16 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(20, 20, 20, .08);
+  transition: box-shadow .15s ease, filter .15s ease, transform .05s ease;
 }
+.vd-btn:hover:not(:disabled) { box-shadow: 0 2px 6px rgba(20, 20, 20, .14); filter: brightness(1.06); }
+.vd-btn:active:not(:disabled) { transform: scale(.97); }
 .vd-btn:disabled { opacity: .6; cursor: default; }
 .vd-btn-sec {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--vd-sec);
   color: var(--vd-texto);
   border: 0;
@@ -84,7 +94,10 @@
   padding: 8px 14px;
   font-size: 13px;
   cursor: pointer;
+  transition: filter .15s ease, transform .05s ease;
 }
+.vd-btn-sec:hover { filter: brightness(.96); }
+.vd-btn-sec:active { transform: scale(.97); }
 
 /* Itens da venda */
 .vd-itens { font-size: 13px; color: #1f2430; }
@@ -113,13 +126,19 @@
 .vd-itens-valor { font-weight: 600; text-align: right; }
 .vd-itens-motivo { font-size: 11px; color: #5b6270; text-decoration: none; }
 .vd-itens-lista li button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   border: 0;
   background: none;
   color: #dc2626;
   font-size: 12px;
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background-color .12s ease;
 }
+.vd-itens-lista li button:hover { background: #fee2e2; }
 .vd-itens-total {
   text-align: right;
   font-weight: 700;
@@ -130,13 +149,19 @@
 /* Detalhe da venda */
 .vd-detalhe { max-width: 900px; }
 .vd-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   border: 0;
   background: none;
   color: #D62839;
   font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   padding: 0 0 12px;
+  transition: gap .15s ease;
 }
+.vd-voltar:hover { gap: 8px; }
 .vd-detalhe-head {
   display: flex;
   align-items: flex-start;

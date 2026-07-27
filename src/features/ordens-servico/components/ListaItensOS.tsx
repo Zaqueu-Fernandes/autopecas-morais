@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { Trash2, Wrench, PackagePlus } from 'lucide-react';
 import type { DadosItemPeca, DadosItemServico, ItemOS } from '../types';
 import { listarItensPorOS, adicionarItemPeca, adicionarItemServico, removerItem } from '../services/itens.service';
 import { FormItemOS } from './FormItemOS';
@@ -84,11 +85,11 @@ export function ListaItensOS({ osId, bloqueado = false, aoAtualizarTotal }: Prop
         <strong>Itens</strong>
         {!bloqueado && (
           <span className="os-itens-acoes-topo">
-            <button type="button" className="os-btn-sec" onClick={() => setAcaoAberta('peca')}>
-              + Peça
+            <button type="button" className="os-btn" onClick={() => setAcaoAberta('peca')}>
+              <PackagePlus size={16} /> Peça
             </button>
-            <button type="button" className="os-btn-sec" onClick={() => setAcaoAberta('servico')}>
-              + Serviço
+            <button type="button" className="os-btn" onClick={() => setAcaoAberta('servico')}>
+              <Wrench size={16} /> Serviço
             </button>
           </span>
         )}
@@ -113,8 +114,8 @@ export function ListaItensOS({ osId, bloqueado = false, aoAtualizarTotal }: Prop
                 {item.removido ? (
                   <span className="os-itens-motivo">Removido: {item.motivoRemocao}</span>
                 ) : !bloqueado ? (
-                  <button type="button" onClick={() => handleRemover(item)}>
-                    Remover
+                  <button type="button" className="os-itens-remover" onClick={() => handleRemover(item)}>
+                    <Trash2 size={14} /> Remover
                   </button>
                 ) : (
                   <span />

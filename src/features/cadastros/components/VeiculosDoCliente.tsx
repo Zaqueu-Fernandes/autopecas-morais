@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { CarFront, Pencil, Trash2 } from 'lucide-react';
 import type { Veiculo } from '../types';
 import {
   listarVeiculosPorCliente,
@@ -76,13 +77,13 @@ export function VeiculosDoCliente({ clienteId }: Props) {
         <strong>Veículos</strong>
         <button
           type="button"
-          className="cad-btn-sec"
+          className="cad-btn"
           onClick={() => {
             setVeiculoEmEdicao(null);
             setMostrarForm(true);
           }}
         >
-          + Novo veículo
+          <CarFront size={16} /> Novo veículo
         </button>
       </div>
 
@@ -110,10 +111,10 @@ export function VeiculosDoCliente({ clienteId }: Props) {
                     setMostrarForm(true);
                   }}
                 >
-                  Editar
+                  <Pencil size={13} /> Editar
                 </button>
                 <button type="button" onClick={() => handleExcluir(v.id!)}>
-                  Excluir
+                  <Trash2 size={13} /> Excluir
                 </button>
               </span>
             </li>

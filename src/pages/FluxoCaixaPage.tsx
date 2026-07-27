@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { History, TrendingUp, TrendingDown, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import {
   type ResultadoFluxoCaixa,
   type CategoriaPagar,
@@ -80,13 +81,26 @@ export function FluxoCaixaPage() {
       {!carregando && !erro && resultado && (
         <>
           <div className="dash-grid">
-            <CartaoResumo titulo="Saldo anterior" valor={`R$ ${resultado.saldoAnterior.toFixed(2)}`} />
-            <CartaoResumo titulo="Entradas no período" valor={`R$ ${resultado.totalEntradas.toFixed(2)}`} />
-            <CartaoResumo titulo="Saídas no período" valor={`R$ ${resultado.totalSaidas.toFixed(2)}`} />
+            <CartaoResumo
+              titulo="Saldo anterior"
+              valor={`R$ ${resultado.saldoAnterior.toFixed(2)}`}
+              icone={<History size={15} />}
+            />
+            <CartaoResumo
+              titulo="Entradas no período"
+              valor={`R$ ${resultado.totalEntradas.toFixed(2)}`}
+              icone={<ArrowDownCircle size={15} />}
+            />
+            <CartaoResumo
+              titulo="Saídas no período"
+              valor={`R$ ${resultado.totalSaidas.toFixed(2)}`}
+              icone={<ArrowUpCircle size={15} />}
+            />
             <CartaoResumo
               titulo="Saldo final"
               valor={`R$ ${resultado.saldoFinal.toFixed(2)}`}
               tom={resultado.saldoFinal < 0 ? 'perigo' : 'neutro'}
+              icone={resultado.saldoFinal < 0 ? <TrendingDown size={15} /> : <TrendingUp size={15} />}
             />
           </div>
 

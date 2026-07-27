@@ -11,7 +11,9 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 - React + TypeScript + Vite
 - Supabase (Postgres + Auth + Storage)
 - PWA (instalável, funciona offline nos cadastros/consultas)
-- SEM bibliotecas de UI pesadas — CSS próprio, componentes simples
+- SEM bibliotecas de UI pesadas — CSS próprio, componentes simples.
+  Exceção: `lucide-react` pra ícones (só ícones, sem componentes/estilo
+  próprio — não conta como framework de UI).
 
 ## Regras de código (IMPORTANTES)
 

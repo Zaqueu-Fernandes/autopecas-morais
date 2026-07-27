@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { Search, ClipboardPlus, ArrowRight } from 'lucide-react';
 import {
   type OrdemServicoResumo,
   type StatusOS,
@@ -83,17 +84,20 @@ export function OrdensServicoPage() {
       <div className="pg-head">
         <h1>Ordens de Serviço</h1>
         <button type="button" className="os-btn" onClick={() => setMostrarForm(true)}>
-          + Nova OS
+          <ClipboardPlus size={16} /> Nova OS
         </button>
       </div>
 
       <div className="pg-filtros">
-        <input
-          className="pg-busca"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          placeholder="Buscar por cliente, placa ou número…"
-        />
+        <div className="pg-busca-wrap">
+          <Search size={16} className="pg-busca-icone" />
+          <input
+            className="pg-busca"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar por cliente, placa ou número…"
+          />
+        </div>
         <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value as StatusOS | 'todas')}>
           {OPCOES_STATUS.map((s) => (
             <option key={s} value={s}>
@@ -132,7 +136,7 @@ export function OrdensServicoPage() {
                 <td>{os.dataAbertura && new Date(os.dataAbertura).toLocaleDateString('pt-BR')}</td>
                 <td className="pg-acoes-linha">
                   <button type="button" onClick={() => setOsSelecionadaId(os.id!)}>
-                    Abrir
+                    Abrir <ArrowRight size={13} />
                   </button>
                 </td>
               </tr>

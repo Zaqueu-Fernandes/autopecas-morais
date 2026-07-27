@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { ArrowLeft, ArrowRight, Receipt } from 'lucide-react';
 import { ROTULO_STATUS_OS, PROXIMO_STATUS, type OrdemServicoResumo } from '../types';
 import { buscarOSPorId, avancarStatusOS } from '../services/os.service';
 import { ListaItensOS } from './ListaItensOS';
@@ -69,7 +70,7 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
   return (
     <div className="os-detalhe">
       <button type="button" className="os-voltar" onClick={aoVoltar}>
-        ← Voltar
+        <ArrowLeft size={15} /> Voltar
       </button>
 
       <div className="os-detalhe-head">
@@ -83,11 +84,12 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
           {proximoStatus && (
             <button type="button" className="os-btn" onClick={handleAvancar} disabled={avancando}>
               {avancando ? 'Avançando…' : `Avançar para ${ROTULO_STATUS_OS[proximoStatus]}`}
+              {!avancando && <ArrowRight size={16} />}
             </button>
           )}
           {podeFaturar && !mostrarFaturamento && (
             <button type="button" className="os-btn" onClick={() => setMostrarFaturamento(true)}>
-              Faturar OS
+              <Receipt size={16} /> Faturar OS
             </button>
           )}
         </div>

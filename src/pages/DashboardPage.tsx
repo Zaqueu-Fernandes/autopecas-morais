@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { Settings, Wallet, Receipt, Scale, CalendarRange, HandCoins, FileClock, AlertTriangle } from 'lucide-react';
 import {
   type ConfigEmpresa,
   configEmpresaVazia,
@@ -69,7 +70,7 @@ export function DashboardPage() {
       <div className="pg-head">
         <h1>Dashboard</h1>
         <button type="button" className="emp-btn-sec" onClick={() => setMostrarConfig(true)}>
-          Configurar empresa
+          <Settings size={15} /> Configurar empresa
         </button>
       </div>
 
@@ -80,20 +81,42 @@ export function DashboardPage() {
       />
 
       <div className="dash-grid">
-        <CartaoResumo titulo="Faturamento do mês" valor={`R$ ${resumo!.faturamentoMes.toFixed(2)}`} />
-        <CartaoResumo titulo="Despesas do mês" valor={`R$ ${resumo!.despesasMes.toFixed(2)}`} />
+        <CartaoResumo
+          titulo="Faturamento do mês"
+          valor={`R$ ${resumo!.faturamentoMes.toFixed(2)}`}
+          icone={<Wallet size={15} />}
+        />
+        <CartaoResumo
+          titulo="Despesas do mês"
+          valor={`R$ ${resumo!.despesasMes.toFixed(2)}`}
+          icone={<Receipt size={15} />}
+        />
         <CartaoResumo
           titulo="Resultado do mês"
           valor={`R$ ${resumo!.resultadoMes.toFixed(2)}`}
           tom={resumo!.resultadoMes < 0 ? 'perigo' : 'neutro'}
+          icone={<Scale size={15} />}
         />
-        <CartaoResumo titulo="Faturamento do ano" valor={`R$ ${resumo!.faturamentoAno.toFixed(2)}`} />
-        <CartaoResumo titulo="A receber (pendente)" valor={`R$ ${resumo!.aReceberPendente.toFixed(2)}`} />
-        <CartaoResumo titulo="A pagar (pendente)" valor={`R$ ${resumo!.aPagarPendente.toFixed(2)}`} />
+        <CartaoResumo
+          titulo="Faturamento do ano"
+          valor={`R$ ${resumo!.faturamentoAno.toFixed(2)}`}
+          icone={<CalendarRange size={15} />}
+        />
+        <CartaoResumo
+          titulo="A receber (pendente)"
+          valor={`R$ ${resumo!.aReceberPendente.toFixed(2)}`}
+          icone={<HandCoins size={15} />}
+        />
+        <CartaoResumo
+          titulo="A pagar (pendente)"
+          valor={`R$ ${resumo!.aPagarPendente.toFixed(2)}`}
+          icone={<FileClock size={15} />}
+        />
         <CartaoResumo
           titulo="Contas atrasadas"
           valor={`${resumo!.aPagarVencidoQtd} (R$ ${resumo!.aPagarVencidoValor.toFixed(2)})`}
           tom={resumo!.aPagarVencidoQtd > 0 ? 'perigo' : 'neutro'}
+          icone={<AlertTriangle size={15} />}
         />
       </div>
       {resumo!.resultadoMes < 0 && (

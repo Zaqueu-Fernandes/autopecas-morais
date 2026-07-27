@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { Search, Truck, Pencil } from 'lucide-react';
 import {
   type Fornecedor,
   FormFornecedor,
@@ -79,16 +80,19 @@ export function FornecedoresPage() {
             setMostrarForm(true);
           }}
         >
-          + Novo fornecedor
+          <Truck size={16} /> Novo fornecedor
         </button>
       </div>
 
-      <input
-        className="pg-busca"
-        value={busca}
-        onChange={(e) => setBusca(e.target.value)}
-        placeholder="Buscar por nome, telefone ou CNPJ…"
-      />
+      <div className="pg-busca-wrap">
+        <Search size={16} className="pg-busca-icone" />
+        <input
+          className="pg-busca"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar por nome, telefone ou CNPJ…"
+        />
+      </div>
 
       {carregando && <p>Carregando…</p>}
       {erro && <p className="cad-erro">{erro}</p>}
@@ -117,7 +121,7 @@ export function FornecedoresPage() {
                       setMostrarForm(true);
                     }}
                   >
-                    Editar
+                    <Pencil size={13} /> Editar
                   </button>
                 </td>
               </tr>

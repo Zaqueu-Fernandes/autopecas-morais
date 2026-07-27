@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { ReceiptText, RefreshCw, Pencil, Ban } from 'lucide-react';
 import {
   type DespesaFixa,
   type ResultadoGeracao,
@@ -95,12 +96,13 @@ export function DespesasFixasPage() {
             setMostrarForm(true);
           }}
         >
-          + Nova despesa fixa
+          <ReceiptText size={16} /> Nova despesa fixa
         </button>
       </div>
 
       <div className="pg-filtros">
         <button type="button" className="dsp-btn-sec" onClick={handleGerar} disabled={gerando}>
+          <RefreshCw size={14} className={gerando ? 'dsp-icone-girando' : ''} />
           {gerando ? 'Gerando…' : `Gerar contas de ${mesReferencia}`}
         </button>
       </div>
@@ -141,10 +143,10 @@ export function DespesasFixasPage() {
                       setMostrarForm(true);
                     }}
                   >
-                    Editar
+                    <Pencil size={13} /> Editar
                   </button>
                   <button type="button" onClick={() => handleDesativar(d.id!)}>
-                    Desativar
+                    <Ban size={13} /> Desativar
                   </button>
                 </td>
               </tr>

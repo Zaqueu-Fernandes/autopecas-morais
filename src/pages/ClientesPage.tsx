@@ -7,6 +7,7 @@
  */
 
 import { Fragment, useEffect, useState } from 'react';
+import { Search, UserPlus, Pencil, CarFront, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   type Cliente,
   FormCliente,
@@ -82,16 +83,19 @@ export function ClientesPage() {
             setMostrarForm(true);
           }}
         >
-          + Novo cliente
+          <UserPlus size={16} /> Novo cliente
         </button>
       </div>
 
-      <input
-        className="pg-busca"
-        value={busca}
-        onChange={(e) => setBusca(e.target.value)}
-        placeholder="Buscar por nome, telefone ou documento…"
-      />
+      <div className="pg-busca-wrap">
+        <Search size={16} className="pg-busca-icone" />
+        <input
+          className="pg-busca"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar por nome, telefone ou documento…"
+        />
+      </div>
 
       {carregando && <p>Carregando…</p>}
       {erro && <p className="cad-erro">{erro}</p>}
@@ -107,41 +111,40 @@ export function ClientesPage() {
             </tr>
           </thead>
           <tbody>
-            {filtrados.map((c) => (
-              <Fragment key={c.id}>
-                <tr>
-                  <td>{c.nome}</td>
-                  <td>{c.telefone || '—'}</td>
-                  <td>{c.documento || '—'}</td>
-                  <td className="pg-acoes-linha">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setClienteEmEdicao(c);
-                        setMostrarForm(true);
-                      }}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setClienteExpandidoId(clienteExpandidoId === c.id ? null : c.id!)
-                      }
-                    >
-                      {clienteExpandidoId === c.id ? 'Ocultar veículos' : 'Veículos'}
-                    </button>
-                  </td>
-                </tr>
-                {clienteExpandidoId === c.id && (
+            {filtrados.map((c) => {
+              const expandido = clienteExpandidoId === c.id;
+              return (
+                <Fragment key={c.id}>
                   <tr>
-                    <td colSpan={4} className="pg-linha-expandida">
-                      <VeiculosDoCliente clienteId={c.id!} />
+                    <td>{c.nome}</td>
+                    <td>{c.telefone || '—'}</td>
+                    <td>{c.documento || '—'}</td>
+                    <td className="pg-acoes-linha">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setClienteEmEdicao(c);
+                          setMostrarForm(true);
+                        }}
+                      >
+                        <Pencil size={13} /> Editar
+                      </button>
+                      <button type="button" onClick={() => setClienteExpandidoId(expandido ? null : c.id!)}>
+                        <CarFront size={13} /> Veículos
+                        {expandido ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                      </button>
                     </td>
                   </tr>
-                )}
-              </Fragment>
-            ))}
+                  {expandido && (
+                    <tr>
+                      <td colSpan={4} className="pg-linha-expandida">
+                        <VeiculosDoCliente clienteId={c.id!} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
             {filtrados.length === 0 && (
               <tr>
                 <td colSpan={4}>Nenhum cliente encontrado.</td>

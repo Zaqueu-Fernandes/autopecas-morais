@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { PackagePlus, Trash2 } from 'lucide-react';
 import type { DadosItemVenda, ItemVenda } from '../types';
 import { listarItensPorVenda, adicionarItemVenda, removerItemVenda } from '../services/itens.service';
 import { FormItemVenda } from './FormItemVenda';
@@ -69,8 +70,8 @@ export function ListaItensVenda({ vendaId, bloqueado = false, aoAtualizarTotal }
       <div className="vd-itens-head">
         <strong>Itens</strong>
         {!bloqueado && (
-          <button type="button" className="vd-btn-sec" onClick={() => setMostrarForm(true)}>
-            + Peça
+          <button type="button" className="vd-btn" onClick={() => setMostrarForm(true)}>
+            <PackagePlus size={16} /> Peça
           </button>
         )}
       </div>
@@ -91,8 +92,8 @@ export function ListaItensVenda({ vendaId, bloqueado = false, aoAtualizarTotal }
                 {item.removido ? (
                   <span className="vd-itens-motivo">Removido: {item.motivoRemocao}</span>
                 ) : !bloqueado ? (
-                  <button type="button" onClick={() => handleRemover(item)}>
-                    Remover
+                  <button type="button" className="vd-itens-remover" onClick={() => handleRemover(item)}>
+                    <Trash2 size={14} /> Remover
                   </button>
                 ) : (
                   <span />

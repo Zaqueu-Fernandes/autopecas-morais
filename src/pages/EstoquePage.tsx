@@ -7,6 +7,7 @@
  */
 
 import { Fragment, useEffect, useState } from 'react';
+import { Search, PackagePlus, Pencil, History, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   type Peca,
   FormPeca,
@@ -78,16 +79,19 @@ export function EstoquePage() {
             setMostrarForm(true);
           }}
         >
-          + Nova peça
+          <PackagePlus size={16} /> Nova peça
         </button>
       </div>
 
-      <input
-        className="pg-busca"
-        value={busca}
-        onChange={(e) => setBusca(e.target.value)}
-        placeholder="Buscar por nome ou código…"
-      />
+      <div className="pg-busca-wrap">
+        <Search size={16} className="pg-busca-icone" />
+        <input
+          className="pg-busca"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar por nome ou código…"
+        />
+      </div>
 
       {carregando && <p>Carregando…</p>}
       {erro && <p className="est-erro">{erro}</p>}
@@ -121,13 +125,14 @@ export function EstoquePage() {
                         setMostrarForm(true);
                       }}
                     >
-                      Editar
+                      <Pencil size={13} /> Editar
                     </button>
                     <button
                       type="button"
                       onClick={() => setPecaExpandidaId(pecaExpandidaId === p.id ? null : p.id!)}
                     >
-                      {pecaExpandidaId === p.id ? 'Ocultar movimentações' : 'Movimentações'}
+                      <History size={13} /> Movimentações
+                      {pecaExpandidaId === p.id ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                     </button>
                   </td>
                 </tr>

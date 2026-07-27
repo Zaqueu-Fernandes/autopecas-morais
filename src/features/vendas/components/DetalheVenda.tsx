@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { ArrowLeft, Receipt } from 'lucide-react';
 import type { VendaBalcaoResumo } from '../types';
 import { buscarVendaPorId, definirClienteVenda } from '../services/vendas.service';
 import { ListaItensVenda } from './ListaItensVenda';
@@ -64,7 +65,7 @@ export function DetalheVenda({ vendaId, aoVoltar }: Props) {
   return (
     <div className="vd-detalhe">
       <button type="button" className="vd-voltar" onClick={aoVoltar}>
-        ← Voltar
+        <ArrowLeft size={15} /> Voltar
       </button>
 
       <div className="vd-detalhe-head">
@@ -77,7 +78,7 @@ export function DetalheVenda({ vendaId, aoVoltar }: Props) {
           </span>
           {!bloqueado && !mostrarFinalizacao && (
             <button type="button" className="vd-btn" onClick={() => setMostrarFinalizacao(true)}>
-              Finalizar venda
+              <Receipt size={16} /> Finalizar venda
             </button>
           )}
         </div>

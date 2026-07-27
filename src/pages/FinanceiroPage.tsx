@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { FilePlus2, CircleDollarSign } from 'lucide-react';
 import {
   type LancamentoFinanceiro,
   type TipoFinanceiro,
@@ -148,7 +149,7 @@ export function FinanceiroPage() {
       <div className="pg-head">
         <h1>Financeiro</h1>
         <button type="button" className="fin-btn" onClick={() => setMostrarForm(true)}>
-          + Nova conta a pagar
+          <FilePlus2 size={16} /> Nova conta a pagar
         </button>
       </div>
 
@@ -201,7 +202,7 @@ export function FinanceiroPage() {
                 <td className="pg-acoes-linha">
                   {!l.pago && (
                     <button type="button" onClick={() => setLancamentoParaQuitar(l)}>
-                      Quitar
+                      <CircleDollarSign size={13} /> Quitar
                     </button>
                   )}
                 </td>
