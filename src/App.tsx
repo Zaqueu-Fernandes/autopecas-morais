@@ -18,6 +18,7 @@ import '@/features/vendas/vendas.css';
 import '@/features/despesas/despesas.css';
 import '@/features/empresa/empresa.css';
 import '@/features/dashboard/dashboard.css';
+import '@/features/importacao-nfe/importacao-nfe.css';
 import { ClientesPage } from '@/pages/ClientesPage';
 import { FornecedoresPage } from '@/pages/FornecedoresPage';
 import { EstoquePage } from '@/pages/EstoquePage';

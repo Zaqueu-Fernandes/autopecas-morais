@@ -62,6 +62,25 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   (digitado, se a peça for nova; cacheado, se estiver editando). O campo
   de preço continua editável manualmente por cima do valor sugerido.
 
+### Importação de XML de NF-e (feature já pronta em src/features/importacao-nfe)
+
+- Só LEITURA de um arquivo XML que o usuário já tem em mãos (nota do
+  fornecedor) — não fala com SEFAZ/webservice nenhum. Não conflita com a
+  proibição de emissão fiscal própria (isso é import, não emissão).
+- Parser (parseNFe.ts) usa o DOMParser nativo do navegador, sem lib
+  externa. Lê infNFe/emit/ide/det/prod e a chave de acesso (protNFe/chNFe
+  ou o atributo Id do infNFe como fallback).
+- Fluxo: escolher XML → sistema tenta casar cada item com uma peça
+  existente pelo código (pecas.codigo == cProd da nota); item sem match
+  vira "criar peça nova"; usuário revisa/edita quantidade e custo linha a
+  linha antes de confirmar. Fornecedor é casado pelo CNPJ (dígitos, sem
+  máscara) ou pode ser cadastrado ali mesmo a partir dos dados da nota.
+- Ao confirmar: cria as peças que faltarem, registra uma ENTRADA
+  (registrarEntrada, feature estoque) por item incluído, e grava a nota
+  em nfe_importadas (chave_acesso é única) — reimportar a mesma nota é
+  bloqueado antes mesmo de mostrar a tela de revisão.
+- Acessível pelo botão "Importar XML" na tela de Estoque.
+
 ### Ordem de Serviço (feature já pronta em src/features/ordens-servico)
 
 - Fluxo: Aberta → Em andamento → Concluída → Faturada.
@@ -185,5 +204,8 @@ Até lá, o sistema gera COMPROVANTE INTERNO ("sem valor fiscal").
      um com a URL/anon key (públicas por natureza) lê e escreve em
      qualquer tabela. Trocar por policies de verdade quando existir
      Supabase Auth.
-8. Fases futuras (fora do MVP): importação XML NF-e, impressão ESC/POS,
-   emissão fiscal (NFC-e/NFS-e via PlugNotas/Focus/eNotas)
+8. Fases futuras (fora do MVP):
+   - ✅ Importação XML NF-e (entrada de estoque) — feature já pronta em
+     src/features/importacao-nfe.
+   - Impressão ESC/POS.
+   - Emissão fiscal (NFC-e/NFS-e via PlugNotas/Focus/eNotas).

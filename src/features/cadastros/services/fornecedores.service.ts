@@ -70,6 +70,18 @@ export async function listarFornecedores(busca?: string): Promise<Fornecedor[]> 
   return (data as LinhaFornecedor[]).map(linhaParaFornecedor);
 }
 
+/**
+ * Busca por CNPJ comparando só os dígitos (o campo pode ter sido digitado
+ * com ou sem máscara) — usado pela importação de XML de NF-e pra saber se o
+ * fornecedor da nota já está cadastrado.
+ */
+export async function buscarFornecedorPorCnpj(cnpj: string): Promise<Fornecedor | null> {
+  const alvo = cnpj.replace(/\D/g, '');
+  if (!alvo) return null;
+  const todos = await listarFornecedores();
+  return todos.find((f) => f.cnpj.replace(/\D/g, '') === alvo) ?? null;
+}
+
 export async function criarFornecedor(fornecedor: Fornecedor): Promise<Fornecedor> {
   const { data, error } = await supabase
     .from('fornecedores')

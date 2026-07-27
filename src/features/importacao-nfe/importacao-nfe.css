@@ -1,0 +1,117 @@
+/* ==========================================================================
+   IMPORTAÇÃO DE XML DE NF-e — estilos base. Prefixo .nfe- pra não colidir
+   com outras features. Reaproveita os botões .est-btn/.est-btn-sec do
+   estoque (mesma tela onde isso é usado).
+   ========================================================================== */
+
+.nfe-form {
+  max-width: 760px;
+  color: #1f2430;
+  font-size: 14px;
+}
+
+.nfe-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.nfe-form-head h2 { font-size: 18px; margin: 0; }
+
+.nfe-tag {
+  font-size: 12px;
+  background: #eef0f3;
+  color: #1f2430;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.nfe-instrucao { color: #5b6270; font-size: 13px; margin: 0 0 16px; max-width: 560px; }
+
+.nfe-upload {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px dashed #d4d7dd;
+  border-radius: 10px;
+  padding: 20px;
+  cursor: pointer;
+  color: #5b6270;
+  transition: border-color .15s ease, background-color .15s ease;
+  margin-bottom: 16px;
+  max-width: 420px;
+}
+.nfe-upload:hover { border-color: #D62839; background: #fef2f2; color: #D62839; }
+
+.nfe-fornecedor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #d4d7dd;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+.nfe-fornecedor div { display: flex; flex-direction: column; flex: 1; }
+.nfe-fornecedor span { font-size: 12px; color: #5b6270; }
+.nfe-fornecedor-status {
+  font-size: 12px;
+  font-weight: 600;
+  color: #166534;
+  background: #dcfce7;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.nfe-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.nfe-tabela th,
+.nfe-tabela td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid #eef0f3;
+  vertical-align: middle;
+}
+.nfe-tabela th { color: #5b6270; font-size: 11px; font-weight: 600; }
+.nfe-tabela select,
+.nfe-tabela input {
+  border: 1px solid #d4d7dd;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-family: inherit;
+  width: 100%;
+}
+.nfe-item-codigo { font-size: 11px; color: #9aa0a6; }
+.nfe-linha-excluida { opacity: .5; }
+
+.nfe-acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+.nfe-concluido {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  color: #166534;
+  padding: 32px 16px;
+}
+.nfe-concluido h2 { margin: 0; color: #1f2430; font-size: 18px; }
+.nfe-concluido p { color: #5b6270; font-size: 13px; margin: 0; }
+
+@media (max-width: 640px) {
+  .nfe-tabela { font-size: 12px; }
+  .nfe-fornecedor { flex-wrap: wrap; }
+}

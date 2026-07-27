@@ -44,6 +44,8 @@ body {
 
 /* Páginas de listagem (Clientes, Fornecedores…) */
 .pg { max-width: 900px; }
+.pg-head-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+
 .pg-head {
   display: flex;
   align-items: center;

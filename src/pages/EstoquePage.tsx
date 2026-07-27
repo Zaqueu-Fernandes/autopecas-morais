@@ -7,7 +7,7 @@
  */
 
 import { Fragment, useEffect, useState } from 'react';
-import { Search, PackagePlus, Pencil, History, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, PackagePlus, Pencil, History, ChevronDown, ChevronUp, FileUp } from 'lucide-react';
 import {
   type Peca,
   FormPeca,
@@ -15,6 +15,7 @@ import {
   listarPecas,
   salvarPeca,
 } from '@/features/estoque';
+import { ImportarXmlNFe } from '@/features/importacao-nfe';
 
 export function EstoquePage() {
   const [pecas, setPecas] = useState<Peca[]>([]);
@@ -23,6 +24,7 @@ export function EstoquePage() {
   const [busca, setBusca] = useState('');
 
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [mostrarImportarNFe, setMostrarImportarNFe] = useState(false);
   const [pecaEmEdicao, setPecaEmEdicao] = useState<Peca | null>(null);
   const [pecaExpandidaId, setPecaExpandidaId] = useState<string | null>(null);
 
@@ -67,20 +69,37 @@ export function EstoquePage() {
     );
   }
 
+  if (mostrarImportarNFe) {
+    return (
+      <ImportarXmlNFe
+        aoConcluir={async () => {
+          setMostrarImportarNFe(false);
+          await carregar();
+        }}
+        aoCancelar={() => setMostrarImportarNFe(false)}
+      />
+    );
+  }
+
   return (
     <div className="pg">
       <div className="pg-head">
         <h1>Estoque</h1>
-        <button
-          type="button"
-          className="est-btn"
-          onClick={() => {
-            setPecaEmEdicao(null);
-            setMostrarForm(true);
-          }}
-        >
-          <PackagePlus size={16} /> Nova peça
-        </button>
+        <div className="pg-head-acoes">
+          <button type="button" className="est-btn-sec" onClick={() => setMostrarImportarNFe(true)}>
+            <FileUp size={16} /> Importar XML
+          </button>
+          <button
+            type="button"
+            className="est-btn"
+            onClick={() => {
+              setPecaEmEdicao(null);
+              setMostrarForm(true);
+            }}
+          >
+            <PackagePlus size={16} /> Nova peça
+          </button>
+        </div>
       </div>
 
       <div className="pg-busca-wrap">
