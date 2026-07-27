@@ -36,7 +36,10 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="app-titulo">Autopeças Morais</h1>
+        <div className="app-titulo-bloco">
+          <h1 className="app-titulo">Autopeças Morais</h1>
+          <p className="app-tagline">Cuidando da vida do seu carro</p>
+        </div>
         <nav className="app-nav">
           {ABAS.map((a) => (
             <button

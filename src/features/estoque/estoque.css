@@ -4,12 +4,12 @@
 
 .est-form {
   --est-borda: #d4d7dd;
-  --est-borda-foco: #2563eb;
+  --est-borda-foco: #D62839;
   --est-erro: #dc2626;
   --est-aviso: #b45309;
   --est-texto: #1f2430;
   --est-label: #5b6270;
-  --est-btn: #2563eb;
+  --est-btn: #D62839;
   --est-btn-texto: #fff;
   --est-sec: #eef0f3;
 
@@ -90,7 +90,7 @@
 .est-campo select:focus,
 .est-campo textarea:focus {
   border-color: var(--est-borda-foco);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
 }
 .est-campo input[aria-invalid="true"],
 .est-campo textarea[aria-invalid="true"] {

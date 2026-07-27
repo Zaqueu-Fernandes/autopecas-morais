@@ -5,12 +5,12 @@
 
 .fin-form {
   --fin-borda: #d4d7dd;
-  --fin-borda-foco: #2563eb;
+  --fin-borda-foco: #D62839;
   --fin-erro: #dc2626;
   --fin-aviso: #b45309;
   --fin-texto: #1f2430;
   --fin-label: #5b6270;
-  --fin-btn: #2563eb;
+  --fin-btn: #D62839;
   --fin-btn-texto: #fff;
   --fin-sec: #eef0f3;
 
@@ -90,7 +90,7 @@
 .fin-campo select:focus,
 .fin-campo textarea:focus {
   border-color: var(--fin-borda-foco);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
 }
 .fin-campo input[aria-invalid="true"],
 .fin-campo select[aria-invalid="true"] {

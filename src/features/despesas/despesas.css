@@ -5,11 +5,11 @@
 
 .dsp-form {
   --dsp-borda: #d4d7dd;
-  --dsp-borda-foco: #2563eb;
+  --dsp-borda-foco: #D62839;
   --dsp-erro: #dc2626;
   --dsp-texto: #1f2430;
   --dsp-label: #5b6270;
-  --dsp-btn: #2563eb;
+  --dsp-btn: #D62839;
   --dsp-btn-texto: #fff;
   --dsp-sec: #eef0f3;
 
@@ -53,7 +53,7 @@
 .dsp-campo select:focus,
 .dsp-campo textarea:focus {
   border-color: var(--dsp-borda-foco);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
 }
 .dsp-campo input[aria-invalid="true"],
 .dsp-campo select[aria-invalid="true"] {

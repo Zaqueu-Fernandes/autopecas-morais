@@ -5,11 +5,11 @@
 
 .vd-form {
   --vd-borda: #d4d7dd;
-  --vd-borda-foco: #2563eb;
+  --vd-borda-foco: #D62839;
   --vd-erro: #dc2626;
   --vd-texto: #1f2430;
   --vd-label: #5b6270;
-  --vd-btn: #2563eb;
+  --vd-btn: #D62839;
   --vd-btn-texto: #fff;
   --vd-sec: #eef0f3;
 
@@ -49,7 +49,7 @@
 .vd-campo input:focus,
 .vd-campo select:focus {
   border-color: var(--vd-borda-foco);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
 }
 .vd-campo input[aria-invalid="true"],
 .vd-campo select[aria-invalid="true"] {
@@ -132,7 +132,7 @@
 .vd-voltar {
   border: 0;
   background: none;
-  color: #2563eb;
+  color: #D62839;
   font-size: 13px;
   cursor: pointer;
   padding: 0 0 12px;

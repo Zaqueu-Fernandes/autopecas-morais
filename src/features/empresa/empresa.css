@@ -5,11 +5,11 @@
 
 .emp-form {
   --emp-borda: #d4d7dd;
-  --emp-borda-foco: #2563eb;
+  --emp-borda-foco: #D62839;
   --emp-erro: #dc2626;
   --emp-texto: #1f2430;
   --emp-label: #5b6270;
-  --emp-btn: #2563eb;
+  --emp-btn: #D62839;
   --emp-btn-texto: #fff;
   --emp-sec: #eef0f3;
 
@@ -36,7 +36,7 @@
 }
 .emp-campo input:focus {
   border-color: var(--emp-borda-foco);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
 }
 .emp-campo input[aria-invalid="true"] { border-color: var(--emp-erro); }
 .emp-dica { font-size: 11px; color: var(--emp-label); }

@@ -10,26 +10,28 @@ body {
 .app { min-height: 100vh; display: flex; flex-direction: column; }
 
 .app-header {
-  background: #fff;
-  border-bottom: 1px solid #d4d7dd;
+  background: #161616;
   padding: 12px 20px;
   display: flex;
   align-items: center;
   gap: 24px;
 }
-.app-titulo { font-size: 18px; margin: 0; white-space: nowrap; }
+.app-titulo-bloco { display: flex; flex-direction: column; white-space: nowrap; }
+.app-titulo { font-size: 18px; margin: 0; color: #fff; font-weight: 700; }
+.app-tagline { font-size: 11px; margin: 0; color: #D62839; font-weight: 600; letter-spacing: .02em; }
 
-.app-nav { display: flex; gap: 4px; }
+.app-nav { display: flex; gap: 4px; flex-wrap: wrap; }
 .app-nav-btn {
   border: 0;
   background: none;
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 14px;
-  color: #5b6270;
+  color: #b9bec7;
   cursor: pointer;
 }
-.app-nav-btn.ativo { background: #eef0f3; color: #1f2430; font-weight: 600; }
+.app-nav-btn:hover { color: #fff; }
+.app-nav-btn.ativo { background: #D62839; color: #fff; font-weight: 600; }
 
 .app-conteudo { flex: 1; padding: 20px; }
 
@@ -69,7 +71,7 @@ body {
   margin-bottom: 16px;
   outline: none;
 }
-.pg-busca:focus { border-color: #2563eb; }
+.pg-busca:focus { border-color: #D62839; }
 
 .pg-tabela {
   width: 100%;
@@ -90,7 +92,7 @@ body {
 .pg-acoes-linha button {
   border: 0;
   background: none;
-  color: #2563eb;
+  color: #D62839;
   font-size: 13px;
   cursor: pointer;
   padding: 2px 4px;

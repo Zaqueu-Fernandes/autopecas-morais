@@ -52,7 +52,7 @@
 .dash-mei-barra-preenchida {
   height: 100%;
   border-radius: 999px;
-  background: #2563eb;
+  background: #D62839;
   transition: width .2s;
 }
 .dash-mei-ok .dash-mei-barra-preenchida     { background: #16a34a; }

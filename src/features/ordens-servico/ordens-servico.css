@@ -5,12 +5,12 @@
 
 .os-form {
   --os-borda: #d4d7dd;
-  --os-borda-foco: #2563eb;
+  --os-borda-foco: #D62839;
   --os-erro: #dc2626;
   --os-aviso: #b45309;
   --os-texto: #1f2430;
   --os-label: #5b6270;
-  --os-btn: #2563eb;
+  --os-btn: #D62839;
   --os-btn-texto: #fff;
   --os-sec: #eef0f3;
 
@@ -52,7 +52,7 @@
 .os-campo select:focus,
 .os-campo textarea:focus {
   border-color: var(--os-borda-foco);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
 }
 .os-campo input[aria-invalid="true"],
 .os-campo select[aria-invalid="true"],
@@ -149,7 +149,7 @@
 .os-voltar {
   border: 0;
   background: none;
-  color: #2563eb;
+  color: #D62839;
   font-size: 13px;
   cursor: pointer;
   padding: 0 0 12px;

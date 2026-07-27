@@ -17,8 +17,8 @@ export default defineConfig({
         short_name: 'Autopeças Morais',
         description: 'Gestão de oficina mecânica e loja de peças: OS, estoque, vendas e financeiro.',
         lang: 'pt-BR',
-        theme_color: '#2563eb',
-        background_color: '#ffffff',
+        theme_color: '#161616',
+        background_color: '#161616',
         display: 'standalone',
         start_url: '/',
         icons: [

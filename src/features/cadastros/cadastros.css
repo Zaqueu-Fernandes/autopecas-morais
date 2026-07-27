@@ -5,12 +5,12 @@
 
 .cad-form {
   --cad-borda: #d4d7dd;
-  --cad-borda-foco: #2563eb;
+  --cad-borda-foco: #D62839;
   --cad-erro: #dc2626;
   --cad-aviso: #b45309;
   --cad-texto: #1f2430;
   --cad-label: #5b6270;
-  --cad-btn: #2563eb;
+  --cad-btn: #D62839;
   --cad-btn-texto: #fff;
   --cad-sec: #eef0f3;
 
@@ -90,7 +90,7 @@
 .cad-campo select:focus,
 .cad-campo textarea:focus {
   border-color: var(--cad-borda-foco);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
 }
 .cad-campo input[aria-invalid="true"],
 .cad-campo select[aria-invalid="true"] {
@@ -192,7 +192,7 @@
 .cad-veiculos-acoes button {
   border: 0;
   background: none;
-  color: var(--cad-btn, #2563eb);
+  color: var(--cad-btn, #D62839);
   font-size: 12px;
   cursor: pointer;
   padding: 2px 4px;
