@@ -29,6 +29,11 @@ begin
     'empresa_config'
   ]
   loop
+    if to_regclass('public.' || tabela) is null then
+      raise notice 'Tabela % ainda não existe — pulando (rode a migration dela antes).', tabela;
+      continue;
+    end if;
+
     execute format('alter table %I enable row level security;', tabela);
     execute format('drop policy if exists "acesso_total_provisorio" on %I;', tabela);
     execute format(
