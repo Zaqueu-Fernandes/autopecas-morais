@@ -146,16 +146,25 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   (categoria='venda_balcao' em financeiro) e trava a venda
   (status='finalizada') — mesma ressalva: sem estorno ainda.
 
-### Impressão (PENDENTE — src/features/impressao ainda está vazia)
+### Impressão (feature já pronta em src/features/impressao — Fase 1)
 
-Esta seção descreve uma decisão de arquitetura já tomada, mas o código
-NUNCA foi escrito (o texto abaixo veio da conversa original no Claude web
-e ficou aqui por engano dizendo "já pronta" — corrigido, ainda é TODO):
-
-- Camada única PrinterService. Telas chamam printer.imprimir(doc).
-- Fase 1 (a fazer): método 'browser' (HTML/CSS 80mm).
-- Fase 2 (futuro): ESC/POS via Web Bluetooth/USB. Interface pronta, stubs
-  documentados. Ambiente suporta (Windows/Android Chrome).
+- Camada única PrinterService (printer.imprimir(doc)) — telas não sabem
+  COMO a impressão acontece por baixo, só montam um DocumentoImpressao
+  genérico (tipo, título, número, cliente, veículo, itens, total,
+  observações, fiscal: false) e chamam printer.imprimir(doc).
+- Fase 1 (pronta): método 'browser' — monta HTML/CSS pra 80mm num iframe
+  escondido e aciona o diálogo de impressão do navegador/SO (funciona com
+  qualquer impressora térmica instalada como impressora do Windows/Android
+  Chrome). Template em services/template.ts.
+- Botão BotaoImprimir (componente reutilizável, sem CSS próprio — herda a
+  classe de quem chama) já ligado na OS (DetalheOS). Venda de balcão ainda
+  não tem o botão, mas a camada já dá conta — é só montar o
+  DocumentoImpressao lá e reaproveitar.
+- Comprovante é sempre `fiscal: false` — rodapé fixo "DOCUMENTO SEM VALOR
+  FISCAL". Ver regra de documentos fiscais abaixo.
+- Fase 2 (futuro): ESC/POS via Web Bluetooth/USB. Só trocaria a
+  implementação de imprimir() no printer.service.ts — a assinatura
+  printer.imprimir(doc) pras telas continua igual.
 - Fase 3 (ao virar ME): NFC-e/NFS-e via API de terceiros. O DANFE vem
   pronto do emissor e entra na mesma camada (campo doc.fiscal).
 
@@ -194,8 +203,8 @@ Até lá, o sistema gera COMPROVANTE INTERNO ("sem valor fiscal").
 5. ✅ Despesas e categorias financeiras
 6. ✅ Dashboard + monitor de faturamento MEI
 7. Pendências conhecidas antes de "fases futuras":
-   - Impressão (Fase 1: comprovante HTML/CSS 80mm) — arquitetura decidida,
-     nunca implementada (ver seção acima).
+   - ✅ Impressão (Fase 1: comprovante HTML/CSS 80mm) — pronta, ligada na
+     OS. Falta ligar o botão na Venda de balcão (a camada já suporta).
    - Estorno de OS/venda faturada — hoje faturar é via de mão única.
    - RLS: rodei supabase/migrations/rls_policies.sql liberando tudo pra
      anon/authenticated (era o que estava bloqueando TODO insert/update —

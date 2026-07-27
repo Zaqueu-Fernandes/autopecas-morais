@@ -8,11 +8,12 @@
 
 import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, Receipt } from 'lucide-react';
-import { ROTULO_STATUS_OS, PROXIMO_STATUS, type OrdemServicoResumo } from '../types';
+import { ROTULO_STATUS_OS, PROXIMO_STATUS, type OrdemServicoResumo, type ItemOS } from '../types';
 import { buscarOSPorId, avancarStatusOS } from '../services/os.service';
 import { ListaItensOS } from './ListaItensOS';
 import { EtapasOS } from './EtapasOS';
 import { FormFaturamento } from '@/features/financeiro';
+import { BotaoImprimir, type DocumentoImpressao } from '@/features/impressao';
 
 interface Props {
   osId: string;
@@ -26,6 +27,7 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
   const [avancando, setAvancando] = useState(false);
   const [mostrarFaturamento, setMostrarFaturamento] = useState(false);
   const [totalOS, setTotalOS] = useState(0);
+  const [itensOS, setItensOS] = useState<ItemOS[]>([]);
 
   async function carregar() {
     setCarregando(true);
@@ -67,6 +69,21 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
   const podeFaturar = os.status === 'concluida';
   const bloqueado = os.status === 'faturada';
 
+  const documentoImpressao: DocumentoImpressao = {
+    tipo: 'os',
+    titulo: 'Comprovante de Serviço',
+    numero: os.numero ?? '',
+    data: new Date(),
+    cliente: { nome: os.clienteNome },
+    veiculo: { placa: os.veiculoPlaca, marcaModelo: os.veiculoMarcaModelo },
+    itens: itensOS
+      .filter((i) => !i.removido)
+      .map((i) => ({ descricao: i.descricao, quantidade: i.quantidade, valorUnit: i.valorUnit })),
+    total: totalOS,
+    observacoes: os.observacoes || undefined,
+    fiscal: false,
+  };
+
   return (
     <div className="os-detalhe">
       <button type="button" className="os-voltar" onClick={aoVoltar}>
@@ -92,6 +109,7 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
               <Receipt size={16} /> Faturar OS
             </button>
           )}
+          <BotaoImprimir documento={documentoImpressao} className="os-btn-sec" />
         </div>
       </div>
 
@@ -119,7 +137,12 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
           onCancelar={() => setMostrarFaturamento(false)}
         />
       ) : (
-        <ListaItensOS osId={os.id!} bloqueado={bloqueado} aoAtualizarTotal={setTotalOS} />
+        <ListaItensOS
+          osId={os.id!}
+          bloqueado={bloqueado}
+          aoAtualizarTotal={setTotalOS}
+          aoAtualizarItens={setItensOS}
+        />
       )}
     </div>
   );

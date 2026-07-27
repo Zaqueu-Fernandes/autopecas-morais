@@ -19,9 +19,11 @@ interface Props {
   bloqueado?: boolean;
   /** Chamado toda vez que os itens (re)carregam, com o total não removido. */
   aoAtualizarTotal?: (total: number) => void;
+  /** Chamado toda vez que os itens (re)carregam, com a lista completa (ex.: pra impressão). */
+  aoAtualizarItens?: (itens: ItemOS[]) => void;
 }
 
-export function ListaItensOS({ osId, bloqueado = false, aoAtualizarTotal }: Props) {
+export function ListaItensOS({ osId, bloqueado = false, aoAtualizarTotal, aoAtualizarItens }: Props) {
   const [itens, setItens] = useState<ItemOS[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -35,6 +37,7 @@ export function ListaItensOS({ osId, bloqueado = false, aoAtualizarTotal }: Prop
       setItens(lista);
       const total = lista.filter((i) => !i.removido).reduce((soma, i) => soma + i.quantidade * i.valorUnit, 0);
       aoAtualizarTotal?.(total);
+      aoAtualizarItens?.(lista);
     } catch {
       setErro('Não foi possível carregar os itens.');
     } finally {
