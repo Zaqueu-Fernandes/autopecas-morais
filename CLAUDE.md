@@ -144,6 +144,12 @@ Até lá, o sistema gera COMPROVANTE INTERNO ("sem valor fiscal").
    - Impressão (Fase 1: comprovante HTML/CSS 80mm) — arquitetura decidida,
      nunca implementada (ver seção acima).
    - Estorno de OS/venda faturada — hoje faturar é via de mão única.
-   - RLS das tabelas no Supabase — revisar antes de expor o app publicamente.
+   - RLS: rodei supabase/migrations/rls_policies.sql liberando tudo pra
+     anon/authenticated (era o que estava bloqueando TODO insert/update —
+     Supabase habilita RLS por padrão e sem policy nenhuma fica tudo
+     negado). Isso é PROVISÓRIO: app não tem login ainda, então qualquer
+     um com a URL/anon key (públicas por natureza) lê e escreve em
+     qualquer tabela. Trocar por policies de verdade quando existir
+     Supabase Auth.
 8. Fases futuras (fora do MVP): importação XML NF-e, impressão ESC/POS,
    emissão fiscal (NFC-e/NFS-e via PlugNotas/Focus/eNotas)
