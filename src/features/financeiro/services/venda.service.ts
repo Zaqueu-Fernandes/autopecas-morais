@@ -29,6 +29,7 @@ export async function finalizarVenda(input: {
     fornecedorId: null,
     osId: null,
     vendaId,
+    despesaFixaId: null,
     observacoes: '',
   };
 

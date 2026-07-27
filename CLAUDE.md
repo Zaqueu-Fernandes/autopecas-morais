@@ -75,8 +75,12 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 - REGRA DE OURO: retirada_lucro NUNCA entra no cálculo de lucro (é o
   destino do lucro, não um custo) — ainda não há cálculo de lucro/dashboard,
   só a regra documentada pra quando existir.
-- Despesas fixas recorrentes ficam em despesas_fixas e geram contas do mês
-  — essa automação ainda não existe (é a próxima feature da lista).
+- Despesas fixas recorrentes ficam em despesas_fixas (feature já pronta em
+  src/features/despesas) e geram contas do mês por ação explícita ("Gerar
+  contas do mês", não é automático/agendado). Índice único
+  (despesa_fixa_id, vencimento) em financeiro impede duplicar a mesma
+  despesa no mesmo mês — gerar de novo só ignora as que já existem.
+- Despesa fixa não é excluída (pode ter contas geradas) — só desativada.
 
 ### Vendas de Balcão (feature já pronta em src/features/vendas)
 

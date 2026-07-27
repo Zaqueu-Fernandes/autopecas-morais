@@ -34,6 +34,7 @@ export async function faturarOS(input: {
     fornecedorId: null,
     osId,
     vendaId: null,
+    despesaFixaId: null,
     observacoes: '',
   };
 

@@ -63,6 +63,7 @@ export interface LancamentoFinanceiro {
   fornecedorId: string | null;
   osId: string | null;
   vendaId: string | null;
+  despesaFixaId: string | null;
   observacoes: string;
   createdAt?: string;
 }

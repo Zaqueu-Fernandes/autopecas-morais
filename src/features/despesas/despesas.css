@@ -1,0 +1,103 @@
+/* ==========================================================================
+   DESPESAS FIXAS — estilos base. Prefixo .dsp- pra não colidir com outras
+   features.
+   ========================================================================== */
+
+.dsp-form {
+  --dsp-borda: #d4d7dd;
+  --dsp-borda-foco: #2563eb;
+  --dsp-erro: #dc2626;
+  --dsp-texto: #1f2430;
+  --dsp-label: #5b6270;
+  --dsp-btn: #2563eb;
+  --dsp-btn-texto: #fff;
+  --dsp-sec: #eef0f3;
+
+  max-width: 640px;
+  color: var(--dsp-texto);
+  font-size: 14px;
+}
+
+.dsp-form-head { margin-bottom: 12px; }
+.dsp-form-head h2 { font-size: 18px; margin: 0; }
+
+.dsp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.dsp-campo { display: flex; flex-direction: column; gap: 4px; }
+.dsp-col-2 { grid-column: 1 / -1; }
+.dsp-checkbox { justify-content: center; }
+.dsp-checkbox label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--dsp-texto); }
+
+.dsp-campo label {
+  font-size: 12px;
+  color: var(--dsp-label);
+  font-weight: 500;
+}
+.dsp-campo input,
+.dsp-campo select,
+.dsp-campo textarea {
+  border: 1px solid var(--dsp-borda);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--dsp-texto);
+  outline: none;
+  transition: border-color .12s;
+}
+.dsp-campo input:focus,
+.dsp-campo select:focus,
+.dsp-campo textarea:focus {
+  border-color: var(--dsp-borda-foco);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+.dsp-campo input[aria-invalid="true"],
+.dsp-campo select[aria-invalid="true"] {
+  border-color: var(--dsp-erro);
+}
+
+.dsp-erro { color: var(--dsp-erro); font-size: 11px; }
+
+.dsp-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+.dsp-btn {
+  background: var(--dsp-btn);
+  color: var(--dsp-btn-texto);
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dsp-btn:disabled { opacity: .6; cursor: default; }
+.dsp-btn-sec {
+  background: var(--dsp-sec);
+  color: var(--dsp-texto);
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.dsp-resultado {
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 520px) {
+  .dsp-grid { grid-template-columns: 1fr; }
+}

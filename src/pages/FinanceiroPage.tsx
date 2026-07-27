@@ -77,6 +77,7 @@ export function FinanceiroPage() {
       fornecedorId: d.fornecedorId || null,
       osId: null,
       vendaId: null,
+      despesaFixaId: null,
       observacoes: d.observacoes,
     });
     setMostrarForm(false);
