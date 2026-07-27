@@ -4,15 +4,15 @@
    ========================================================================== */
 
 .fin-form {
-  --fin-borda: #d4d7dd;
+  --fin-borda: var(--cor-borda);
   --fin-borda-foco: #D62839;
   --fin-erro: #dc2626;
   --fin-aviso: #b45309;
-  --fin-texto: #1f2430;
-  --fin-label: #5b6270;
+  --fin-texto: var(--cor-texto);
+  --fin-label: var(--cor-texto-secundario);
   --fin-btn: #D62839;
   --fin-btn-texto: #fff;
-  --fin-sec: #eef0f3;
+  --fin-sec: var(--cor-fundo-secundario);
 
   max-width: 560px;
   color: var(--fin-texto);
@@ -31,8 +31,8 @@
 
 .fin-tag {
   font-size: 12px;
-  background: #eef0f3;
-  color: #1f2430;
+  background: var(--fin-sec);
+  color: var(--fin-texto);
   padding: 3px 8px;
   border-radius: 999px;
   white-space: nowrap;
@@ -48,7 +48,7 @@
 }
 .fin-tipo button {
   border: 0;
-  background: #fff;
+  background: var(--cor-fundo-cartao);
   padding: 8px 16px;
   cursor: pointer;
   font-size: 13px;
@@ -81,7 +81,7 @@
   padding: 9px 10px;
   font-size: 14px;
   font-family: inherit;
-  background: #fff;
+  background: var(--cor-fundo-cartao);
   color: var(--fin-texto);
   outline: none;
   transition: border-color .12s;
@@ -110,7 +110,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #fff;
+  background: var(--cor-fundo-cartao);
   color: var(--fin-btn);
   border: 1.5px solid var(--fin-btn);
   border-radius: 8px;
@@ -168,14 +168,16 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #5b6270;
+  color: var(--cor-texto-secundario);
 }
 .fin-campo-inline input {
-  border: 1px solid #d4d7dd;
+  border: 1px solid var(--cor-borda);
   border-radius: 8px;
   padding: 7px 10px;
   font-size: 13px;
   font-family: inherit;
+  background: var(--cor-fundo-cartao);
+  color: var(--cor-texto);
 }
 
 @media (max-width: 520px) {

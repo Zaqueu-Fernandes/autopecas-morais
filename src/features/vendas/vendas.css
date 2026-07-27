@@ -4,14 +4,14 @@
    ========================================================================== */
 
 .vd-form {
-  --vd-borda: #d4d7dd;
+  --vd-borda: var(--cor-borda);
   --vd-borda-foco: #D62839;
   --vd-erro: #dc2626;
-  --vd-texto: #1f2430;
-  --vd-label: #5b6270;
+  --vd-texto: var(--cor-texto);
+  --vd-label: var(--cor-texto-secundario);
   --vd-btn: #D62839;
   --vd-btn-texto: #fff;
-  --vd-sec: #eef0f3;
+  --vd-sec: var(--cor-fundo-secundario);
 
   max-width: 640px;
   color: var(--vd-texto);
@@ -41,7 +41,7 @@
   padding: 9px 10px;
   font-size: 14px;
   font-family: inherit;
-  background: #fff;
+  background: var(--cor-fundo-cartao);
   color: var(--vd-texto);
   outline: none;
   transition: border-color .12s;
@@ -69,7 +69,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #fff;
+  background: var(--cor-fundo-cartao);
   color: var(--vd-btn);
   border: 1.5px solid var(--vd-btn);
   border-radius: 8px;
@@ -103,7 +103,7 @@
 .vd-btn-sec:active { transform: scale(.97); }
 
 /* Itens da venda */
-.vd-itens { font-size: 13px; color: #1f2430; }
+.vd-itens { font-size: 13px; color: var(--cor-texto); }
 .vd-itens-head {
   display: flex;
   align-items: center;
@@ -111,7 +111,7 @@
   gap: 12px;
   margin-bottom: 10px;
 }
-.vd-itens-vazio { color: #5b6270; font-size: 13px; }
+.vd-itens-vazio { color: var(--cor-texto-secundario); font-size: 13px; }
 
 .vd-itens-lista { list-style: none; margin: 0; padding: 0; }
 .vd-itens-lista li {
@@ -120,14 +120,14 @@
   align-items: center;
   gap: 10px;
   padding: 8px 0;
-  border-bottom: 1px solid #d4d7dd;
+  border-bottom: 1px solid var(--cor-borda);
 }
 .vd-itens-lista li:last-child { border-bottom: none; }
 .vd-item-removido { opacity: .55; text-decoration: line-through; }
 .vd-itens-descricao { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.vd-itens-qtd { color: #5b6270; }
+.vd-itens-qtd { color: var(--cor-texto-secundario); }
 .vd-itens-valor { font-weight: 600; text-align: right; }
-.vd-itens-motivo { font-size: 11px; color: #5b6270; text-decoration: none; }
+.vd-itens-motivo { font-size: 11px; color: var(--cor-texto-secundario); text-decoration: none; }
 .vd-itens-lista li button {
   display: inline-flex;
   align-items: center;

@@ -4,14 +4,14 @@
    ========================================================================== */
 
 .emp-form {
-  --emp-borda: #d4d7dd;
+  --emp-borda: var(--cor-borda);
   --emp-borda-foco: #D62839;
   --emp-erro: #dc2626;
-  --emp-texto: #1f2430;
-  --emp-label: #5b6270;
+  --emp-texto: var(--cor-texto);
+  --emp-label: var(--cor-texto-secundario);
   --emp-btn: #D62839;
   --emp-btn-texto: #fff;
-  --emp-sec: #eef0f3;
+  --emp-sec: var(--cor-fundo-secundario);
 
   max-width: 480px;
   color: var(--emp-texto);
@@ -29,7 +29,7 @@
   padding: 9px 10px;
   font-size: 14px;
   font-family: inherit;
-  background: #fff;
+  background: var(--cor-fundo-cartao);
   color: var(--emp-texto);
   outline: none;
   transition: border-color .12s;
@@ -50,7 +50,7 @@
 }
 .emp-tipo button {
   border: 0;
-  background: #fff;
+  background: var(--cor-fundo-cartao);
   padding: 8px 16px;
   cursor: pointer;
   font-size: 13px;
@@ -72,7 +72,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #fff;
+  background: var(--cor-fundo-cartao);
   color: var(--emp-btn);
   border: 1.5px solid var(--emp-btn);
   border-radius: 8px;

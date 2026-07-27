@@ -30,6 +30,8 @@ import { VendasBalcaoPage } from '@/pages/VendasBalcaoPage';
 import { DespesasFixasPage } from '@/pages/DespesasFixasPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { EmpresasPage } from '@/pages/EmpresasPage';
+import { InstalarPwaBanner } from '@/shared/components/InstalarPwaBanner';
+import { AlternarTema } from '@/shared/components/AlternarTema';
 
 const ABAS = [
   { id: 'dashboard', label: 'Dashboard', Icone: LayoutDashboard, Componente: DashboardPage },
@@ -52,6 +54,7 @@ function App() {
 
   return (
     <div className="app">
+      <InstalarPwaBanner />
       <header className="app-header">
         <div className="app-titulo-bloco">
           <h1 className="app-titulo">Autopeças Morais</h1>
@@ -73,6 +76,7 @@ function App() {
             );
           })}
         </nav>
+        <AlternarTema />
       </header>
       <main className="app-conteudo">
         <AbaAtual />

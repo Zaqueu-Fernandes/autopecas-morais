@@ -4,15 +4,15 @@
    ========================================================================== */
 
 .cad-form {
-  --cad-borda: #d4d7dd;
+  --cad-borda: var(--cor-borda);
   --cad-borda-foco: #D62839;
   --cad-erro: #dc2626;
   --cad-aviso: #b45309;
-  --cad-texto: #1f2430;
-  --cad-label: #5b6270;
+  --cad-texto: var(--cor-texto);
+  --cad-label: var(--cor-texto-secundario);
   --cad-btn: #D62839;
   --cad-btn-texto: #fff;
-  --cad-sec: #eef0f3;
+  --cad-sec: var(--cor-fundo-secundario);
 
   max-width: 640px;
   color: var(--cad-texto);
@@ -47,7 +47,7 @@
 }
 .cad-tipo button {
   border: 0;
-  background: #fff;
+  background: var(--cor-fundo-cartao);
   padding: 8px 16px;
   cursor: pointer;
   font-size: 13px;
@@ -81,7 +81,7 @@
   padding: 9px 10px;
   font-size: 14px;
   font-family: inherit;
-  background: #fff;
+  background: var(--cor-fundo-cartao);
   color: var(--cad-texto);
   outline: none;
   transition: border-color .12s;
@@ -140,7 +140,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #fff;
+  background: var(--cor-fundo-cartao);
   color: var(--cad-btn);
   border: 1.5px solid var(--cad-btn);
   border-radius: 8px;
@@ -185,7 +185,7 @@
 }
 
 /* Veículos do cliente (usado na linha expandida da lista de clientes) */
-.cad-veiculos { font-size: 13px; color: var(--cad-texto, #1f2430); }
+.cad-veiculos { font-size: 13px; color: var(--cor-texto); }
 .cad-veiculos-head {
   display: flex;
   align-items: center;
@@ -193,7 +193,7 @@
   gap: 12px;
   margin-bottom: 10px;
 }
-.cad-veiculos-vazio { color: var(--cad-label, #5b6270); font-size: 13px; }
+.cad-veiculos-vazio { color: var(--cor-texto-secundario); font-size: 13px; }
 .cad-veiculos-lista { list-style: none; margin: 0; padding: 0; }
 .cad-veiculos-lista li {
   display: flex;
@@ -201,7 +201,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 8px 0;
-  border-bottom: 1px solid var(--cad-borda, #d4d7dd);
+  border-bottom: 1px solid var(--cor-borda);
 }
 .cad-veiculos-lista li:last-child { border-bottom: none; }
 .cad-veiculos-acoes { display: flex; gap: 8px; white-space: nowrap; }

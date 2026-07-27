@@ -4,14 +4,14 @@
    ========================================================================== */
 
 .dsp-form {
-  --dsp-borda: #d4d7dd;
+  --dsp-borda: var(--cor-borda);
   --dsp-borda-foco: #D62839;
   --dsp-erro: #dc2626;
-  --dsp-texto: #1f2430;
-  --dsp-label: #5b6270;
+  --dsp-texto: var(--cor-texto);
+  --dsp-label: var(--cor-texto-secundario);
   --dsp-btn: #D62839;
   --dsp-btn-texto: #fff;
-  --dsp-sec: #eef0f3;
+  --dsp-sec: var(--cor-fundo-secundario);
 
   max-width: 640px;
   color: var(--dsp-texto);
@@ -44,7 +44,7 @@
   padding: 9px 10px;
   font-size: 14px;
   font-family: inherit;
-  background: #fff;
+  background: var(--cor-fundo-cartao);
   color: var(--dsp-texto);
   outline: none;
   transition: border-color .12s;
@@ -72,7 +72,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #fff;
+  background: var(--cor-fundo-cartao);
   color: var(--dsp-btn);
   border: 1.5px solid var(--dsp-btn);
   border-radius: 8px;

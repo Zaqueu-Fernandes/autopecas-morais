@@ -11,19 +11,19 @@
 }
 
 .dash-cartao {
-  background: #fff;
-  border: 1px solid #d4d7dd;
+  background: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda);
   border-radius: 10px;
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: box-shadow .15s ease, transform .15s ease;
+  transition: box-shadow .15s ease, transform .15s ease, background-color .2s ease, border-color .2s ease;
 }
-.dash-cartao:hover { box-shadow: 0 4px 14px rgba(20, 20, 20, .07); transform: translateY(-1px); }
+.dash-cartao:hover { box-shadow: 0 4px 14px var(--cor-sombra); transform: translateY(-1px); }
 .dash-cartao-cabecalho { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-.dash-cartao-titulo { font-size: 12px; color: #5b6270; font-weight: 500; }
-.dash-cartao-valor { font-size: 22px; color: #1f2430; }
+.dash-cartao-titulo { font-size: 12px; color: var(--cor-texto-secundario); font-weight: 500; }
+.dash-cartao-valor { font-size: 22px; color: var(--cor-texto); }
 .dash-cartao-icone {
   width: 28px;
   height: 28px;
@@ -35,17 +35,17 @@
   background: #fee2e2;
   color: #D62839;
 }
-.dash-cartao-aviso  { border-color: #fde68a; background: #fffbeb; }
+.dash-cartao-aviso  { border-color: var(--cor-borda-aviso); background: var(--cor-fundo-aviso); }
 .dash-cartao-aviso .dash-cartao-valor  { color: #92400e; }
 .dash-cartao-aviso .dash-cartao-icone  { background: #fef3c7; color: #92400e; }
-.dash-cartao-perigo { border-color: #fecaca; background: #fef2f2; }
+.dash-cartao-perigo { border-color: var(--cor-borda-perigo); background: var(--cor-fundo-perigo); }
 .dash-cartao-perigo .dash-cartao-valor { color: #991b1b; }
 .dash-cartao-perigo .dash-cartao-icone  { background: #fee2e2; color: #991b1b; }
 
 /* Monitor MEI */
 .dash-mei {
-  background: #fff;
-  border: 1px solid #d4d7dd;
+  background: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda);
   border-radius: 10px;
   padding: 16px 18px;
   margin-bottom: 20px;
@@ -61,7 +61,7 @@
 .dash-mei-barra {
   height: 10px;
   border-radius: 999px;
-  background: #eef0f3;
+  background: var(--cor-fundo-secundario);
   overflow: hidden;
   margin-bottom: 8px;
 }
@@ -75,15 +75,15 @@
 .dash-mei-aviso .dash-mei-barra-preenchida  { background: #d97706; }
 .dash-mei-perigo .dash-mei-barra-preenchida { background: #dc2626; }
 
-.dash-mei-detalhe  { font-size: 12px; color: #5b6270; margin: 0; }
+.dash-mei-detalhe  { font-size: 12px; color: var(--cor-texto-secundario); margin: 0; }
 .dash-mei-mensagem { font-size: 12px; color: #b45309; margin: 8px 0 0; font-weight: 600; }
 .dash-mei-perigo .dash-mei-mensagem { color: #991b1b; }
-.dash-mei-me p { font-size: 13px; color: #5b6270; margin: 6px 0 0; }
+.dash-mei-me p { font-size: 13px; color: var(--cor-texto-secundario); margin: 6px 0 0; }
 
 /* Monitores de várias empresas lado a lado */
 .dash-monitores { display: flex; gap: 16px; flex-wrap: wrap; }
 .dash-monitor-empresa { flex: 1 1 320px; }
-.dash-monitor-empresa h3 { font-size: 13px; color: #5b6270; margin: 0 0 6px; font-weight: 600; }
+.dash-monitor-empresa h3 { font-size: 13px; color: var(--cor-texto-secundario); margin: 0 0 6px; font-weight: 600; }
 .dash-monitor-empresa .dash-mei { margin-bottom: 0; }
 
 @media (max-width: 520px) {

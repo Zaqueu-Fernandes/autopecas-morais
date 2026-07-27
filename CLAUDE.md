@@ -15,6 +15,37 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   Exceção: `lucide-react` pra ícones (só ícones, sem componentes/estilo
   próprio — não conta como framework de UI).
 
+## Instalação do PWA e tema (src/shared)
+
+- `src/shared/hooks/usePwaInstall.ts` + `src/shared/components/InstalarPwaBanner.tsx`:
+  banner no topo do app pedindo instalação. Desktop/Android (Chrome/Edge)
+  usa o evento `beforeinstallprompt` pra acionar o prompt nativo. iOS
+  Safari NUNCA dispara esse evento (Apple não implementa) — lá o banner
+  mostra o passo a passo manual (Compartilhar → Adicionar à Tela de
+  Início). Navegador nenhum deixa instalar sem gesto do usuário — não dá
+  pra "forçar" de verdade, só deixar bem visível (banner fixo no topo,
+  fecha com um "soneca" de 7 dias, não pra sempre).
+- `src/shared/hooks/useTema.ts` + `src/shared/components/AlternarTema.tsx`:
+  alterna claro/escuro, persiste em localStorage (chave `tema`), sem
+  preferência salva segue o sistema. Aplica via atributo
+  `data-theme` na `<html>`; um script inline no início do `<head>` do
+  index.html já aplica isso antes do primeiro paint (evita flash do
+  tema errado).
+- Cores estruturais (fundo, cartão, texto, borda, hover) viram variáveis
+  CSS globais em App.css (`--cor-fundo`, `--cor-fundo-cartao`,
+  `--cor-texto`, `--cor-texto-secundario`, `--cor-borda`,
+  `--cor-fundo-secundario`, `--cor-fundo-hover`, `--cor-sombra`,
+  `--cor-fundo-aviso`/`--cor-borda-aviso`,
+  `--cor-fundo-perigo`/`--cor-borda-perigo`) com valores claro/escuro.
+  Cada feature (`--cad-*`, `--est-*`, `--os-*`, `--fin-*`, `--vd-*`,
+  `--dsp-*`, `--emp-*`) referencia essas variáveis globais nos campos
+  estruturais (borda/texto/label/fundo secundário), então ficam
+  automaticamente compatíveis com os dois temas. Badges de
+  status/categoria (verde/azul/roxo/âmbar) e a cor de marca (vermelho)
+  ficam FIXAS nos dois temas de propósito — não são "estruturais".
+  Header do app (`.app-header`) também fica sempre escuro nos dois temas
+  (chrome de marca, não muda com o toggle).
+
 ## Regras de código (IMPORTANTES)
 
 - SEMPRE que alterar um arquivo de código, forneça o código completo e
