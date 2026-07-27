@@ -91,6 +91,12 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   (despesa_fixa_id, vencimento) em financeiro impede duplicar a mesma
   despesa no mesmo mês — gerar de novo só ignora as que já existem.
 - Despesa fixa não é excluída (pode ter contas geradas) — só desativada.
+- Fluxo de Caixa (aba própria) é diferente do faturamento do Dashboard:
+  conta por data_pagamento (dinheiro que já entrou/saiu de verdade),
+  filtra por período, e mostra saldo anterior (tudo quitado antes do
+  período) + saldo acumulado linha a linha. Não é saldo bancário real —
+  o app não tem conta/banco cadastrado, é só o acumulado do que passou
+  pelo financeiro.
 
 ### Vendas de Balcão (feature já pronta em src/features/vendas)
 

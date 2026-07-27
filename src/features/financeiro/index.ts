@@ -14,6 +14,11 @@ export { FormFinalizarVenda } from './components/FormFinalizarVenda';
 export * from './services/financeiro.service';
 export { faturarOS } from './services/faturamento.service';
 export { finalizarVenda } from './services/venda.service';
+export {
+  buscarFluxoCaixa,
+  type MovimentoCaixa,
+  type ResultadoFluxoCaixa,
+} from './services/fluxoCaixa.service';
 
 export {
   semErros,

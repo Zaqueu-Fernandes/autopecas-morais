@@ -12,6 +12,7 @@ import { FornecedoresPage } from '@/pages/FornecedoresPage';
 import { EstoquePage } from '@/pages/EstoquePage';
 import { OrdensServicoPage } from '@/pages/OrdensServicoPage';
 import { FinanceiroPage } from '@/pages/FinanceiroPage';
+import { FluxoCaixaPage } from '@/pages/FluxoCaixaPage';
 import { VendasBalcaoPage } from '@/pages/VendasBalcaoPage';
 import { DespesasFixasPage } from '@/pages/DespesasFixasPage';
 import { DashboardPage } from '@/pages/DashboardPage';
@@ -21,6 +22,7 @@ const ABAS = [
   { id: 'ordens-servico', label: 'Ordens de Serviço', Componente: OrdensServicoPage },
   { id: 'vendas', label: 'Vendas de Balcão', Componente: VendasBalcaoPage },
   { id: 'financeiro', label: 'Financeiro', Componente: FinanceiroPage },
+  { id: 'fluxo-caixa', label: 'Fluxo de Caixa', Componente: FluxoCaixaPage },
   { id: 'despesas', label: 'Despesas Fixas', Componente: DespesasFixasPage },
   { id: 'clientes', label: 'Clientes', Componente: ClientesPage },
   { id: 'fornecedores', label: 'Fornecedores', Componente: FornecedoresPage },
