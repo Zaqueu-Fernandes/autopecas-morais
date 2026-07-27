@@ -1,0 +1,151 @@
+/* ==========================================================================
+   FINANCEIRO — estilos base. Prefixo .fin- pra não colidir com outras
+   features.
+   ========================================================================== */
+
+.fin-form {
+  --fin-borda: #d4d7dd;
+  --fin-borda-foco: #2563eb;
+  --fin-erro: #dc2626;
+  --fin-aviso: #b45309;
+  --fin-texto: #1f2430;
+  --fin-label: #5b6270;
+  --fin-btn: #2563eb;
+  --fin-btn-texto: #fff;
+  --fin-sec: #eef0f3;
+
+  max-width: 560px;
+  color: var(--fin-texto);
+  font-size: 14px;
+}
+
+.fin-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.fin-form-head h2 { font-size: 18px; margin: 0; }
+
+.fin-tag {
+  font-size: 12px;
+  background: #eef0f3;
+  color: #1f2430;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.fin-tipo {
+  display: inline-flex;
+  border: 1px solid var(--fin-borda);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.fin-tipo button {
+  border: 0;
+  background: #fff;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--fin-label);
+}
+.fin-tipo button.ativo {
+  background: var(--fin-btn);
+  color: var(--fin-btn-texto);
+  font-weight: 600;
+}
+
+.fin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.fin-campo { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.fin-col-2 { grid-column: 1 / -1; }
+
+.fin-campo label {
+  font-size: 12px;
+  color: var(--fin-label);
+  font-weight: 500;
+}
+.fin-campo input,
+.fin-campo select,
+.fin-campo textarea {
+  border: 1px solid var(--fin-borda);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--fin-texto);
+  outline: none;
+  transition: border-color .12s;
+}
+.fin-campo input:focus,
+.fin-campo select:focus,
+.fin-campo textarea:focus {
+  border-color: var(--fin-borda-foco);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+.fin-campo input[aria-invalid="true"],
+.fin-campo select[aria-invalid="true"] {
+  border-color: var(--fin-erro);
+}
+
+.fin-erro { color: var(--fin-erro); font-size: 11px; }
+.fin-aviso { color: var(--fin-aviso); font-size: 12px; margin: 0 0 12px; }
+
+.fin-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+.fin-btn {
+  background: var(--fin-btn);
+  color: var(--fin-btn-texto);
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.fin-btn:disabled { opacity: .6; cursor: default; }
+.fin-btn-sec {
+  background: var(--fin-sec);
+  color: var(--fin-texto);
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Badges usados na listagem do Financeiro */
+.fin-badge-tipo {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.fin-badge-pagar   { background: #fee2e2; color: #991b1b; }
+.fin-badge-receber { background: #dcfce7; color: #166534; }
+
+.fin-badge-status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.fin-badge-pago     { background: #dcfce7; color: #166534; }
+.fin-badge-pendente { background: #fef3c7; color: #92400e; }
+
+@media (max-width: 520px) {
+  .fin-grid { grid-template-columns: 1fr; }
+}

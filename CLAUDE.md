@@ -50,24 +50,33 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   cria linhas, nunca edita/apaga uma movimentação existente.
 - Peça não é excluída (pode ter histórico) — só desativada (pecas.ativo).
 
-### Ordem de Serviço
+### Ordem de Serviço (feature já pronta em src/features/ordens-servico)
 
 - Fluxo: Aberta → Em andamento → Concluída → Faturada.
+- OS exige cliente e veículo (o veículo tem que estar cadastrado antes).
+- Item de peça dá baixa de estoque na hora (registrarSaida) — se não houver
+  saldo, a movimentação falha e o item não chega a ser criado. Remover um
+  item de peça devolve o estoque via AJUSTE; o item fica marcado como
+  removido (com motivo) em vez de apagado.
 - Faturamento é SEPARADO da execução. Ao faturar, gera registro(s) em
   financeiro. Três situações de recebimento:
   1. À vista: pago=true, forma preenchida, data_pagamento=hoje
   2. A prazo: pago=false, vencimento=data
   3. Em aberto (fiado): pago=false, vencimento=NULL, amarrado ao cliente
-- OS faturada trava para edição (correção só via estorno).
+- OS faturada trava para edição (correção só via estorno — estorno ainda
+  não foi implementado; hoje faturar é uma via de mão única).
 
-### Financeiro
+### Financeiro (feature já pronta em src/features/financeiro)
 
+- Tabela única `financeiro` com discriminador `tipo` ('pagar' | 'receber').
 - Toda saída é financeiro tipo='pagar' com uma `categoria`:
   fornecedor | despesa_fixa | despesa_variavel | imposto | folha |
   retirada_lucro
 - REGRA DE OURO: retirada_lucro NUNCA entra no cálculo de lucro (é o
-  destino do lucro, não um custo).
-- Despesas fixas recorrentes ficam em despesas_fixas e geram contas do mês.
+  destino do lucro, não um custo) — ainda não há cálculo de lucro/dashboard,
+  só a regra documentada pra quando existir.
+- Despesas fixas recorrentes ficam em despesas_fixas e geram contas do mês
+  — essa automação ainda não existe (é a próxima feature da lista).
 
 ### Impressão (feature já pronta em src/features/impressao)
 

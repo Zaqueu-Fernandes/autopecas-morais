@@ -2,13 +2,15 @@
  * ============================================================================
  * DETALHE DE UMA OS
  * ============================================================================
- * Cabeçalho com cliente/veículo/status, botão de avançar status e os itens.
+ * Cabeçalho com cliente/veículo/status, botão de avançar status, faturamento
+ * (quando concluída) e os itens. OS faturada trava a edição dos itens.
  */
 
 import { useEffect, useState } from 'react';
 import { ROTULO_STATUS_OS, PROXIMO_STATUS, type OrdemServicoResumo } from '../types';
 import { buscarOSPorId, avancarStatusOS } from '../services/os.service';
 import { ListaItensOS } from './ListaItensOS';
+import { FormFaturamento } from '@/features/financeiro';
 
 interface Props {
   osId: string;
@@ -20,6 +22,8 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [avancando, setAvancando] = useState(false);
+  const [mostrarFaturamento, setMostrarFaturamento] = useState(false);
+  const [totalOS, setTotalOS] = useState(0);
 
   async function carregar() {
     setCarregando(true);
@@ -49,10 +53,17 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
     }
   }
 
+  async function handleFaturado() {
+    setMostrarFaturamento(false);
+    await carregar();
+  }
+
   if (carregando) return <p>Carregando…</p>;
   if (erro || !os) return <p className="os-erro">{erro ?? 'OS não encontrada.'}</p>;
 
   const proximoStatus = PROXIMO_STATUS[os.status];
+  const podeFaturar = os.status === 'concluida';
+  const bloqueado = os.status === 'faturada';
 
   return (
     <div className="os-detalhe">
@@ -76,6 +87,11 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
               {avancando ? 'Avançando…' : `Avançar para ${ROTULO_STATUS_OS[proximoStatus]}`}
             </button>
           )}
+          {podeFaturar && !mostrarFaturamento && (
+            <button type="button" className="os-btn" onClick={() => setMostrarFaturamento(true)}>
+              Faturar OS
+            </button>
+          )}
         </div>
       </div>
 
@@ -92,7 +108,17 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
         )}
       </div>
 
-      <ListaItensOS osId={os.id!} />
+      {mostrarFaturamento ? (
+        <FormFaturamento
+          osId={os.id!}
+          clienteId={os.clienteId}
+          valorTotal={totalOS}
+          onFaturado={handleFaturado}
+          onCancelar={() => setMostrarFaturamento(false)}
+        />
+      ) : (
+        <ListaItensOS osId={os.id!} bloqueado={bloqueado} aoAtualizarTotal={setTotalOS} />
+      )}
     </div>
   );
 }

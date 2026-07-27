@@ -4,6 +4,7 @@
  * ============================================================================
  * Lista os itens com total, permite adicionar peça/serviço e remover (com
  * motivo — item removido continua visível, riscado, pra manter o histórico).
+ * Quando `bloqueado` (OS faturada), some com as ações de editar.
  */
 
 import { useEffect, useState } from 'react';
@@ -14,9 +15,12 @@ import type { Peca } from '@/features/estoque';
 
 interface Props {
   osId: string;
+  bloqueado?: boolean;
+  /** Chamado toda vez que os itens (re)carregam, com o total não removido. */
+  aoAtualizarTotal?: (total: number) => void;
 }
 
-export function ListaItensOS({ osId }: Props) {
+export function ListaItensOS({ osId, bloqueado = false, aoAtualizarTotal }: Props) {
   const [itens, setItens] = useState<ItemOS[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -26,7 +30,10 @@ export function ListaItensOS({ osId }: Props) {
     setCarregando(true);
     setErro(null);
     try {
-      setItens(await listarItensPorOS(osId));
+      const lista = await listarItensPorOS(osId);
+      setItens(lista);
+      const total = lista.filter((i) => !i.removido).reduce((soma, i) => soma + i.quantidade * i.valorUnit, 0);
+      aoAtualizarTotal?.(total);
     } catch {
       setErro('Não foi possível carregar os itens.');
     } finally {
@@ -62,9 +69,7 @@ export function ListaItensOS({ osId }: Props) {
     await carregar();
   }
 
-  const total = itens
-    .filter((i) => !i.removido)
-    .reduce((soma, i) => soma + i.quantidade * i.valorUnit, 0);
+  const total = itens.filter((i) => !i.removido).reduce((soma, i) => soma + i.quantidade * i.valorUnit, 0);
 
   if (acaoAberta === 'peca') {
     return <FormItemOS tipo="peca" onSalvar={handleSalvarPeca} onCancelar={() => setAcaoAberta(null)} />;
@@ -77,14 +82,16 @@ export function ListaItensOS({ osId }: Props) {
     <div className="os-itens">
       <div className="os-itens-head">
         <strong>Itens</strong>
-        <span className="os-itens-acoes-topo">
-          <button type="button" className="os-btn-sec" onClick={() => setAcaoAberta('peca')}>
-            + Peça
-          </button>
-          <button type="button" className="os-btn-sec" onClick={() => setAcaoAberta('servico')}>
-            + Serviço
-          </button>
-        </span>
+        {!bloqueado && (
+          <span className="os-itens-acoes-topo">
+            <button type="button" className="os-btn-sec" onClick={() => setAcaoAberta('peca')}>
+              + Peça
+            </button>
+            <button type="button" className="os-btn-sec" onClick={() => setAcaoAberta('servico')}>
+              + Serviço
+            </button>
+          </span>
+        )}
       </div>
 
       {carregando && <p>Carregando…</p>}
@@ -105,10 +112,12 @@ export function ListaItensOS({ osId }: Props) {
                 <span className="os-itens-valor">R$ {(item.quantidade * item.valorUnit).toFixed(2)}</span>
                 {item.removido ? (
                   <span className="os-itens-motivo">Removido: {item.motivoRemocao}</span>
-                ) : (
+                ) : !bloqueado ? (
                   <button type="button" onClick={() => handleRemover(item)}>
                     Remover
                   </button>
+                ) : (
+                  <span />
                 )}
               </li>
             ))}
