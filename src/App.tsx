@@ -5,6 +5,8 @@ import '@/features/ordens-servico/ordens-servico.css';
 import '@/features/financeiro/financeiro.css';
 import '@/features/vendas/vendas.css';
 import '@/features/despesas/despesas.css';
+import '@/features/empresa/empresa.css';
+import '@/features/dashboard/dashboard.css';
 import { ClientesPage } from '@/pages/ClientesPage';
 import { FornecedoresPage } from '@/pages/FornecedoresPage';
 import { EstoquePage } from '@/pages/EstoquePage';
@@ -12,8 +14,10 @@ import { OrdensServicoPage } from '@/pages/OrdensServicoPage';
 import { FinanceiroPage } from '@/pages/FinanceiroPage';
 import { VendasBalcaoPage } from '@/pages/VendasBalcaoPage';
 import { DespesasFixasPage } from '@/pages/DespesasFixasPage';
+import { DashboardPage } from '@/pages/DashboardPage';
 
 const ABAS = [
+  { id: 'dashboard', label: 'Dashboard', Componente: DashboardPage },
   { id: 'ordens-servico', label: 'Ordens de Serviço', Componente: OrdensServicoPage },
   { id: 'vendas', label: 'Vendas de Balcão', Componente: VendasBalcaoPage },
   { id: 'financeiro', label: 'Financeiro', Componente: FinanceiroPage },
@@ -26,7 +30,7 @@ const ABAS = [
 type IdAba = (typeof ABAS)[number]['id'];
 
 function App() {
-  const [abaAtiva, setAbaAtiva] = useState<IdAba>('ordens-servico');
+  const [abaAtiva, setAbaAtiva] = useState<IdAba>('dashboard');
   const AbaAtual = ABAS.find((a) => a.id === abaAtiva)!.Componente;
 
   return (

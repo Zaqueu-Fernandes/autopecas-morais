@@ -1,0 +1,69 @@
+/* ==========================================================================
+   DASHBOARD — estilos base. Prefixo .dash- pra não colidir com outras
+   features.
+   ========================================================================== */
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.dash-cartao {
+  background: #fff;
+  border: 1px solid #d4d7dd;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dash-cartao-titulo { font-size: 12px; color: #5b6270; font-weight: 500; }
+.dash-cartao-valor { font-size: 22px; color: #1f2430; }
+.dash-cartao-aviso  { border-color: #fde68a; background: #fffbeb; }
+.dash-cartao-aviso .dash-cartao-valor  { color: #92400e; }
+.dash-cartao-perigo { border-color: #fecaca; background: #fef2f2; }
+.dash-cartao-perigo .dash-cartao-valor { color: #991b1b; }
+
+/* Monitor MEI */
+.dash-mei {
+  background: #fff;
+  border: 1px solid #d4d7dd;
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  max-width: 560px;
+}
+.dash-mei-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.dash-mei-barra {
+  height: 10px;
+  border-radius: 999px;
+  background: #eef0f3;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.dash-mei-barra-preenchida {
+  height: 100%;
+  border-radius: 999px;
+  background: #2563eb;
+  transition: width .2s;
+}
+.dash-mei-ok .dash-mei-barra-preenchida     { background: #16a34a; }
+.dash-mei-aviso .dash-mei-barra-preenchida  { background: #d97706; }
+.dash-mei-perigo .dash-mei-barra-preenchida { background: #dc2626; }
+
+.dash-mei-detalhe  { font-size: 12px; color: #5b6270; margin: 0; }
+.dash-mei-mensagem { font-size: 12px; color: #b45309; margin: 8px 0 0; font-weight: 600; }
+.dash-mei-perigo .dash-mei-mensagem { color: #991b1b; }
+.dash-mei-me p { font-size: 13px; color: #5b6270; margin: 6px 0 0; }
+
+@media (max-width: 520px) {
+  .dash-grid { grid-template-columns: 1fr 1fr; }
+}

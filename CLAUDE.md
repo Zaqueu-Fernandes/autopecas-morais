@@ -93,14 +93,31 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   (categoria='venda_balcao' em financeiro) e trava a venda
   (status='finalizada') — mesma ressalva: sem estorno ainda.
 
-### Impressão (feature já pronta em src/features/impressao)
+### Impressão (PENDENTE — src/features/impressao ainda está vazia)
+
+Esta seção descreve uma decisão de arquitetura já tomada, mas o código
+NUNCA foi escrito (o texto abaixo veio da conversa original no Claude web
+e ficou aqui por engano dizendo "já pronta" — corrigido, ainda é TODO):
 
 - Camada única PrinterService. Telas chamam printer.imprimir(doc).
-- Fase 1 (atual): método 'browser' (HTML/CSS 80mm). Implementado.
+- Fase 1 (a fazer): método 'browser' (HTML/CSS 80mm).
 - Fase 2 (futuro): ESC/POS via Web Bluetooth/USB. Interface pronta, stubs
   documentados. Ambiente suporta (Windows/Android Chrome).
 - Fase 3 (ao virar ME): NFC-e/NFS-e via API de terceiros. O DANFE vem
   pronto do emissor e entra na mesma camada (campo doc.fiscal).
+
+### Dashboard (feature já pronta em src/features/dashboard)
+
+- Monitor de faturamento MEI: soma financeiro.valor (tipo='receber',
+  categoria in servico_os/venda_balcao) do ano corrente por created_at
+  (data do fato gerador — a venda/faturamento, não o recebimento) e
+  compara com empresa_config.limite_anual_mei.
+- Depende de empresa_config (feature já pronta em src/features/empresa,
+  singleton com o campo `regime` que já era arquitetura decidida mas
+  nunca tinha sido implementada). Sem configuração, o Dashboard pede pra
+  configurar antes de mostrar qualquer número.
+- KPIs adicionais: faturamento do mês/ano, a receber pendente, a pagar
+  pendente, contas atrasadas (vencidas e não pagas).
 
 ### Cadastros (feature já pronta em src/features/cadastros)
 
@@ -117,10 +134,16 @@ Até lá, o sistema gera COMPROVANTE INTERNO ("sem valor fiscal").
 
 ## Ordem de construção sugerida (MVP → completo)
 
-1. Cadastros (clientes, veículos, fornecedores) + Estoque base
-2. Ordens de Serviço com baixa de estoque
-3. Faturamento + Financeiro (3 situações de recebimento)
-4. Vendas de balcão
-5. Despesas e categorias financeiras
-6. Dashboard + monitor de faturamento MEI
-7. Fases futuras: importação XML NF-e, impressão ESC/POS, emissão fiscal
+1. ✅ Cadastros (clientes, veículos, fornecedores) + Estoque base
+2. ✅ Ordens de Serviço com baixa de estoque
+3. ✅ Faturamento + Financeiro (3 situações de recebimento)
+4. ✅ Vendas de balcão
+5. ✅ Despesas e categorias financeiras
+6. ✅ Dashboard + monitor de faturamento MEI
+7. Pendências conhecidas antes de "fases futuras":
+   - Impressão (Fase 1: comprovante HTML/CSS 80mm) — arquitetura decidida,
+     nunca implementada (ver seção acima).
+   - Estorno de OS/venda faturada — hoje faturar é via de mão única.
+   - RLS das tabelas no Supabase — revisar antes de expor o app publicamente.
+8. Fases futuras (fora do MVP): importação XML NF-e, impressão ESC/POS,
+   emissão fiscal (NFC-e/NFS-e via PlugNotas/Focus/eNotas)

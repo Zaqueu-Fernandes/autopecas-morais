@@ -1,0 +1,90 @@
+/* ==========================================================================
+   EMPRESA (configuração) — estilos base. Prefixo .emp- pra não colidir com
+   outras features.
+   ========================================================================== */
+
+.emp-form {
+  --emp-borda: #d4d7dd;
+  --emp-borda-foco: #2563eb;
+  --emp-erro: #dc2626;
+  --emp-texto: #1f2430;
+  --emp-label: #5b6270;
+  --emp-btn: #2563eb;
+  --emp-btn-texto: #fff;
+  --emp-sec: #eef0f3;
+
+  max-width: 480px;
+  color: var(--emp-texto);
+  font-size: 14px;
+}
+
+.emp-form-head { margin-bottom: 12px; }
+.emp-form-head h2 { font-size: 18px; margin: 0; }
+
+.emp-campo { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+.emp-campo label { font-size: 12px; color: var(--emp-label); font-weight: 500; }
+.emp-campo input {
+  border: 1px solid var(--emp-borda);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--emp-texto);
+  outline: none;
+  transition: border-color .12s;
+}
+.emp-campo input:focus {
+  border-color: var(--emp-borda-foco);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+.emp-campo input[aria-invalid="true"] { border-color: var(--emp-erro); }
+.emp-dica { font-size: 11px; color: var(--emp-label); }
+.emp-erro { color: var(--emp-erro); font-size: 11px; }
+
+.emp-tipo {
+  display: inline-flex;
+  border: 1px solid var(--emp-borda);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.emp-tipo button {
+  border: 0;
+  background: #fff;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--emp-label);
+}
+.emp-tipo button.ativo {
+  background: var(--emp-btn);
+  color: var(--emp-btn-texto);
+  font-weight: 600;
+}
+
+.emp-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+.emp-btn {
+  background: var(--emp-btn);
+  color: var(--emp-btn-texto);
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.emp-btn:disabled { opacity: .6; cursor: default; }
+.emp-btn-sec {
+  background: var(--emp-sec);
+  color: var(--emp-texto);
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
