@@ -9,9 +9,11 @@
 export { FormContaPagar } from './components/FormContaPagar';
 export { FormQuitacao } from './components/FormQuitacao';
 export { FormFaturamento } from './components/FormFaturamento';
+export { FormFinalizarVenda } from './components/FormFinalizarVenda';
 
 export * from './services/financeiro.service';
 export { faturarOS } from './services/faturamento.service';
+export { finalizarVenda } from './services/venda.service';
 
 export {
   semErros,

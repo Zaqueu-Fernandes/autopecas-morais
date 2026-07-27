@@ -22,6 +22,7 @@ interface LinhaFinanceiro {
   cliente_id: string | null;
   fornecedor_id: string | null;
   os_id: string | null;
+  venda_id: string | null;
   observacoes: string | null;
   created_at: string;
 }
@@ -40,6 +41,7 @@ function linhaParaLancamento(l: LinhaFinanceiro): LancamentoFinanceiro {
     clienteId: l.cliente_id,
     fornecedorId: l.fornecedor_id,
     osId: l.os_id,
+    vendaId: l.venda_id,
     observacoes: l.observacoes ?? '',
     createdAt: l.created_at,
   };
@@ -71,6 +73,7 @@ export async function criarLancamento(l: LancamentoFinanceiro): Promise<Lancamen
       cliente_id: l.clienteId,
       fornecedor_id: l.fornecedorId,
       os_id: l.osId,
+      venda_id: l.vendaId,
       observacoes: l.observacoes || null,
     })
     .select()

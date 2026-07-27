@@ -78,6 +78,17 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 - Despesas fixas recorrentes ficam em despesas_fixas e geram contas do mês
   — essa automação ainda não existe (é a próxima feature da lista).
 
+### Vendas de Balcão (feature já pronta em src/features/vendas)
+
+- Venda avulsa de peça (mão de obra é OS, não entra aqui). Cliente é
+  OPCIONAL — só vira obrigatório se a venda for finalizada como a
+  prazo/fiado (precisa amarrar a alguém).
+- Mesmo padrão da OS: item dá baixa de estoque na hora (registrarSaida),
+  remover devolve via AJUSTE, item removido fica marcado (não apagado).
+- Finalização reaproveita as mesmas 3 situações de recebimento da OS
+  (categoria='venda_balcao' em financeiro) e trava a venda
+  (status='finalizada') — mesma ressalva: sem estorno ainda.
+
 ### Impressão (feature já pronta em src/features/impressao)
 
 - Camada única PrinterService. Telas chamam printer.imprimir(doc).

@@ -1,39 +1,34 @@
 /**
  * ============================================================================
- * FATURAMENTO DE OS
+ * FINALIZAÇÃO DE VENDA DE BALCÃO
  * ============================================================================
- * Ao faturar: cria o lançamento em financeiro (tipo='receber') conforme a
- * situação de recebimento, e trava a OS (status='faturada'). As duas coisas
- * não são transacionais (sem RPC no banco ainda) — se a segunda falhar, fica
- * um lançamento financeiro órfão de uma OS não travada; aceitável pro estágio
- * atual (uso único, correção manual), revisar se isso virar problema real.
- *
- * Esta é a ÚNICA função que atualiza ordens_servico a partir da feature
- * financeiro — só o campo status, só nesta direção (financeiro depende de
- * ordens-servico só por convenção de nome de tabela, não importa código de lá).
+ * Espelha faturamento.service.ts (OS), mas pra vendas_balcao: cria o
+ * lançamento em financeiro (categoria='venda_balcao') e trava a venda
+ * (status='finalizada'). a_prazo/fiado exigem cliente_id (validado no
+ * componente, não aqui — ver FormFinalizarVenda).
  */
 
 import { supabase } from '@/lib/supabase';
 import { criarLancamento } from './financeiro.service';
 import type { DadosFaturamento } from '../types';
 
-export async function faturarOS(input: {
-  osId: string;
-  clienteId: string;
+export async function finalizarVenda(input: {
+  vendaId: string;
+  clienteId: string | null;
   valorTotal: number;
   dados: DadosFaturamento;
 }): Promise<void> {
-  const { osId, clienteId, valorTotal, dados } = input;
+  const { vendaId, clienteId, valorTotal, dados } = input;
 
   const base = {
     tipo: 'receber' as const,
-    categoria: 'servico_os' as const,
-    descricao: `Faturamento da OS`,
+    categoria: 'venda_balcao' as const,
+    descricao: `Venda de balcão`,
     valor: valorTotal,
     clienteId,
     fornecedorId: null,
-    osId,
-    vendaId: null,
+    osId: null,
+    vendaId,
     observacoes: '',
   };
 
@@ -63,6 +58,6 @@ export async function faturarOS(input: {
     });
   }
 
-  const { error } = await supabase.from('ordens_servico').update({ status: 'faturada' }).eq('id', osId);
+  const { error } = await supabase.from('vendas_balcao').update({ status: 'finalizada' }).eq('id', vendaId);
   if (error) throw error;
 }
