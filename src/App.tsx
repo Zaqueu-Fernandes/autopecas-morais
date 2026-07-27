@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import '@/features/cadastros/cadastros.css';
 import '@/features/estoque/estoque.css';
+import '@/features/ordens-servico/ordens-servico.css';
 import { ClientesPage } from '@/pages/ClientesPage';
 import { FornecedoresPage } from '@/pages/FornecedoresPage';
 import { EstoquePage } from '@/pages/EstoquePage';
+import { OrdensServicoPage } from '@/pages/OrdensServicoPage';
 
 const ABAS = [
+  { id: 'ordens-servico', label: 'Ordens de Serviço', Componente: OrdensServicoPage },
   { id: 'clientes', label: 'Clientes', Componente: ClientesPage },
   { id: 'fornecedores', label: 'Fornecedores', Componente: FornecedoresPage },
   { id: 'estoque', label: 'Estoque', Componente: EstoquePage },

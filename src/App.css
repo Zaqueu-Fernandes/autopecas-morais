@@ -43,6 +43,22 @@ body {
 }
 .pg-head h1 { font-size: 20px; margin: 0; }
 
+.pg-filtros {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.pg-filtros .pg-busca { margin-bottom: 0; }
+.pg-filtros select {
+  border: 1px solid #d4d7dd;
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 14px;
+  background: #fff;
+}
+
 .pg-busca {
   width: 100%;
   max-width: 360px;

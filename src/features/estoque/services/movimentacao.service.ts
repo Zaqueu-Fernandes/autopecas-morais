@@ -90,21 +90,27 @@ export async function registrarAjuste(input: {
 }
 
 /**
- * Registra saída por uso — reservado para as features de OS e Venda de balcão
- * (ainda não implementadas), que sabem a origem exata da baixa.
+ * Registra saída por uso (OS ou Venda de balcão), que sabem a origem exata da
+ * baixa. Devolve o id da movimentação — quem chama (ex.: os_itens) guarda essa
+ * referência pra poder estornar depois.
  */
 export async function registrarSaida(input: {
   pecaId: string;
   quantidade: number;
   origem: string;
   observacoes?: string;
-}): Promise<void> {
-  const { error } = await supabase.from('movimentacao_estoque').insert({
-    peca_id: input.pecaId,
-    tipo: 'saida',
-    quantidade: input.quantidade,
-    origem: input.origem,
-    observacoes: input.observacoes || null,
-  });
+}): Promise<{ id: string }> {
+  const { data, error } = await supabase
+    .from('movimentacao_estoque')
+    .insert({
+      peca_id: input.pecaId,
+      tipo: 'saida',
+      quantidade: input.quantidade,
+      origem: input.origem,
+      observacoes: input.observacoes || null,
+    })
+    .select('id')
+    .single();
   if (error) throw error;
+  return data as { id: string };
 }
