@@ -10,7 +10,7 @@
  * biblioteca de UI, pra plugar em qualquer projeto.
  */
 
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Endereco, ErrosValidacao } from '../types';
 import { buscarCEP, formatarCEP } from '../services/cep';
 

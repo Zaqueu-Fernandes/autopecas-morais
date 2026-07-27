@@ -6,7 +6,7 @@
  * costuma vir preenchido automaticamente pelo XML da NF-e de entrada (futuro).
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   type Fornecedor,
   fornecedorVazio,

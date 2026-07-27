@@ -112,3 +112,37 @@ export function validarFornecedor(f: Fornecedor): ErrosValidacao {
 }
 
 export const semErros = (e: ErrosValidacao) => Object.keys(e).length === 0;
+
+// ---- Veículos ---------------------------------------------------------------
+// Cadastrados sempre vinculados a um cliente (dono do veículo).
+
+export interface Veiculo {
+  id?: string;
+  clienteId: string;
+  placa: string;
+  marca: string;
+  modelo: string;
+  ano: string; // texto no formulário; vira number ao salvar (ver veiculos.service.ts)
+  cor: string;
+  quilometragem: string; // idem
+  observacoes: string;
+}
+
+export const veiculoVazio = (clienteId: string): Veiculo => ({
+  clienteId,
+  placa: '',
+  marca: '',
+  modelo: '',
+  ano: '',
+  cor: '',
+  quilometragem: '',
+  observacoes: '',
+});
+
+export function validarVeiculo(v: Veiculo): ErrosValidacao {
+  const erros: ErrosValidacao = {};
+  if (!v.placa.trim()) erros.placa = 'Informe a placa.';
+  if (v.ano.trim() && !/^\d{4}$/.test(v.ano.trim()))
+    erros.ano = 'Ano deve ter 4 dígitos.';
+  return erros;
+}

@@ -9,7 +9,7 @@
  * Não usa <form> (segue a restrição de Artifacts/React): o envio é por onClick.
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   type Cliente,
   clienteVazio,

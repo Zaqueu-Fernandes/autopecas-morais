@@ -167,3 +167,33 @@
   .cad-endereco .cad-cidade { grid-column: 1 / -1; }
   .cad-endereco .cad-uf { max-width: none; }
 }
+
+/* Veículos do cliente (usado na linha expandida da lista de clientes) */
+.cad-veiculos { font-size: 13px; color: var(--cad-texto, #1f2430); }
+.cad-veiculos-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.cad-veiculos-vazio { color: var(--cad-label, #5b6270); font-size: 13px; }
+.cad-veiculos-lista { list-style: none; margin: 0; padding: 0; }
+.cad-veiculos-lista li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--cad-borda, #d4d7dd);
+}
+.cad-veiculos-lista li:last-child { border-bottom: none; }
+.cad-veiculos-acoes { display: flex; gap: 8px; white-space: nowrap; }
+.cad-veiculos-acoes button {
+  border: 0;
+  background: none;
+  color: var(--cad-btn, #2563eb);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
