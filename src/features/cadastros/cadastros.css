@@ -1,0 +1,169 @@
+/* ==========================================================================
+   CADASTROS — estilos base (neutros, adapte às cores do seu sistema)
+   Prefixo .cad- pra não colidir com o resto do app.
+   ========================================================================== */
+
+.cad-form {
+  --cad-borda: #d4d7dd;
+  --cad-borda-foco: #2563eb;
+  --cad-erro: #dc2626;
+  --cad-aviso: #b45309;
+  --cad-texto: #1f2430;
+  --cad-label: #5b6270;
+  --cad-btn: #2563eb;
+  --cad-btn-texto: #fff;
+  --cad-sec: #eef0f3;
+
+  max-width: 640px;
+  color: var(--cad-texto);
+  font-size: 14px;
+}
+
+.cad-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.cad-form-head h2 { font-size: 18px; margin: 0; }
+
+.cad-tag {
+  font-size: 11px;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Alternador PF / PJ */
+.cad-tipo {
+  display: inline-flex;
+  border: 1px solid var(--cad-borda);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.cad-tipo button {
+  border: 0;
+  background: #fff;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--cad-label);
+}
+.cad-tipo button.ativo {
+  background: var(--cad-btn);
+  color: var(--cad-btn-texto);
+  font-weight: 600;
+}
+
+/* Grade de campos */
+.cad-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.cad-campo { display: flex; flex-direction: column; gap: 4px; }
+.cad-col-2 { grid-column: 1 / -1; }
+
+.cad-campo label {
+  font-size: 12px;
+  color: var(--cad-label);
+  font-weight: 500;
+}
+.cad-campo input,
+.cad-campo select,
+.cad-campo textarea {
+  border: 1px solid var(--cad-borda);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--cad-texto);
+  outline: none;
+  transition: border-color .12s;
+}
+.cad-campo input:focus,
+.cad-campo select:focus,
+.cad-campo textarea:focus {
+  border-color: var(--cad-borda-foco);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+.cad-campo input[aria-invalid="true"],
+.cad-campo select[aria-invalid="true"] {
+  border-color: var(--cad-erro);
+}
+
+.cad-erro { color: var(--cad-erro); font-size: 11px; }
+.cad-aviso { color: var(--cad-aviso); font-size: 11px; }
+
+/* Endereço */
+.cad-endereco {
+  border: 1px solid var(--cad-borda);
+  border-radius: 10px;
+  padding: 14px;
+  margin: 16px 0;
+}
+.cad-endereco legend {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cad-label);
+  padding: 0 6px;
+}
+
+/* posiciona campos do endereço em colunas úteis */
+.cad-endereco .cad-cep { grid-column: span 1; }
+.cad-endereco .cad-logradouro { grid-column: 1 / -1; }
+.cad-endereco .cad-numero { grid-column: span 1; }
+.cad-endereco .cad-complemento { grid-column: span 1; }
+.cad-endereco .cad-bairro { grid-column: span 1; }
+.cad-endereco .cad-cidade { grid-column: span 1; }
+.cad-endereco .cad-uf { grid-column: span 1; max-width: 120px; }
+
+.cad-cep-wrap { position: relative; display: flex; align-items: center; }
+.cad-cep-status {
+  position: absolute; right: 10px;
+  font-size: 11px; color: var(--cad-label);
+}
+
+/* Ações */
+.cad-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+.cad-btn {
+  background: var(--cad-btn);
+  color: var(--cad-btn-texto);
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cad-btn:disabled { opacity: .6; cursor: default; }
+.cad-btn-sec {
+  background: var(--cad-sec);
+  color: var(--cad-texto);
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Responsivo: telas estreitas (balcão em tablet/celular) */
+@media (max-width: 520px) {
+  .cad-grid { grid-template-columns: 1fr; }
+  .cad-endereco .cad-cep,
+  .cad-endereco .cad-numero,
+  .cad-endereco .cad-complemento,
+  .cad-endereco .cad-bairro,
+  .cad-endereco .cad-cidade { grid-column: 1 / -1; }
+  .cad-endereco .cad-uf { max-width: none; }
+}
