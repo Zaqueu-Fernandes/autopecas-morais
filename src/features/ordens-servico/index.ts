@@ -9,6 +9,7 @@
 export { FormOS } from './components/FormOS';
 export { FormItemOS } from './components/FormItemOS';
 export { ListaItensOS } from './components/ListaItensOS';
+export { EtapasOS } from './components/EtapasOS';
 export { DetalheOS } from './components/DetalheOS';
 
 export * from './services/os.service';

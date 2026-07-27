@@ -18,9 +18,11 @@ import {
   listarFinanceiro,
   criarLancamento,
   quitarLancamento,
+  buscarFluxoCaixa,
   ROTULO_CATEGORIA_PAGAR,
   ROTULO_CATEGORIA_RECEBER,
 } from '@/features/financeiro';
+import { buscarResumoDashboard } from '@/features/dashboard';
 
 type FiltroTipo = TipoFinanceiro | 'todos';
 type FiltroStatus = 'pendentes' | 'quitados' | 'todos';
@@ -29,6 +31,18 @@ function rotuloCategoria(l: LancamentoFinanceiro): string {
   return l.tipo === 'pagar'
     ? ROTULO_CATEGORIA_PAGAR[l.categoria as keyof typeof ROTULO_CATEGORIA_PAGAR]
     : ROTULO_CATEGORIA_RECEBER[l.categoria as keyof typeof ROTULO_CATEGORIA_RECEBER];
+}
+
+/** yyyy-mm-dd cai no mês corrente? (só relevante pra decidir se vale a pena avisar) */
+function caiNoMesAtual(dataISO: string): boolean {
+  const hoje = new Date();
+  const [ano, mes] = dataISO.split('-').map(Number);
+  return ano === hoje.getFullYear() && mes === hoje.getMonth() + 1;
+}
+
+function primeiroDiaDoMes(): string {
+  const hoje = new Date();
+  return new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0, 10);
 }
 
 export function FinanceiroPage() {
@@ -64,6 +78,17 @@ export function FinanceiroPage() {
   }, [filtroTipo, filtroStatus]);
 
   async function handleSalvarContaPagar(d: DadosContaPagar) {
+    if (caiNoMesAtual(d.vencimento)) {
+      const resumo = await buscarResumoDashboard();
+      const projetado = resumo.resultadoMes - Number(d.valor);
+      if (resumo.resultadoMes >= 0 && projetado < 0) {
+        const confirmar = window.confirm(
+          `Essa conta vai deixar o resultado do mês negativo (R$ ${projetado.toFixed(2)}). Confirma mesmo assim?`,
+        );
+        if (!confirmar) return;
+      }
+    }
+
     await criarLancamento({
       tipo: 'pagar',
       categoria: d.categoria,
@@ -86,6 +111,19 @@ export function FinanceiroPage() {
 
   async function handleQuitar(formaPagamento: FormaPagamento) {
     if (!lancamentoParaQuitar) return;
+
+    if (lancamentoParaQuitar.tipo === 'pagar') {
+      const hoje = new Date().toISOString().slice(0, 10);
+      const fluxo = await buscarFluxoCaixa(primeiroDiaDoMes(), hoje);
+      const projetado = fluxo.saldoFinal - lancamentoParaQuitar.valor;
+      if (fluxo.saldoFinal >= 0 && projetado < 0) {
+        const confirmar = window.confirm(
+          `Esse pagamento vai deixar o saldo de caixa do mês negativo (R$ ${projetado.toFixed(2)}). Confirma mesmo assim?`,
+        );
+        if (!confirmar) return;
+      }
+    }
+
     await quitarLancamento(lancamentoParaQuitar.id!, formaPagamento);
     setLancamentoParaQuitar(null);
     await carregar();

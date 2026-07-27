@@ -81,6 +81,12 @@ export function DashboardPage() {
 
       <div className="dash-grid">
         <CartaoResumo titulo="Faturamento do mês" valor={`R$ ${resumo!.faturamentoMes.toFixed(2)}`} />
+        <CartaoResumo titulo="Despesas do mês" valor={`R$ ${resumo!.despesasMes.toFixed(2)}`} />
+        <CartaoResumo
+          titulo="Resultado do mês"
+          valor={`R$ ${resumo!.resultadoMes.toFixed(2)}`}
+          tom={resumo!.resultadoMes < 0 ? 'perigo' : 'neutro'}
+        />
         <CartaoResumo titulo="Faturamento do ano" valor={`R$ ${resumo!.faturamentoAno.toFixed(2)}`} />
         <CartaoResumo titulo="A receber (pendente)" valor={`R$ ${resumo!.aReceberPendente.toFixed(2)}`} />
         <CartaoResumo titulo="A pagar (pendente)" valor={`R$ ${resumo!.aPagarPendente.toFixed(2)}`} />
@@ -90,6 +96,11 @@ export function DashboardPage() {
           tom={resumo!.aPagarVencidoQtd > 0 ? 'perigo' : 'neutro'}
         />
       </div>
+      {resumo!.resultadoMes < 0 && (
+        <p className="dash-mei-mensagem">
+          Despesas do mês superaram o faturamento — não impede nada, é só um alerta.
+        </p>
+      )}
     </div>
   );
 }

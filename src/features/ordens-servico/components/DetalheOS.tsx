@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { ROTULO_STATUS_OS, PROXIMO_STATUS, type OrdemServicoResumo } from '../types';
 import { buscarOSPorId, avancarStatusOS } from '../services/os.service';
 import { ListaItensOS } from './ListaItensOS';
+import { EtapasOS } from './EtapasOS';
 import { FormFaturamento } from '@/features/financeiro';
 
 interface Props {
@@ -79,9 +80,6 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
           </p>
         </div>
         <div className="os-detalhe-status">
-          <span className={`os-badge-status os-badge-status-${os.status}`}>
-            {ROTULO_STATUS_OS[os.status]}
-          </span>
           {proximoStatus && (
             <button type="button" className="os-btn" onClick={handleAvancar} disabled={avancando}>
               {avancando ? 'Avançando…' : `Avançar para ${ROTULO_STATUS_OS[proximoStatus]}`}
@@ -94,6 +92,8 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
           )}
         </div>
       </div>
+
+      <EtapasOS statusAtual={os.status} />
 
       <div className="os-detalhe-info">
         <div>

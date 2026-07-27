@@ -75,6 +75,11 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   3. Em aberto (fiado): pago=false, vencimento=NULL, amarrado ao cliente
 - OS faturada trava para edição (correção só via estorno — estorno ainda
   não foi implementado; hoje faturar é uma via de mão única).
+- DetalheOS mostra as 4 etapas (Aberta/Em andamento/Concluída/Faturada)
+  como uma trilha de progresso animada (EtapasOS — check nas concluídas,
+  pulso na atual, conector acende conforme avança), estilo apps de
+  entrega. É só apresentação; a lógica de transição continua em
+  PROXIMO_STATUS/avancarStatusOS.
 
 ### Financeiro (feature já pronta em src/features/financeiro)
 
@@ -97,6 +102,17 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   período) + saldo acumulado linha a linha. Não é saldo bancário real —
   o app não tem conta/banco cadastrado, é só o acumulado do que passou
   pelo financeiro.
+- NÃO existe trava impedindo despesa > receita — é decisão de propósito
+  (ficar no vermelho é uma situação real de negócio, não um erro; travar
+  impediria registrar uma despesa que já aconteceu de verdade). Em vez
+  disso, dois avisos NÃO bloqueantes (window.confirm, dá pra prosseguir):
+  1. Ao criar conta a pagar com vencimento no mês corrente, se isso
+     zerar/negativar resultadoMes (receita - despesa do mês, ambos por
+     competência: faturamento por created_at, despesa por vencimento).
+  2. Ao quitar uma conta a pagar, se isso negativar o saldo de caixa do
+     mês corrente (via buscarFluxoCaixa, regime de caixa).
+  Só avisa na transição de ok pra negativo (se já tava negativo, não
+  fica repetindo o aviso a cada novo lançamento).
 
 ### Vendas de Balcão (feature já pronta em src/features/vendas)
 

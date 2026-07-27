@@ -192,8 +192,89 @@
 .os-detalhe-info label { font-size: 11px; color: #5b6270; font-weight: 600; }
 .os-detalhe-info p { margin: 2px 0 0; }
 
+/* Etapas da OS — trilha estilo "acompanhe seu pedido" */
+.os-etapas {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  margin: 4px 0 24px;
+}
+
+.os-etapas-passo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 64px;
+}
+.os-etapas-marcador {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef0f3;
+  color: #9aa0a6;
+  border: 2px solid #d4d7dd;
+  transition: background .2s ease, border-color .2s ease, color .2s ease;
+}
+.os-etapas-ponto { width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
+
+.os-etapas-passo-concluida .os-etapas-marcador {
+  background: #D62839;
+  border-color: #D62839;
+  color: #fff;
+}
+.os-etapas-passo-atual .os-etapas-marcador {
+  background: #fff;
+  border-color: #D62839;
+  color: #D62839;
+  animation: os-etapas-pulso 1.6s ease-in-out infinite;
+}
+@keyframes os-etapas-pulso {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(214, 40, 57, .35); }
+  50% { box-shadow: 0 0 0 7px rgba(214, 40, 57, 0); }
+}
+
+.os-etapas-rotulo {
+  font-size: 11px;
+  color: #5b6270;
+  text-align: center;
+  white-space: nowrap;
+}
+.os-etapas-passo-atual .os-etapas-rotulo    { color: #1f2430; font-weight: 700; }
+.os-etapas-passo-concluida .os-etapas-rotulo { color: #1f2430; font-weight: 600; }
+
+.os-etapas-conector {
+  flex: 1;
+  height: 32px;
+  min-width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: #d4d7dd;
+  transition: color .2s ease;
+}
+.os-etapas-conector::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: currentColor;
+  transform: translateY(-50%);
+}
+.os-etapas-conector svg { position: relative; z-index: 1; }
+.os-etapas-conector-preenchido { color: #D62839; }
+
 /* Responsivo */
 @media (max-width: 520px) {
   .os-grid { grid-template-columns: 1fr; }
   .os-itens-lista li { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; }
+  .os-etapas-passo { min-width: 48px; }
+  .os-etapas-rotulo { font-size: 9px; white-space: normal; }
+  .os-etapas-marcador { width: 26px; height: 26px; }
 }
