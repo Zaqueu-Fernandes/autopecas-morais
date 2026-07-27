@@ -11,6 +11,7 @@
 
 import { supabase } from '@/lib/supabase';
 import type { Peca } from '../types';
+import { registrarEntrada } from './movimentacao.service';
 
 interface LinhaPeca {
   id: string;
@@ -90,9 +91,33 @@ export async function atualizarPeca(peca: Peca): Promise<Peca> {
   return linhaParaPeca(data as LinhaPeca);
 }
 
+/**
+ * Cria a peça e, se um estoque inicial foi informado no formulário, registra
+ * a primeira ENTRADA imediatamente — sem isso, o usuário teria que criar a
+ * peça e só depois ir numa segunda tela lançar a entrada.
+ */
+async function criarPecaComEstoqueInicial(peca: Peca): Promise<Peca> {
+  const nova = await criarPeca(peca);
+
+  const qtdInicial = Number(peca.qtdInicial);
+  if (!peca.qtdInicial?.trim() || Number.isNaN(qtdInicial) || qtdInicial <= 0) {
+    return nova;
+  }
+
+  const custoInicial = Number(peca.custoInicial || 0);
+  await registrarEntrada({
+    pecaId: nova.id!,
+    quantidade: qtdInicial,
+    custoUnit: custoInicial,
+    observacoes: 'Estoque inicial (cadastro da peça)',
+  });
+
+  return { ...nova, qtd: qtdInicial, precoCusto: custoInicial };
+}
+
 /** Cria se a peça ainda não tem id, ou atualiza caso já exista. */
 export async function salvarPeca(peca: Peca): Promise<Peca> {
-  return peca.id ? atualizarPeca(peca) : criarPeca(peca);
+  return peca.id ? atualizarPeca(peca) : criarPecaComEstoqueInicial(peca);
 }
 
 /** Desativa/reativa em vez de excluir — peça pode ter histórico de movimentação. */

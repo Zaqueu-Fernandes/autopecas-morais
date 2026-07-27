@@ -2,9 +2,15 @@
  * ============================================================================
  * FORMULÁRIO DE PEÇA
  * ============================================================================
- * Cadastra/edita os dados da peça. Estoque (qtd) e custo NÃO são editáveis
- * aqui — eles só mudam registrando uma movimentação (ver MovimentacoesDaPeca).
- * Peça nova sempre nasce com saldo zero.
+ * Cadastra/edita os dados da peça. qtd/preco_custo continuam sendo cache do
+ * banco (nunca editados direto) — mas ao CRIAR a peça, quantidade inicial +
+ * custo unitário viram a primeira movimentação de ENTRADA automaticamente
+ * (ver criarPecaComEstoqueInicial em pecas.service.ts). Pra dar mais entrada
+ * depois, ou ajustar, use a tela de Movimentações da peça já salva.
+ *
+ * "Margem de lucro (%)" é só uma calculadora: aplica sobre o custo (o
+ * digitado, se for peça nova; o cacheado, se estiver editando) e sugere o
+ * preço de venda — o campo continua editável manualmente depois.
  */
 
 import { useState } from 'react';
@@ -18,11 +24,32 @@ interface Props {
 
 export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
   const [peca, setPeca] = useState<Peca>(inicial ?? pecaVazia());
+  const [margem, setMargem] = useState('');
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [salvando, setSalvando] = useState(false);
 
+  const ehNova = !peca.id;
+  const custoBase = ehNova ? Number(peca.custoInicial || 0) : peca.precoCusto;
+
   function set(patch: Partial<Peca>) {
     setPeca((p) => ({ ...p, ...patch }));
+  }
+
+  function aplicarMargem(margemStr: string, custo: number) {
+    const m = Number(margemStr);
+    if (margemStr.trim() && !Number.isNaN(m) && custo > 0) {
+      set({ precoVenda: (custo * (1 + m / 100)).toFixed(2) });
+    }
+  }
+
+  function handleMargemChange(valor: string) {
+    setMargem(valor);
+    aplicarMargem(valor, custoBase);
+  }
+
+  function handleCustoInicialChange(valor: string) {
+    set({ custoInicial: valor });
+    if (margem.trim()) aplicarMargem(margem, Number(valor || 0));
   }
 
   async function handleSalvar() {
@@ -97,6 +124,50 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
           </datalist>
         </div>
 
+        {ehNova && (
+          <>
+            <div className="est-campo">
+              <label>Quantidade inicial</label>
+              <input
+                inputMode="numeric"
+                value={peca.qtdInicial}
+                onChange={(e) => set({ qtdInicial: e.target.value })}
+                placeholder="Opcional — deixe em branco pra começar do zero"
+                aria-invalid={!!erros.qtdInicial}
+              />
+              {erros.qtdInicial && <span className="est-erro">{erros.qtdInicial}</span>}
+            </div>
+
+            <div className="est-campo">
+              <label>Custo unitário (R$){peca.qtdInicial?.trim() ? ' *' : ''}</label>
+              <input
+                inputMode="decimal"
+                value={peca.custoInicial}
+                onChange={(e) => handleCustoInicialChange(e.target.value)}
+                placeholder="0,00"
+                aria-invalid={!!erros.custoInicial}
+              />
+              {erros.custoInicial && <span className="est-erro">{erros.custoInicial}</span>}
+            </div>
+          </>
+        )}
+
+        <div className="est-campo">
+          <label>Margem de lucro (%)</label>
+          <input
+            inputMode="decimal"
+            value={margem}
+            onChange={(e) => handleMargemChange(e.target.value)}
+            placeholder="Ex.: 40"
+            disabled={custoBase <= 0}
+          />
+          {custoBase <= 0 && (
+            <span className="est-aviso">
+              {ehNova ? 'Informe o custo unitário pra calcular a partir da margem.' : 'Esta peça ainda não tem custo registrado.'}
+            </span>
+          )}
+        </div>
+
         <div className="est-campo">
           <label>Preço de venda (R$)</label>
           <input
@@ -141,10 +212,10 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
         />
       </div>
 
-      {!peca.id && (
+      {ehNova && !peca.qtdInicial?.trim() && (
         <p className="est-aviso">
-          A peça nasce com estoque zero. Depois de salvar, registre uma entrada para dar
-          saldo e custo a ela.
+          Sem quantidade inicial, a peça nasce com estoque zero — dá pra registrar entrada
+          depois, na tela de Movimentações.
         </p>
       )}
 

@@ -21,6 +21,14 @@ export interface Peca {
   precoCusto: number;
   /** Cache mantido pelo banco (soma do razão) — somente leitura na aplicação. */
   qtd: number;
+  /**
+   * Estoque inicial — só usado na CRIAÇÃO da peça (nunca persistido em
+   * `pecas`). Se preenchido, vira a primeira movimentação de ENTRADA
+   * assim que a peça é salva (ver criarPecaComEstoqueInicial).
+   */
+  qtdInicial?: string;
+  /** Custo unitário do estoque inicial — vira o custo daquela primeira entrada. */
+  custoInicial?: string;
 }
 
 export const pecaVazia = (): Peca => ({
@@ -34,6 +42,8 @@ export const pecaVazia = (): Peca => ({
   observacoes: '',
   precoCusto: 0,
   qtd: 0,
+  qtdInicial: '',
+  custoInicial: '',
 });
 
 export type ErrosValidacao = Record<string, string>;
@@ -43,6 +53,17 @@ export function validarPeca(p: Peca): ErrosValidacao {
   if (!p.nome.trim()) erros.nome = 'Informe o nome.';
   if (p.precoVenda.trim() && Number.isNaN(Number(p.precoVenda)))
     erros.precoVenda = 'Preço de venda inválido.';
+
+  if (!p.id && p.qtdInicial?.trim()) {
+    const qtdInicial = Number(p.qtdInicial);
+    if (Number.isNaN(qtdInicial) || qtdInicial <= 0)
+      erros.qtdInicial = 'Quantidade inicial deve ser maior que zero.';
+
+    const custoInicial = Number(p.custoInicial);
+    if (!p.custoInicial?.trim() || Number.isNaN(custoInicial) || custoInicial < 0)
+      erros.custoInicial = 'Informe o custo unitário do estoque inicial.';
+  }
+
   return erros;
 }
 

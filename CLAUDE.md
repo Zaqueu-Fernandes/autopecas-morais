@@ -49,6 +49,16 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 - movimentacao_estoque é um razão contábil (append-only): a aplicação só
   cria linhas, nunca edita/apaga uma movimentação existente.
 - Peça não é excluída (pode ter histórico) — só desativada (pecas.ativo).
+- Ao CRIAR uma peça, o formulário aceita quantidade inicial + custo
+  unitário — vira a primeira ENTRADA automaticamente
+  (criarPecaComEstoqueInicial em pecas.service.ts), pra não obrigar o
+  usuário a criar a peça e só depois abrir uma segunda tela pra dar
+  entrada. Continua sem editar pecas.qtd/preco_custo direto: por baixo
+  dos panos é sempre uma movimentação.
+- "Margem de lucro (%)" no formulário da peça é só uma calculadora:
+  sugere preco_venda = custo × (1 + margem/100) a partir do custo
+  (digitado, se a peça for nova; cacheado, se estiver editando). O campo
+  de preço continua editável manualmente por cima do valor sugerido.
 
 ### Ordem de Serviço (feature já pronta em src/features/ordens-servico)
 
