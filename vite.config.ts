@@ -11,7 +11,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg'],
+      includeAssets: ['favicon-64.png', 'icones/IconPage.png'],
       manifest: {
         name: 'Autopeças Morais — Gestão da Oficina',
         short_name: 'Autopeças Morais',
@@ -22,8 +22,10 @@ export default defineConfig({
         display: 'standalone',
         start_url: '/',
         icons: [
-          { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
-          { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
+          { src: 'pwa-icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'pwa-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: 'pwa-icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+          { src: 'pwa-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),

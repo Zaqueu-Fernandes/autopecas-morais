@@ -51,10 +51,11 @@ function App() {
     <div className="app">
       <InstalarPwaBanner />
       <header className="app-header">
-        <div className="app-titulo-bloco">
-          <h1 className="app-titulo">Autopeças Morais</h1>
-          <p className="app-tagline">Cuidando da vida do seu carro</p>
-        </div>
+        <img
+          src="/icones/IconPage.png"
+          alt="Autopeças Morais — Cuidando da vida do seu carro"
+          className="app-logo"
+        />
         <nav className="app-nav">
           {ABAS.map((a) => {
             const Icone = a.Icone;

@@ -125,9 +125,7 @@ body {
   gap: 24px;
   box-shadow: 0 1px 0 rgba(255, 255, 255, .06);
 }
-.app-titulo-bloco { display: flex; flex-direction: column; white-space: nowrap; }
-.app-titulo { font-size: 18px; margin: 0; color: #fff; font-weight: 700; }
-.app-tagline { font-size: 11px; margin: 0; color: #D62839; font-weight: 600; letter-spacing: .02em; }
+.app-logo { height: 60px; width: auto; display: block; flex-shrink: 0; }
 
 .app-nav { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; }
 .app-nav-btn {

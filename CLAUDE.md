@@ -45,6 +45,23 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   ficam FIXAS nos dois temas de propósito — não são "estruturais".
   Header do app (`.app-header`) também fica sempre escuro nos dois temas
   (chrome de marca, não muda com o toggle).
+- Identidade visual: `public/icones/IconPage.png` (fundo transparente) é a
+  logo mostrada no cabeçalho (`.app-logo`, App.tsx) — mesma arte, dois
+  arquivos-fonte diferentes porque o cabeçalho precisa de fundo
+  transparente e o ícone do PWA precisa preencher o quadrado inteiro.
+  `public/icones/IconePWA.png` (fundo preto sólido) é a ORIGEM dos ícones
+  do PWA/favicon — nunca referenciada direto no código, só gerou os
+  arquivos abaixo (script descartável, não faz parte do projeto):
+  `pwa-icon-192.png`, `pwa-icon-512.png` (manifest, vite.config.ts,
+  purpose 'any' e 'maskable' com o MESMO arquivo — simplificação: não tem
+  margem de segurança própria pra maskable, se algum launcher Android
+  cortar em círculo pode tocar no conteúdo perto da borda) e
+  `favicon-64.png` (index.html). Os três foram gerados uma vez com
+  `sharp` (redimensiona pra quadrado preenchendo com a cor de fundo real
+  da arte, `#0a0a0b`, depois aplica máscara SVG de cantos arredondados
+  ~20% do tamanho — efeito "squircle" de ícone de app). Se a arte mudar
+  de novo, regenerar os 3 PNGs a partir do novo IconePWA.png com a mesma
+  técnica (não editar os PNGs gerados na mão).
 
 ## Regras de código (IMPORTANTES)
 
