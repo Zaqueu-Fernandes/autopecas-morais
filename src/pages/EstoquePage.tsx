@@ -7,13 +7,14 @@
  */
 
 import { Fragment, useEffect, useState } from 'react';
-import { Search, PackagePlus, Pencil, History, ChevronDown, ChevronUp, FileUp } from 'lucide-react';
+import { Search, PackagePlus, Pencil, History, ChevronDown, ChevronUp, FileUp, Ban, RotateCcw } from 'lucide-react';
 import {
   type Peca,
   FormPeca,
   MovimentacoesDaPeca,
   listarPecas,
   salvarPeca,
+  definirAtivoPeca,
 } from '@/features/estoque';
 import { ImportarXmlNFe } from '@/features/importacao-nfe';
 
@@ -22,6 +23,7 @@ export function EstoquePage() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [busca, setBusca] = useState('');
+  const [mostrarInativas, setMostrarInativas] = useState(false);
 
   const [mostrarForm, setMostrarForm] = useState(false);
   const [mostrarImportarNFe, setMostrarImportarNFe] = useState(false);
@@ -32,7 +34,7 @@ export function EstoquePage() {
     setCarregando(true);
     setErro(null);
     try {
-      setPecas(await listarPecas());
+      setPecas(await listarPecas({ somenteAtivas: !mostrarInativas }));
     } catch {
       setErro('Não foi possível carregar as peças.');
     } finally {
@@ -42,12 +44,24 @@ export function EstoquePage() {
 
   useEffect(() => {
     carregar();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mostrarInativas]);
 
   async function handleSalvar(p: Peca) {
     await salvarPeca(p);
     setMostrarForm(false);
     setPecaEmEdicao(null);
+    await carregar();
+  }
+
+  async function handleDesativar(id: string) {
+    if (!window.confirm('Desativar esta peça? Ela deixa de aparecer nas buscas de venda/OS.')) return;
+    await definirAtivoPeca(id, false);
+    await carregar();
+  }
+
+  async function handleReativar(id: string) {
+    await definirAtivoPeca(id, true);
     await carregar();
   }
 
@@ -112,6 +126,17 @@ export function EstoquePage() {
         />
       </div>
 
+      <div className="pg-filtros">
+        <label className="dsp-filtro-inativas">
+          <input
+            type="checkbox"
+            checked={mostrarInativas}
+            onChange={(e) => setMostrarInativas(e.target.checked)}
+          />
+          Mostrar inativas
+        </label>
+      </div>
+
       {carregando && <p>Carregando…</p>}
       {erro && <p className="est-erro">{erro}</p>}
 
@@ -129,8 +154,11 @@ export function EstoquePage() {
           <tbody>
             {filtradas.map((p) => (
               <Fragment key={p.id}>
-                <tr>
-                  <td>{p.nome}</td>
+                <tr className={!p.ativo ? 'dsp-linha-inativa' : ''}>
+                  <td>
+                    {p.nome}
+                    {!p.ativo && <span className="dsp-tag-inativa">Inativa</span>}
+                  </td>
                   <td>{p.codigo || '—'}</td>
                   <td>
                     {p.qtd} {p.unidade}
@@ -146,6 +174,15 @@ export function EstoquePage() {
                     >
                       <Pencil size={13} /> Editar
                     </button>
+                    {p.ativo ? (
+                      <button type="button" onClick={() => handleDesativar(p.id!)}>
+                        <Ban size={13} /> Desativar
+                      </button>
+                    ) : (
+                      <button type="button" onClick={() => handleReativar(p.id!)}>
+                        <RotateCcw size={13} /> Reativar
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => setPecaExpandidaId(pecaExpandidaId === p.id ? null : p.id!)}

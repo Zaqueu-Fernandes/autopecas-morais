@@ -107,6 +107,11 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 - movimentacao_estoque é um razão contábil (append-only): a aplicação só
   cria linhas, nunca edita/apaga uma movimentação existente.
 - Peça não é excluída (pode ter histórico) — só desativada (pecas.ativo).
+  Ativar/Desativar fica na lista (EstoquePage, botão ao lado de Editar,
+  mesmo padrão de Despesas Recorrentes/Categorias), não mais um checkbox
+  dentro do formulário — checkbox era redundante E, pior, uma vez
+  desativada a peça sumia da lista sem jeito de reverter pela UI (não
+  tinha toggle "Mostrar inativas" até então). Corrigido.
 - Ao CRIAR uma peça, o formulário aceita quantidade inicial + custo
   unitário — vira a primeira ENTRADA automaticamente
   (criarPecaComEstoqueInicial em pecas.service.ts), pra não obrigar o

@@ -208,18 +208,6 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
           {erros.precoVenda && <span className="est-erro">{erros.precoVenda}</span>}
         </div>
 
-        {peca.id && (
-          <div className="est-campo est-checkbox">
-            <label>
-              <input
-                type="checkbox"
-                checked={peca.ativo}
-                onChange={(e) => set({ ativo: e.target.checked })}
-              />
-              Peça ativa
-            </label>
-          </div>
-        )}
       </div>
 
       <div className="est-campo">
