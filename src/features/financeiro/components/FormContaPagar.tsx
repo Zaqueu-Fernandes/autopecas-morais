@@ -9,22 +9,19 @@
 import { useEffect, useState } from 'react';
 import {
   type DadosContaPagar,
-  type CategoriaPagar,
   dadosContaPagarVazio,
   validarContaPagar,
   semErros,
-  ROTULO_CATEGORIA_PAGAR,
   type ErrosValidacao,
 } from '../types';
 import { type Fornecedor, listarFornecedores } from '@/features/cadastros';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
+import { type Categoria, listarCategorias } from '@/features/categorias';
 
 interface Props {
   onSalvar: (d: DadosContaPagar) => Promise<void> | void;
   onCancelar?: () => void;
 }
-
-const CATEGORIAS = Object.keys(ROTULO_CATEGORIA_PAGAR) as CategoriaPagar[];
 
 export function FormContaPagar({ onSalvar, onCancelar }: Props) {
   const [dados, setDados] = useState<DadosContaPagar>(dadosContaPagarVazio());
@@ -32,9 +29,11 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
   const [salvando, setSalvando] = useState(false);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   useEffect(() => {
     listarFornecedores().then(setFornecedores).catch(() => setFornecedores([]));
+    listarCategorias().then(setCategorias).catch(() => setCategorias([]));
     listarEmpresas().then((lista) => {
       setEmpresas(lista);
       if (lista.length === 1) set({ empresaId: lista[0].id });
@@ -84,13 +83,19 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
 
         <div className="fin-campo">
           <label>Categoria *</label>
-          <select value={dados.categoria} onChange={(e) => set({ categoria: e.target.value as CategoriaPagar })}>
-            {CATEGORIAS.map((c) => (
-              <option key={c} value={c}>
-                {ROTULO_CATEGORIA_PAGAR[c]}
+          <select
+            value={dados.categoria}
+            onChange={(e) => set({ categoria: e.target.value })}
+            aria-invalid={!!erros.categoria}
+          >
+            <option value="">— selecione —</option>
+            {categorias.map((c) => (
+              <option key={c.chave} value={c.chave}>
+                {c.nome}
               </option>
             ))}
           </select>
+          {erros.categoria && <span className="fin-erro">{erros.categoria}</span>}
         </div>
 
         {dados.categoria === 'fornecedor' && (

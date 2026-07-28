@@ -20,12 +20,12 @@ import {
   excluirDespesaFixa,
   ehViolacaoDeReferencia,
   gerarContasDoMes,
-  ROTULO_CATEGORIA_DESPESA,
   ROTULO_PERIODICIDADE,
   DIAS_SEMANA,
   MESES_ANO,
 } from '@/features/despesas';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
+import { type Categoria, listarCategorias } from '@/features/categorias';
 
 function descricaoVencimento(d: DespesaFixa): string {
   if (d.periodicidade === 'semanal') return DIAS_SEMANA[Number(d.diaVencimento)] ?? '—';
@@ -39,6 +39,7 @@ function descricaoVencimento(d: DespesaFixa): string {
 export function DespesasFixasPage() {
   const [despesas, setDespesas] = useState<DespesaFixa[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [empresaId, setEmpresaId] = useState('');
   const [mostrarInativas, setMostrarInativas] = useState(false);
   const [carregando, setCarregando] = useState(true);
@@ -55,7 +56,13 @@ export function DespesasFixasPage() {
       setEmpresas(lista);
       if (lista.length > 0) setEmpresaId((atual) => atual || lista[0].id!);
     });
+    // inclui inativas: uma despesa antiga pode referenciar uma categoria já desativada
+    listarCategorias({ somenteAtivas: false }).then(setCategorias);
   }, []);
+
+  function nomeCategoria(chave: string): string {
+    return categorias.find((c) => c.chave === chave)?.nome ?? chave;
+  }
 
   async function carregar() {
     setCarregando(true);
@@ -205,7 +212,7 @@ export function DespesasFixasPage() {
                   {d.descricao}
                   {!d.ativo && <span className="dsp-tag-inativa">Inativa</span>}
                 </td>
-                <td>{ROTULO_CATEGORIA_DESPESA[d.categoria]}</td>
+                <td>{nomeCategoria(d.categoria)}</td>
                 <td>
                   R$ {Number(d.valor).toFixed(2)}
                   {d.tipoValor === 'variavel' && <span className="dsp-tag-media">média</span>}

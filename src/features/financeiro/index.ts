@@ -28,7 +28,6 @@ export {
   validarQuitacao,
   dadosFaturamentoVazio,
   validarFaturamento,
-  ROTULO_CATEGORIA_PAGAR,
   ROTULO_CATEGORIA_RECEBER,
   ROTULO_FORMA_PAGAMENTO,
   ROTULO_SITUACAO,

@@ -179,6 +179,33 @@ body {
 }
 .pg-head h1 { font-size: 20px; margin: 0; }
 
+/* Sub-navegação dentro de uma aba pai (ex.: Cadastros > Empresas/Clientes/…) */
+.pg-subnav {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--cor-borda);
+  padding-bottom: 10px;
+}
+.pg-subnav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  color: var(--cor-texto-secundario);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+.pg-subnav-btn:hover { background: var(--cor-fundo-hover); color: var(--cor-texto); }
+.pg-subnav-btn.ativo { background: #D62839; color: #fff; font-weight: 600; }
+.pg-subnav-btn.ativo:hover { background: #c22235; }
+
 .pg-filtros {
   display: flex;
   gap: 12px;

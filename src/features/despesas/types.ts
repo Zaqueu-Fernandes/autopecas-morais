@@ -2,29 +2,15 @@
  * ============================================================================
  * TIPOS E VALIDAÇÃO — DESPESAS FIXAS
  * ============================================================================
- * Espelha despesas_fixas (ver despesas_fixas.sql). A lista de categorias é
- * duplicada da CategoriaPagar do financeiro de propósito — evita a feature
- * financeiro precisar importar código desta feature (só o inverso: despesas
- * chama criarLancamento do financeiro pra gerar as contas do mês).
+ * Espelha despesas_fixas (ver despesas_fixas.sql). `categoria` guarda a
+ * `chave` de uma linha de categorias_despesa (feature @/features/categorias,
+ * cadastrável em Cadastros > Categorias) — texto simples, não FK de verdade
+ * (ver categorias_despesa.sql pra entender por quê). 'fornecedor' e
+ * 'retirada_lucro' são chaves protegidas com comportamento especial no
+ * código (ver validarDespesaFixa e a REGRA DE OURO em financeiro.sql) — são
+ * estáveis mesmo que o usuário renomeie o rótulo exibido dessas categorias.
  */
-
-/**
- * 'despesa_geral' substitui as antigas 'despesa_fixa'/'despesa_variavel':
- * com tipoValor (fixo/variável) e periodicidade já cobrindo essas duas
- * dimensões, ter uma categoria chamada "fixa" só duplicava (e às vezes
- * contradizia — categoria fixa com tipoValor variável) esses campos.
- * fornecedor/imposto/folha/retirada_lucro continuam: são classificação
- * contábil de verdade, não duplicam nada.
- */
-export type CategoriaDespesaFixa = 'fornecedor' | 'despesa_geral' | 'imposto' | 'folha' | 'retirada_lucro';
-
-export const ROTULO_CATEGORIA_DESPESA: Record<CategoriaDespesaFixa, string> = {
-  fornecedor: 'Fornecedor',
-  despesa_geral: 'Despesa geral',
-  imposto: 'Imposto',
-  folha: 'Folha de pagamento',
-  retirada_lucro: 'Retirada de lucro',
-};
+export type CategoriaDespesaFixa = string;
 
 /**
  * 'fixo': valor sempre igual (aluguel, mensalidade) — o campo `valor` É o
@@ -99,6 +85,7 @@ export const semErros = (e: ErrosValidacao) => Object.keys(e).length === 0;
 export function validarDespesaFixa(d: DespesaFixa): ErrosValidacao {
   const erros: ErrosValidacao = {};
   if (!d.empresaId) erros.empresaId = 'Selecione a empresa.';
+  if (!d.categoria) erros.categoria = 'Selecione a categoria.';
   if (!d.descricao.trim()) erros.descricao = 'Descreva a despesa.';
   const valor = Number(d.valor);
   if (!d.valor.trim() || Number.isNaN(valor) || valor <= 0)

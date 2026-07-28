@@ -23,9 +23,11 @@ import {
   quitarLancamento,
   atualizarValorLancamento,
   buscarFluxoCaixa,
-  ROTULO_CATEGORIA_PAGAR,
   ROTULO_CATEGORIA_RECEBER,
 } from '@/features/financeiro';
+import { type Empresa, listarEmpresas } from '@/features/empresa';
+import { type Categoria, listarCategorias } from '@/features/categorias';
+import { buscarResumoDashboard } from '@/features/dashboard';
 
 /** Espelha ROTULO_PERIODICIDADE de despesas/types.ts — só pra exibir a tag aqui. */
 const ROTULO_PERIODICIDADE: Record<Periodicidade, string> = {
@@ -33,16 +35,14 @@ const ROTULO_PERIODICIDADE: Record<Periodicidade, string> = {
   mensal: 'Mensal',
   anual: 'Anual',
 };
-import { type Empresa, listarEmpresas } from '@/features/empresa';
-import { buscarResumoDashboard } from '@/features/dashboard';
 
 type FiltroTipo = TipoFinanceiro | 'todos';
 type FiltroStatus = 'pendentes' | 'quitados' | 'todos';
 
-function rotuloCategoria(l: LancamentoFinanceiro): string {
-  return l.tipo === 'pagar'
-    ? ROTULO_CATEGORIA_PAGAR[l.categoria as keyof typeof ROTULO_CATEGORIA_PAGAR]
-    : ROTULO_CATEGORIA_RECEBER[l.categoria as keyof typeof ROTULO_CATEGORIA_RECEBER];
+function rotuloCategoria(l: LancamentoFinanceiro, categorias: Categoria[]): string {
+  if (l.tipo === 'receber')
+    return ROTULO_CATEGORIA_RECEBER[l.categoria as keyof typeof ROTULO_CATEGORIA_RECEBER];
+  return categorias.find((c) => c.chave === l.categoria)?.nome ?? l.categoria;
 }
 
 /** yyyy-mm-dd cai no mês corrente? (só relevante pra decidir se vale a pena avisar) */
@@ -60,6 +60,7 @@ function primeiroDiaDoMes(): string {
 export function FinanceiroPage() {
   const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>('todos');
@@ -78,16 +79,18 @@ export function FinanceiroPage() {
     setCarregando(true);
     setErro(null);
     try {
-      const [lista, listaEmpresas] = await Promise.all([
+      const [lista, listaEmpresas, listaCategorias] = await Promise.all([
         listarFinanceiro({
           tipo: filtroTipo === 'todos' ? undefined : filtroTipo,
           pago: filtroStatus === 'todos' ? undefined : filtroStatus === 'quitados',
           empresaId: filtroEmpresa || undefined,
         }),
         listarEmpresas(),
+        listarCategorias({ somenteAtivas: false }),
       ]);
       setLancamentos(lista);
       setEmpresas(listaEmpresas);
+      setCategorias(listaCategorias);
     } catch {
       setErro('Não foi possível carregar o financeiro.');
     } finally {
@@ -243,7 +246,7 @@ export function FinanceiroPage() {
                   </span>
                 </td>
                 <td>
-                  {rotuloCategoria(l)}
+                  {rotuloCategoria(l, categorias)}
                   {l.periodicidade && <span className="fin-tag">{ROTULO_PERIODICIDADE[l.periodicidade]}</span>}
                 </td>
                 <td>{l.descricao}</td>

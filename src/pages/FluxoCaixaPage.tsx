@@ -11,13 +11,12 @@ import { useEffect, useState } from 'react';
 import { History, TrendingUp, TrendingDown, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import {
   type ResultadoFluxoCaixa,
-  type CategoriaPagar,
   type CategoriaReceber,
   buscarFluxoCaixa,
-  ROTULO_CATEGORIA_PAGAR,
   ROTULO_CATEGORIA_RECEBER,
 } from '@/features/financeiro';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
+import { type Categoria, listarCategorias } from '@/features/categorias';
 import { CartaoResumo } from '@/features/dashboard';
 
 function primeiroDiaDoMes(): string {
@@ -29,16 +28,16 @@ function hojeISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function rotuloCategoria(tipo: 'pagar' | 'receber', categoria: string): string {
-  return tipo === 'pagar'
-    ? ROTULO_CATEGORIA_PAGAR[categoria as CategoriaPagar]
-    : ROTULO_CATEGORIA_RECEBER[categoria as CategoriaReceber];
+function rotuloCategoria(tipo: 'pagar' | 'receber', categoria: string, categorias: Categoria[]): string {
+  if (tipo === 'receber') return ROTULO_CATEGORIA_RECEBER[categoria as CategoriaReceber];
+  return categorias.find((c) => c.chave === categoria)?.nome ?? categoria;
 }
 
 export function FluxoCaixaPage() {
   const [inicio, setInicio] = useState(primeiroDiaDoMes());
   const [fim, setFim] = useState(hojeISO());
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [empresaId, setEmpresaId] = useState('');
   const [resultado, setResultado] = useState<ResultadoFluxoCaixa | null>(null);
   const [carregando, setCarregando] = useState(true);
@@ -49,6 +48,7 @@ export function FluxoCaixaPage() {
       setEmpresas(lista);
       if (lista.length > 0) setEmpresaId((atual) => atual || lista[0].id!);
     });
+    listarCategorias({ somenteAtivas: false }).then(setCategorias);
   }, []);
 
   async function carregar() {
@@ -142,7 +142,7 @@ export function FluxoCaixaPage() {
                       {m.tipo === 'pagar' ? 'Saída' : 'Entrada'}
                     </span>
                   </td>
-                  <td>{rotuloCategoria(m.tipo, m.categoria)}</td>
+                  <td>{rotuloCategoria(m.tipo, m.categoria, categorias)}</td>
                   <td>{m.descricao}</td>
                   <td>
                     {m.tipo === 'pagar' ? '-' : '+'} R$ {m.valor.toFixed(2)}

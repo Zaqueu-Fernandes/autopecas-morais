@@ -9,13 +9,11 @@
 import { useEffect, useState } from 'react';
 import {
   type DespesaFixa,
-  type CategoriaDespesaFixa,
   type TipoValorDespesa,
   type Periodicidade,
   despesaFixaVazia,
   validarDespesaFixa,
   semErros,
-  ROTULO_CATEGORIA_DESPESA,
   ROTULO_TIPO_VALOR,
   ROTULO_PERIODICIDADE,
   DIAS_SEMANA,
@@ -24,6 +22,7 @@ import {
 } from '../types';
 import { type Fornecedor, listarFornecedores } from '@/features/cadastros';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
+import { type Categoria, listarCategorias } from '@/features/categorias';
 
 interface Props {
   inicial?: DespesaFixa;
@@ -31,8 +30,6 @@ interface Props {
   onSalvar: (d: DespesaFixa) => Promise<void> | void;
   onCancelar?: () => void;
 }
-
-const CATEGORIAS = Object.keys(ROTULO_CATEGORIA_DESPESA) as CategoriaDespesaFixa[];
 
 export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar }: Props) {
   const [despesa, setDespesa] = useState<DespesaFixa>(
@@ -42,10 +39,12 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
   const [salvando, setSalvando] = useState(false);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   useEffect(() => {
     listarFornecedores().then(setFornecedores).catch(() => setFornecedores([]));
     listarEmpresas().then(setEmpresas).catch(() => setEmpresas([]));
+    listarCategorias().then(setCategorias).catch(() => setCategorias([]));
   }, []);
 
   function set(patch: Partial<DespesaFixa>) {
@@ -102,13 +101,19 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
 
         <div className="dsp-campo">
           <label>Categoria *</label>
-          <select value={despesa.categoria} onChange={(e) => set({ categoria: e.target.value as CategoriaDespesaFixa })}>
-            {CATEGORIAS.map((c) => (
-              <option key={c} value={c}>
-                {ROTULO_CATEGORIA_DESPESA[c]}
+          <select
+            value={despesa.categoria}
+            onChange={(e) => set({ categoria: e.target.value })}
+            aria-invalid={!!erros.categoria}
+          >
+            <option value="">— selecione —</option>
+            {categorias.map((c) => (
+              <option key={c.chave} value={c.chave}>
+                {c.nome}
               </option>
             ))}
           </select>
+          {erros.categoria && <span className="dsp-erro">{erros.categoria}</span>}
         </div>
 
         {despesa.categoria === 'fornecedor' && (

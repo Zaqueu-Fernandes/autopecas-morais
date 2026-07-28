@@ -6,10 +6,8 @@ import {
   Wallet,
   ArrowLeftRight,
   ReceiptText,
-  Users,
-  Truck,
   Package,
-  Building2,
+  FolderCog,
 } from 'lucide-react';
 import '@/features/cadastros/cadastros.css';
 import '@/features/estoque/estoque.css';
@@ -20,8 +18,7 @@ import '@/features/despesas/despesas.css';
 import '@/features/empresa/empresa.css';
 import '@/features/dashboard/dashboard.css';
 import '@/features/importacao-nfe/importacao-nfe.css';
-import { ClientesPage } from '@/pages/ClientesPage';
-import { FornecedoresPage } from '@/pages/FornecedoresPage';
+import { CadastrosPage } from '@/pages/CadastrosPage';
 import { EstoquePage } from '@/pages/EstoquePage';
 import { OrdensServicoPage } from '@/pages/OrdensServicoPage';
 import { FinanceiroPage } from '@/pages/FinanceiroPage';
@@ -29,7 +26,6 @@ import { FluxoCaixaPage } from '@/pages/FluxoCaixaPage';
 import { VendasBalcaoPage } from '@/pages/VendasBalcaoPage';
 import { DespesasFixasPage } from '@/pages/DespesasFixasPage';
 import { DashboardPage } from '@/pages/DashboardPage';
-import { EmpresasPage } from '@/pages/EmpresasPage';
 import { InstalarPwaBanner } from '@/shared/components/InstalarPwaBanner';
 import { AlternarTema } from '@/shared/components/AlternarTema';
 
@@ -40,10 +36,8 @@ const ABAS = [
   { id: 'financeiro', label: 'Financeiro', Icone: Wallet, Componente: FinanceiroPage },
   { id: 'fluxo-caixa', label: 'Fluxo de Caixa', Icone: ArrowLeftRight, Componente: FluxoCaixaPage },
   { id: 'despesas', label: 'Despesas Recorrentes', Icone: ReceiptText, Componente: DespesasFixasPage },
-  { id: 'empresas', label: 'Empresas', Icone: Building2, Componente: EmpresasPage },
-  { id: 'clientes', label: 'Clientes', Icone: Users, Componente: ClientesPage },
-  { id: 'fornecedores', label: 'Fornecedores', Icone: Truck, Componente: FornecedoresPage },
   { id: 'estoque', label: 'Estoque', Icone: Package, Componente: EstoquePage },
+  { id: 'cadastros', label: 'Cadastros', Icone: FolderCog, Componente: CadastrosPage },
 ] as const;
 
 type IdAba = (typeof ABAS)[number]['id'];

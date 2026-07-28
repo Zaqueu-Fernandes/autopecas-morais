@@ -8,17 +8,18 @@
 
 export type TipoFinanceiro = 'pagar' | 'receber';
 
-export type CategoriaPagar = 'fornecedor' | 'despesa_geral' | 'imposto' | 'folha' | 'retirada_lucro';
+/**
+ * Guarda a `chave` de uma linha de categorias_despesa (feature
+ * @/features/categorias, cadastrável em Cadastros > Categorias) — texto
+ * simples, não FK de verdade (ver categorias_despesa.sql). 'fornecedor' e
+ * 'retirada_lucro' são chaves protegidas com comportamento especial no
+ * código (fornecedor pede fornecedorId; retirada_lucro nunca entra no
+ * cálculo de lucro — REGRA DE OURO, ver financeiro.sql) — estáveis mesmo
+ * que o usuário renomeie o rótulo exibido dessas categorias.
+ */
+export type CategoriaPagar = string;
 
 export type CategoriaReceber = 'servico_os' | 'venda_balcao';
-
-export const ROTULO_CATEGORIA_PAGAR: Record<CategoriaPagar, string> = {
-  fornecedor: 'Fornecedor',
-  despesa_geral: 'Despesa geral',
-  imposto: 'Imposto',
-  folha: 'Folha de pagamento',
-  retirada_lucro: 'Retirada de lucro',
-};
 
 /** Espelha despesas/types.ts Periodicidade — duplicado de propósito (ver nota lá). */
 export type Periodicidade = 'semanal' | 'mensal' | 'anual';
@@ -96,6 +97,7 @@ export const dadosContaPagarVazio = (): DadosContaPagar => ({
 export function validarContaPagar(d: DadosContaPagar): ErrosValidacao {
   const erros: ErrosValidacao = {};
   if (!d.empresaId) erros.empresaId = 'Selecione a empresa.';
+  if (!d.categoria) erros.categoria = 'Selecione a categoria.';
   if (!d.descricao.trim()) erros.descricao = 'Descreva a conta.';
   const valor = Number(d.valor);
   if (!d.valor.trim() || Number.isNaN(valor) || valor <= 0)

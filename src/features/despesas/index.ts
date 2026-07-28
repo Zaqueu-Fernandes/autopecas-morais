@@ -15,7 +15,6 @@ export {
   despesaFixaVazia,
   validarDespesaFixa,
   semErros,
-  ROTULO_CATEGORIA_DESPESA,
   ROTULO_TIPO_VALOR,
   ROTULO_PERIODICIDADE,
   DIAS_SEMANA,

@@ -176,8 +176,11 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 ### Financeiro (feature já pronta em src/features/financeiro)
 
 - Tabela única `financeiro` com discriminador `tipo` ('pagar' | 'receber').
-- Toda saída é financeiro tipo='pagar' com uma `categoria`:
-  fornecedor | despesa_geral | imposto | folha | retirada_lucro
+- Toda saída é financeiro tipo='pagar' com uma `categoria` (chave de
+  categorias_despesa — ver "Categoria virou cadastro do usuário" abaixo).
+  Nascem protegidas: fornecedor | despesa_geral | imposto | folha |
+  retirada_lucro — mas o usuário pode cadastrar mais em Cadastros >
+  Categorias.
 - REGRA DE OURO: retirada_lucro NUNCA entra no cálculo de lucro (é o
   destino do lucro, não um custo) — ainda não há cálculo de lucro/dashboard,
   só a regra documentada pra quando existir.
@@ -224,6 +227,21 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   depende de distinguir essa categoria das outras). Migration faz backfill
   das linhas antigas (despesas_fixas.categoria e financeiro.categoria)
   pra 'despesa_geral'.
+- Categoria virou cadastro do usuário (feature @/features/categorias,
+  tabela categorias_despesa, tela em Cadastros > Categorias) em vez de
+  lista fixa. `despesas_fixas.categoria` e `financeiro.categoria`
+  CONTINUAM texto simples (não viraram FK de verdade) — o que muda é que
+  o valor gravado (a `chave` da categoria) agora é validado contra essa
+  tabela na aplicação, não mais por CHECK constraint. `chave` é estável
+  (nunca muda, mesmo editando); `nome` é só o rótulo, editável à vontade.
+  As 5 categorias originais (fornecedor, despesa_geral, imposto, folha,
+  retirada_lucro) nascem com `protegida=true`: dá pra renomear o rótulo,
+  mas não pra desativar/excluir — código ainda faz `categoria ===
+  'fornecedor'` (mostra o select de fornecedor) e a REGRA DE OURO de
+  retirada_lucro depende dessas chaves ficarem estáveis. Categoria criada
+  pelo usuário pode ser desativada sempre, e excluída de verdade só se
+  nunca tiver sido usada em nenhuma despesa/lançamento (checado na
+  aplicação via categoriaEmUso — sem FK real pra banco recusar sozinho).
 - Despesa fixa não é excluída por padrão (pode ter contas geradas,
   financeiro.despesa_fixa_id aponta pra ela) — o normal é "Desativar" (só
   para de gerar contas novas). "Excluir" existe (Trash2, ao lado de
@@ -302,6 +320,13 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 - Busca automática por CEP via ViaCEP.
 - Obrigatoriedade: nome+telefone sempre; endereço completo só quando PJ ou
   quando exigirNota=true.
+- Na navegação (App.tsx), "Cadastros" é uma aba PAI (src/pages/
+  CadastrosPage.tsx) que agrupa Empresas/Clientes/Fornecedores/Categorias
+  numa sub-navegação interna (pg-subnav, mesma pílula visual da nav
+  principal mas em contexto claro) — existe só pra não lotar o menu
+  principal de abas; cada sub-página continua sendo o componente de sempre
+  (EmpresasPage, ClientesPage, FornecedoresPage, CategoriasPage), sem
+  mudança de lógica interna nelas.
 
 ## Documentos fiscais — cuidado
 
