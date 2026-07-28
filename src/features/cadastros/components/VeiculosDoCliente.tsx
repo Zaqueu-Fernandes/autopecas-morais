@@ -15,12 +15,15 @@ import {
   excluirVeiculo,
 } from '../services/veiculos.service';
 import { FormVeiculo } from './FormVeiculo';
+import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
+import { ehViolacaoDeReferencia } from '@/shared/utils/erros';
 
 interface Props {
   clienteId: string;
 }
 
 export function VeiculosDoCliente({ clienteId }: Props) {
+  const { confirmar, avisar } = useConfirmacao();
   const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -51,10 +54,27 @@ export function VeiculosDoCliente({ clienteId }: Props) {
     await carregar();
   }
 
-  async function handleExcluir(id: string) {
-    if (!window.confirm('Excluir este veículo?')) return;
-    await excluirVeiculo(id);
-    await carregar();
+  async function handleExcluir(v: Veiculo) {
+    const ok = await confirmar({
+      titulo: 'Excluir este veículo?',
+      tom: 'perigo',
+      mensagem: `"${v.placa}"${v.marca || v.modelo ? ` (${v.marca} ${v.modelo})`.trim() : ''} vai ser apagado definitivamente. Só funciona se ele nunca tiver sido usado em nenhuma Ordem de Serviço — se já foi, o banco recusa pra não perder o histórico.`,
+      textoConfirmar: 'Sim, excluir definitivamente',
+    });
+    if (!ok) return;
+    try {
+      await excluirVeiculo(v.id!);
+      await carregar();
+    } catch (erro) {
+      if (ehViolacaoDeReferencia(erro)) {
+        await avisar({
+          titulo: 'Não é possível excluir',
+          mensagem: `"${v.placa}" já está vinculado a uma ou mais Ordens de Serviço — excluir apagaria esse histórico. Mantenha o cadastro dele mesmo que o veículo não seja mais atendido.`,
+        });
+        return;
+      }
+      throw erro;
+    }
   }
 
   if (mostrarForm) {
@@ -113,7 +133,7 @@ export function VeiculosDoCliente({ clienteId }: Props) {
                 >
                   <Pencil size={13} /> Editar
                 </button>
-                <button type="button" onClick={() => handleExcluir(v.id!)}>
+                <button type="button" onClick={() => handleExcluir(v)}>
                   <Trash2 size={13} /> Excluir
                 </button>
               </span>

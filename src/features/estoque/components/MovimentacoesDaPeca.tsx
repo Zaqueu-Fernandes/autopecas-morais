@@ -17,6 +17,7 @@ import {
 } from '../services/movimentacao.service';
 import { FormMovimentacao } from './FormMovimentacao';
 import { useAuth } from '@/features/auth';
+import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 
 interface Props {
   pecaId: string;
@@ -53,6 +54,7 @@ function descricaoMovimento(m: Movimentacao): string {
 
 export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
   const { ehAdmin } = useAuth();
+  const { confirmar } = useConfirmacao();
   const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -91,9 +93,22 @@ export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
 
   async function handleSalvarAjuste(d: DadosAjuste) {
     const sinal = d.sentido === 'diminuir' ? -1 : 1;
+    const qtd = Number(d.quantidade);
+    const ok = await confirmar({
+      titulo: 'Confirmar ajuste manual de estoque',
+      tom: 'perigo',
+      mensagem: [
+        `Isso vai ${d.sentido === 'diminuir' ? 'tirar' : 'adicionar'} ${qtd} unidade(s) do saldo direto, fora do fluxo normal de entrada (compra) ou saída (venda/OS).`,
+        'Use só pra corrigir uma divergência real (contagem física, perda, quebra) — se for peça saindo pra devolução ao fornecedor, cancele e use o botão "Devolver ao fornecedor" em vez deste.',
+        'Confira a quantidade e o motivo antes de confirmar: essa movimentação fica registrada no histórico da peça, mas não tem "desfazer" automático.',
+      ],
+      textoConfirmar: 'Sim, ajustar estoque',
+    });
+    if (!ok) return;
+
     await registrarAjuste({
       pecaId,
-      quantidade: sinal * Number(d.quantidade),
+      quantidade: sinal * qtd,
       observacoes: d.observacoes,
     });
     setAcaoAberta(null);
@@ -103,6 +118,18 @@ export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
 
   async function handleSalvarDevolucao(d: DadosDevolucaoFornecedor) {
     if (!d.motivo) return;
+    const ok = await confirmar({
+      titulo: 'Confirmar devolução ao fornecedor',
+      tom: 'perigo',
+      mensagem: [
+        `${d.quantidade} unidade(s) vão sair do estoque de novo, como se a compra não tivesse acontecido.`,
+        'Certifique-se de que já combinou a troca/estorno da nota com o fornecedor antes de confirmar.',
+        'Atenção: isso cobre só o lado do estoque. Se a nota já foi paga, o ajuste no Financeiro (Estornar ou Excluir o lançamento correspondente) precisa ser feito à parte, manualmente.',
+      ],
+      textoConfirmar: 'Sim, devolver ao fornecedor',
+    });
+    if (!ok) return;
+
     await registrarDevolucaoFornecedor({
       pecaId,
       quantidade: Number(d.quantidade),

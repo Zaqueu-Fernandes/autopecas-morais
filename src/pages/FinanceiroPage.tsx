@@ -33,6 +33,7 @@ import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { buscarResumoDashboard } from '@/features/dashboard';
+import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 
 /** Espelha ROTULO_PERIODICIDADE de despesas/types.ts — só pra exibir a tag aqui. */
 const ROTULO_PERIODICIDADE: Record<Periodicidade, string> = {
@@ -63,6 +64,7 @@ function primeiroDiaDoMes(): string {
 }
 
 export function FinanceiroPage() {
+  const { confirmar, avisar } = useConfirmacao();
   const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -114,10 +116,13 @@ export function FinanceiroPage() {
       const resumo = await buscarResumoDashboard(d.empresaId);
       const projetado = resumo.resultadoMes - Number(d.valor);
       if (resumo.resultadoMes >= 0 && projetado < 0) {
-        const confirmar = window.confirm(
-          `Essa conta vai deixar o resultado do mês desta empresa negativo (R$ ${projetado.toFixed(2)}). Confirma mesmo assim?`,
-        );
-        if (!confirmar) return;
+        const ok = await confirmar({
+          titulo: 'Resultado do mês vai ficar negativo',
+          tom: 'aviso',
+          mensagem: `Essa conta a pagar deixa o resultado do mês desta empresa negativo (R$ ${projetado.toFixed(2)}). É uma situação real de negócio, não um erro — o sistema não bloqueia, só avisa antes de lançar.`,
+          textoConfirmar: 'Lançar mesmo assim',
+        });
+        if (!ok) return;
       }
     }
 
@@ -151,10 +156,13 @@ export function FinanceiroPage() {
       const fluxo = await buscarFluxoCaixa(primeiroDiaDoMes(), hoje, lancamentoParaQuitar.empresaId ?? undefined);
       const projetado = fluxo.saldoFinal - lancamentoParaQuitar.valor;
       if (fluxo.saldoFinal >= 0 && projetado < 0) {
-        const confirmar = window.confirm(
-          `Esse pagamento vai deixar o saldo de caixa do mês desta empresa negativo (R$ ${projetado.toFixed(2)}). Confirma mesmo assim?`,
-        );
-        if (!confirmar) return;
+        const ok = await confirmar({
+          titulo: 'Saldo de caixa do mês vai ficar negativo',
+          tom: 'aviso',
+          mensagem: `Esse pagamento deixa o saldo de caixa do mês desta empresa negativo (R$ ${projetado.toFixed(2)}). É uma situação real de negócio, não um erro — o sistema não bloqueia, só avisa antes de quitar.`,
+          textoConfirmar: 'Pagar mesmo assim',
+        });
+        if (!ok) return;
       }
     }
 
@@ -171,18 +179,54 @@ export function FinanceiroPage() {
   }
 
   async function handleExcluir(l: LancamentoFinanceiro) {
-    if (!window.confirm('Excluir este lançamento? Essa ação não pode ser desfeita.')) return;
+    const ok = await confirmar({
+      titulo: 'Excluir este lançamento?',
+      tom: 'perigo',
+      mensagem: [
+        `"${l.descricao}" — R$ ${l.valor.toFixed(2)} vai ser apagado definitivamente, sem deixar rastro no histórico.`,
+        'Só é permitido porque ele ainda está pendente e não está vinculado a nenhuma OS/venda faturada — se já tivesse sido quitado ou tivesse vínculo, a opção seria "Estornar" em vez de excluir.',
+      ],
+      textoConfirmar: 'Sim, excluir definitivamente',
+    });
+    if (!ok) return;
     try {
       await excluirLancamento(l.id!);
       await carregar();
     } catch (erro) {
-      window.alert(erro instanceof Error ? erro.message : 'Não foi possível excluir este lançamento.');
+      await avisar({
+        titulo: 'Não foi possível excluir',
+        mensagem:
+          erro instanceof Error
+            ? erro.message
+            : 'Não foi possível excluir este lançamento. Tente de novo em instantes.',
+      });
     }
   }
 
   async function handleEstornar(dados: DadosEstorno) {
     if (!lancamentoParaEstornar) return;
-    await estornarLancamento(lancamentoParaEstornar.id!, dados);
+    const l = lancamentoParaEstornar;
+    const consequencias: string[] = [];
+    if (l.pago) {
+      consequencias.push(
+        `Como já foi quitado, vai gerar um lançamento de contrapartida (R$ ${l.valor.toFixed(2)}, categoria "Estorno") representando o dinheiro saindo/voltando de verdade.`,
+      );
+    } else {
+      consequencias.push('Ainda estava pendente — só sai das contas a pagar/receber, sem gerar contrapartida financeira.');
+    }
+    if (l.osId) consequencias.push('A Ordem de Serviço vinculada volta pro status "Concluída" (destrava pra edição).');
+    if (l.vendaId) consequencias.push('A venda de balcão vinculada volta pro status "Aberta" (destrava pra edição).');
+    consequencias.push('O lançamento original NÃO é apagado — fica marcado como estornado, preservando o histórico.');
+
+    const ok = await confirmar({
+      titulo: 'Confirmar estorno',
+      tom: 'perigo',
+      mensagem: [`"${l.descricao}" — R$ ${l.valor.toFixed(2)}.`, ...consequencias],
+      textoConfirmar: 'Sim, estornar',
+    });
+    if (!ok) return;
+
+    await estornarLancamento(l.id!, dados);
     setLancamentoParaEstornar(null);
     await carregar();
   }

@@ -20,6 +20,7 @@ import {
 import { FormItemOS } from './FormItemOS';
 import type { Peca } from '@/features/estoque';
 import { FormEstorno, type DadosEstorno } from '@/features/financeiro';
+import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 
 interface Props {
   osId: string;
@@ -41,6 +42,7 @@ export function ListaItensOS({
   aoAtualizarTotal,
   aoAtualizarItens,
 }: Props) {
+  const { confirmar } = useConfirmacao();
   const [itens, setItens] = useState<ItemOS[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -93,8 +95,24 @@ export function ListaItensOS({
 
   async function handleDevolver(dados: DadosEstorno) {
     if (!itemParaDevolver || !osClienteId || !dados.formaPagamento) return;
+    const item = itemParaDevolver;
+    const valor = item.quantidade * item.valorUnit;
+    const ok = await confirmar({
+      titulo: 'Confirmar devolução de item',
+      tom: 'perigo',
+      mensagem: [
+        `"${item.descricao}" — R$ ${valor.toFixed(2)}.`,
+        item.tipo === 'peca'
+          ? 'A peça volta pro estoque (ajuste, sem mexer no custo médio) e o item fica marcado como devolvido no histórico da OS.'
+          : 'O serviço fica marcado como devolvido no histórico da OS (não afeta estoque).',
+        'Essa OS já foi faturada: o valor do item é descontado ou reembolsado no Financeiro, conforme a forma de pagamento escolhida.',
+      ],
+      textoConfirmar: 'Sim, devolver item',
+    });
+    if (!ok) return;
+
     await devolverItem(
-      itemParaDevolver,
+      item,
       { id: osId, numero: osNumero, clienteId: osClienteId },
       dados.motivo,
       dados.formaPagamento,

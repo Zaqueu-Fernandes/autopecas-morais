@@ -18,8 +18,10 @@ import {
 } from '@/features/estoque';
 import { ImportarXmlNFe } from '@/features/importacao-nfe';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
+import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 
 export function EstoquePage() {
+  const { confirmar } = useConfirmacao();
   const [pecas, setPecas] = useState<Peca[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -56,7 +58,16 @@ export function EstoquePage() {
   }
 
   async function handleDesativar(id: string) {
-    if (!window.confirm('Desativar esta peça? Ela deixa de aparecer nas buscas de venda/OS.')) return;
+    const ok = await confirmar({
+      titulo: 'Desativar esta peça?',
+      tom: 'aviso',
+      mensagem: [
+        'Ela deixa de aparecer nas buscas de venda/OS, mas o histórico de movimentações e o cadastro continuam intactos.',
+        'É reversível: dá pra reativar a qualquer momento pela lista (ative "Mostrar inativas").',
+      ],
+      textoConfirmar: 'Desativar peça',
+    });
+    if (!ok) return;
     await definirAtivoPeca(id, false);
     await carregar();
   }

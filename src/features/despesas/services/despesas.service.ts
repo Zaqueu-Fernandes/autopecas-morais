@@ -115,7 +115,4 @@ export async function excluirDespesaFixa(id: string): Promise<void> {
   if (error) throw error;
 }
 
-/** true se o erro veio de uma FK apontando pra esta linha (ex.: já gerou conta). */
-export function ehViolacaoDeReferencia(erro: unknown): boolean {
-  return typeof erro === 'object' && erro !== null && (erro as { code?: string }).code === '23503';
-}
+export { ehViolacaoDeReferencia } from '@/shared/utils/erros';

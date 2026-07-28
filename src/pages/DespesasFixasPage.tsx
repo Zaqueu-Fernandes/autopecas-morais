@@ -27,6 +27,7 @@ import {
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
+import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 
 function descricaoVencimento(d: DespesaFixa): string {
   if (d.periodicidade === 'semanal') return DIAS_SEMANA[Number(d.diaVencimento)] ?? '—';
@@ -38,6 +39,7 @@ function descricaoVencimento(d: DespesaFixa): string {
 }
 
 export function DespesasFixasPage() {
+  const { confirmar, avisar } = useConfirmacao();
   const [despesas, setDespesas] = useState<DespesaFixa[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -91,9 +93,18 @@ export function DespesasFixasPage() {
     await carregar();
   }
 
-  async function handleDesativar(id: string) {
-    if (!window.confirm('Desativar esta despesa recorrente? Ela deixa de gerar contas novas.')) return;
-    await definirAtivoDespesaFixa(id, false);
+  async function handleDesativar(d: DespesaFixa) {
+    const ok = await confirmar({
+      titulo: 'Desativar esta despesa recorrente?',
+      tom: 'aviso',
+      mensagem: [
+        `"${d.descricao}" deixa de gerar contas novas em "Gerar contas do mês".`,
+        'As contas que ela já gerou no Financeiro continuam lá, intactas. É reversível: dá pra reativar a qualquer momento (ative "Mostrar inativas").',
+      ],
+      textoConfirmar: 'Desativar',
+    });
+    if (!ok) return;
+    await definirAtivoDespesaFixa(d.id!, false);
     await carregar();
   }
 
@@ -102,16 +113,26 @@ export function DespesasFixasPage() {
     await carregar();
   }
 
-  async function handleExcluir(id: string) {
-    if (!window.confirm('Excluir esta despesa recorrente? Essa ação não pode ser desfeita.')) return;
+  async function handleExcluir(d: DespesaFixa) {
+    const ok = await confirmar({
+      titulo: 'Excluir esta despesa recorrente?',
+      tom: 'perigo',
+      mensagem: [
+        `"${d.descricao}" vai ser apagada definitivamente.`,
+        'Só funciona se ela nunca tiver gerado nenhuma conta em Financeiro — se já gerou, o banco recusa pra não perder o histórico, e a alternativa é "Desativar".',
+      ],
+      textoConfirmar: 'Sim, excluir definitivamente',
+    });
+    if (!ok) return;
     try {
-      await excluirDespesaFixa(id);
+      await excluirDespesaFixa(d.id!);
       await carregar();
     } catch (erro) {
       if (ehViolacaoDeReferencia(erro)) {
-        window.alert(
-          'Esta despesa já gerou contas em Financeiro, então não pode ser excluída (perderia o histórico). Use "Desativar" pra ela parar de gerar contas novas.',
-        );
+        await avisar({
+          titulo: 'Não é possível excluir',
+          mensagem: `"${d.descricao}" já gerou contas em Financeiro, então não pode ser excluída (perderia o histórico dessas contas). Use "Desativar" pra ela parar de gerar contas novas sem apagar nada.`,
+        });
         return;
       }
       throw erro;
@@ -247,7 +268,7 @@ export function DespesasFixasPage() {
                     <Pencil size={13} /> Editar
                   </button>
                   {d.ativo ? (
-                    <button type="button" onClick={() => handleDesativar(d.id!)}>
+                    <button type="button" onClick={() => handleDesativar(d)}>
                       <Ban size={13} /> Desativar
                     </button>
                   ) : (
@@ -255,7 +276,7 @@ export function DespesasFixasPage() {
                       <RotateCcw size={13} /> Reativar
                     </button>
                   )}
-                  <button type="button" onClick={() => handleExcluir(d.id!)}>
+                  <button type="button" onClick={() => handleExcluir(d)}>
                     <Trash2 size={13} /> Excluir
                   </button>
                 </td>

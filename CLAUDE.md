@@ -516,6 +516,47 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   isso ainda; se pedirem, é o mesmo padrão (origem/campo discriminador +
   `is_admin()` no WITH CHECK).
 
+### Diálogos de confirmação e aviso (src/shared — usado em todo o app)
+
+- `useConfirmacao()` (src/shared/hooks/useConfirmacao.tsx, provider
+  `ConfirmacaoProvider` em main.tsx, dentro do AuthProvider) substitui
+  `window.confirm`/`window.alert` — que são feios, não dá pra formatar em
+  parágrafos, e não seguem o tema claro/escuro do app. Expõe:
+  - `confirmar({ titulo, mensagem, tom?, textoConfirmar?, textoCancelar? })`
+    → `Promise<boolean>`. `mensagem` aceita string OU array de strings
+    (cada item vira um parágrafo — usado pra explicar o impacto em
+    passos, tipo "o que vai acontecer" + "como reverter" + "atenção").
+  - `avisar({ titulo, mensagem, tom? })` → `Promise<void>`, resolve
+    quando o usuário clica "Entendi". Pra mensagens de bloqueio (ação
+    recusada porque o registro tá vinculado a outra coisa).
+  - `tom`: 'perigo' (vermelho, default de `confirmar` — ação
+    destrutiva/irreversível), 'aviso' (âmbar, default de `avisar` —
+    reversível ou só heads-up), 'info' (azul, pouco usado ainda).
+  - Renderizado por `ConfirmDialog.tsx` — só 1 diálogo por vez; chamadas
+    empilham naturalmente porque quem chama usa `await`.
+- REGRA DE CONTEÚDO das mensagens (pedido explícito do usuário: "seja
+  didático, dê o máximo de instruções possíveis pro usuário não cometer
+  erros sem saber"): toda ação crítica explica O QUE vai mudar de verdade
+  (não só "tem certeza?"), e toda ação BLOQUEADA por vínculo com outro
+  registro diz ONDE exatamente está o vínculo (nunca um genérico "não foi
+  possível") — ex.: "Esta despesa já gerou contas em Financeiro" em vez
+  de "erro ao excluir". Aplicado em: ajuste manual de estoque, devolução
+  ao fornecedor, excluir/estornar lançamento financeiro (mensagem de
+  estorno é dinâmica — muda conforme o lançamento já estava pago e/ou
+  vinculado a OS/venda), devolver item de OS/venda faturada, desativar/
+  excluir peça, despesa recorrente, categoria e veículo. Excluir veículo
+  não tinha NENHUM tratamento de erro antes disso (FK de `ordens_servico`
+  vinha crua, sem try/catch) — corrigido junto, reaproveitando o mesmo
+  helper `ehViolacaoDeReferencia` (agora em `src/shared/utils/erros.ts`,
+  reexportado por `despesas.service.ts` por compatibilidade — é um
+  helper genérico de erro do Postgres/Supabase, código '23503', não é
+  algo específico de despesas).
+- Os 2 avisos de projeção financeira que já existiam (conta a pagar
+  zerando o resultado do mês; pagamento negativando o saldo de caixa —
+  ver "NÃO existe trava impedindo despesa > receita" em Financeiro)
+  também migraram pra `confirmar()`, só pela consistência visual — a
+  lógica de quando avisar continua a mesma.
+
 ## Documentos fiscais — cuidado
 
 NÃO implementar emissão fiscal própria falando direto com SEFAZ/prefeitura.

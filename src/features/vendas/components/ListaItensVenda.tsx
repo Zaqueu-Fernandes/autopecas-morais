@@ -19,6 +19,7 @@ import {
 import { FormItemVenda } from './FormItemVenda';
 import type { Peca } from '@/features/estoque';
 import { FormEstorno, type DadosEstorno } from '@/features/financeiro';
+import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 
 interface Props {
   vendaId: string;
@@ -36,6 +37,7 @@ export function ListaItensVenda({
   bloqueado = false,
   aoAtualizarTotal,
 }: Props) {
+  const { confirmar } = useConfirmacao();
   const [itens, setItens] = useState<ItemVenda[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -77,8 +79,22 @@ export function ListaItensVenda({
 
   async function handleDevolver(dados: DadosEstorno) {
     if (!itemParaDevolver || !dados.formaPagamento) return;
+    const item = itemParaDevolver;
+    const valor = item.quantidade * item.valorUnit;
+    const ok = await confirmar({
+      titulo: 'Confirmar devolução de item',
+      tom: 'perigo',
+      mensagem: [
+        `"${item.descricao}" — R$ ${valor.toFixed(2)}.`,
+        'A peça volta pro estoque (ajuste, sem mexer no custo médio) e o item fica marcado como devolvido no histórico da venda.',
+        'Essa venda já foi finalizada: o valor do item é descontado ou reembolsado no Financeiro, conforme a forma de pagamento escolhida.',
+      ],
+      textoConfirmar: 'Sim, devolver item',
+    });
+    if (!ok) return;
+
     await devolverItemVenda(
-      itemParaDevolver,
+      item,
       { id: vendaId, numero: vendaNumero, clienteId: vendaClienteId ?? null },
       dados.motivo,
       dados.formaPagamento,

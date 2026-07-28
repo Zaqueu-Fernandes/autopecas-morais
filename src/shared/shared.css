@@ -1,0 +1,101 @@
+/* ==========================================================================
+   COMPARTILHADO — modal de confirmação/aviso (ConfirmDialog). Prefixo
+   .confirm- pra não colidir com outras features.
+   ========================================================================== */
+
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 11, .55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.confirm-cartao {
+  --confirm-cor: #D62839;
+  --confirm-cor-fundo: var(--cor-fundo-perigo);
+  --confirm-cor-borda: var(--cor-borda-perigo);
+
+  width: 100%;
+  max-width: 420px;
+  background: var(--cor-fundo-cartao);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, .35);
+}
+
+.confirm-cartao.confirm-aviso {
+  --confirm-cor: #b45309;
+  --confirm-cor-fundo: var(--cor-fundo-aviso);
+  --confirm-cor-borda: var(--cor-borda-aviso);
+}
+
+.confirm-cartao.confirm-info {
+  --confirm-cor: #2563eb;
+  --confirm-cor-fundo: var(--cor-fundo-secundario);
+  --confirm-cor-borda: var(--cor-borda);
+}
+
+.confirm-icone {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--confirm-cor-fundo);
+  border: 1px solid var(--confirm-cor-borda);
+  color: var(--confirm-cor);
+  margin-bottom: 12px;
+}
+
+.confirm-cartao h2 {
+  font-size: 17px;
+  margin: 0 0 10px;
+  color: var(--cor-texto);
+}
+
+.confirm-cartao p {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--cor-texto-secundario);
+  margin: 0 0 8px;
+}
+.confirm-cartao p:last-of-type { margin-bottom: 0; }
+
+.confirm-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.confirm-btn-sec {
+  border: 1px solid var(--cor-borda);
+  background: none;
+  color: var(--cor-texto);
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.confirm-btn-sec:hover { background: var(--cor-fundo-hover); }
+
+.confirm-btn {
+  border: 0;
+  color: #fff;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.confirm-btn-perigo { background: #D62839; }
+.confirm-btn-perigo:hover { background: #c22235; }
+.confirm-btn-aviso { background: #b45309; }
+.confirm-btn-aviso:hover { background: #9a4507; }
+.confirm-btn-info { background: #2563eb; }
+.confirm-btn-info:hover { background: #1d4ed8; }

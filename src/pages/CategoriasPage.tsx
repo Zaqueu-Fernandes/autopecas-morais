@@ -26,8 +26,10 @@ import {
   ehViolacaoDeUnicidade,
 } from '@/features/categorias';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
+import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 
 export function CategoriasPage() {
+  const { confirmar, avisar } = useConfirmacao();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [mostrarInativas, setMostrarInativas] = useState(false);
   const [carregando, setCarregando] = useState(true);
@@ -71,10 +73,18 @@ export function CategoriasPage() {
     await carregar();
   }
 
-  async function handleDesativar(id: string) {
-    if (!window.confirm('Desativar esta categoria? Ela deixa de aparecer pra escolher em despesas/contas novas.'))
-      return;
-    await definirAtivaCategoria(id, false);
+  async function handleDesativar(categoria: Categoria) {
+    const ok = await confirmar({
+      titulo: 'Desativar esta categoria?',
+      tom: 'aviso',
+      mensagem: [
+        `"${categoria.nome}" deixa de aparecer pra escolher em despesas/contas novas.`,
+        'O histórico de despesas/lançamentos que já usam essa categoria continua intacto. É reversível (ative "Mostrar inativas" pra reativar).',
+      ],
+      textoConfirmar: 'Desativar',
+    });
+    if (!ok) return;
+    await definirAtivaCategoria(categoria.id!, false);
     await carregar();
   }
 
@@ -84,11 +94,21 @@ export function CategoriasPage() {
   }
 
   async function handleExcluir(categoria: Categoria) {
-    if (!window.confirm('Excluir esta categoria? Essa ação não pode ser desfeita.')) return;
+    const ok = await confirmar({
+      titulo: 'Excluir esta categoria?',
+      tom: 'perigo',
+      mensagem: [
+        `"${categoria.nome}" vai ser apagada definitivamente.`,
+        'Só funciona se ela nunca tiver sido usada em nenhuma despesa recorrente ou lançamento do Financeiro — se já foi usada, a alternativa é "Desativar".',
+      ],
+      textoConfirmar: 'Sim, excluir definitivamente',
+    });
+    if (!ok) return;
     if (await categoriaEmUso(categoria.chave)) {
-      window.alert(
-        'Esta categoria já foi usada em alguma despesa recorrente ou lançamento do Financeiro, então não pode ser excluída (perderia o histórico). Use "Desativar" pra ela parar de aparecer nas escolhas novas.',
-      );
+      await avisar({
+        titulo: 'Não é possível excluir',
+        mensagem: `"${categoria.nome}" já foi usada em alguma despesa recorrente ou lançamento do Financeiro, então não pode ser excluída (perderia o histórico). Use "Desativar" pra ela parar de aparecer nas escolhas novas.`,
+      });
       return;
     }
     await excluirCategoria(categoria.id!);
@@ -186,7 +206,7 @@ export function CategoriasPage() {
                   {!c.protegida && (
                     <>
                       {c.ativa ? (
-                        <button type="button" onClick={() => handleDesativar(c.id!)}>
+                        <button type="button" onClick={() => handleDesativar(c)}>
                           <Ban size={13} /> Desativar
                         </button>
                       ) : (
