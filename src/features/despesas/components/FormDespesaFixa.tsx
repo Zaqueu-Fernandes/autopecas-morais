@@ -10,10 +10,12 @@ import { useEffect, useState } from 'react';
 import {
   type DespesaFixa,
   type CategoriaDespesaFixa,
+  type TipoValorDespesa,
   despesaFixaVazia,
   validarDespesaFixa,
   semErros,
   ROTULO_CATEGORIA_DESPESA,
+  ROTULO_TIPO_VALOR,
   type ErrosValidacao,
 } from '../types';
 import { type Fornecedor, listarFornecedores } from '@/features/cadastros';
@@ -124,8 +126,25 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
           </div>
         )}
 
+        <div className="dsp-campo dsp-col-2">
+          <label>O valor é sempre o mesmo?</label>
+          <div className="dsp-radios">
+            {(Object.keys(ROTULO_TIPO_VALOR) as TipoValorDespesa[]).map((t) => (
+              <label key={t}>
+                <input
+                  type="radio"
+                  name="tipoValor"
+                  checked={despesa.tipoValor === t}
+                  onChange={() => set({ tipoValor: t })}
+                />
+                {ROTULO_TIPO_VALOR[t]}
+              </label>
+            ))}
+          </div>
+        </div>
+
         <div className="dsp-campo">
-          <label>Valor (R$) *</label>
+          <label>{despesa.tipoValor === 'variavel' ? 'Valor médio (R$) *' : 'Valor (R$) *'}</label>
           <input
             inputMode="decimal"
             value={despesa.valor}
@@ -134,6 +153,11 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
             aria-invalid={!!erros.valor}
           />
           {erros.valor && <span className="dsp-erro">{erros.valor}</span>}
+          {despesa.tipoValor === 'variavel' && (
+            <span className="dsp-dica">
+              Usado como estimativa ao gerar a conta do mês — ajuste pro valor real em Financeiro antes de quitar.
+            </span>
+          )}
         </div>
 
         <div className="dsp-campo">
@@ -148,18 +172,6 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
           {erros.diaVencimento && <span className="dsp-erro">{erros.diaVencimento}</span>}
         </div>
 
-        {despesa.id && (
-          <div className="dsp-campo dsp-checkbox">
-            <label>
-              <input
-                type="checkbox"
-                checked={despesa.ativo}
-                onChange={(e) => set({ ativo: e.target.checked })}
-              />
-              Despesa ativa
-            </label>
-          </div>
-        )}
       </div>
 
       <div className="dsp-campo">

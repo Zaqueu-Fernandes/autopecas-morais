@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { ReceiptText, RefreshCw, Pencil, Ban } from 'lucide-react';
+import { ReceiptText, RefreshCw, Pencil, Ban, RotateCcw, Trash2 } from 'lucide-react';
 import {
   type DespesaFixa,
   type ResultadoGeracao,
@@ -17,6 +17,8 @@ import {
   listarDespesasFixas,
   salvarDespesaFixa,
   definirAtivoDespesaFixa,
+  excluirDespesaFixa,
+  ehViolacaoDeReferencia,
   gerarContasDoMes,
   ROTULO_CATEGORIA_DESPESA,
 } from '@/features/despesas';
@@ -26,6 +28,7 @@ export function DespesasFixasPage() {
   const [despesas, setDespesas] = useState<DespesaFixa[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [empresaId, setEmpresaId] = useState('');
+  const [mostrarInativas, setMostrarInativas] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -46,7 +49,9 @@ export function DespesasFixasPage() {
     setCarregando(true);
     setErro(null);
     try {
-      setDespesas(await listarDespesasFixas({ empresaId: empresaId || undefined }));
+      setDespesas(
+        await listarDespesasFixas({ empresaId: empresaId || undefined, somenteAtivas: !mostrarInativas }),
+      );
     } catch {
       setErro('Não foi possível carregar as despesas fixas.');
     } finally {
@@ -57,7 +62,7 @@ export function DespesasFixasPage() {
   useEffect(() => {
     carregar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [empresaId]);
+  }, [empresaId, mostrarInativas]);
 
   async function handleSalvar(d: DespesaFixa) {
     await salvarDespesaFixa(d);
@@ -70,6 +75,27 @@ export function DespesasFixasPage() {
     if (!window.confirm('Desativar esta despesa fixa? Ela deixa de gerar contas novas.')) return;
     await definirAtivoDespesaFixa(id, false);
     await carregar();
+  }
+
+  async function handleReativar(id: string) {
+    await definirAtivoDespesaFixa(id, true);
+    await carregar();
+  }
+
+  async function handleExcluir(id: string) {
+    if (!window.confirm('Excluir esta despesa fixa? Essa ação não pode ser desfeita.')) return;
+    try {
+      await excluirDespesaFixa(id);
+      await carregar();
+    } catch (erro) {
+      if (ehViolacaoDeReferencia(erro)) {
+        window.alert(
+          'Esta despesa já gerou contas em Financeiro, então não pode ser excluída (perderia o histórico). Use "Desativar" pra ela parar de gerar contas novas.',
+        );
+        return;
+      }
+      throw erro;
+    }
   }
 
   async function handleGerar() {
@@ -128,6 +154,14 @@ export function DespesasFixasPage() {
           <RefreshCw size={14} className={gerando ? 'dsp-icone-girando' : ''} />
           {gerando ? 'Gerando…' : `Gerar contas de ${mesReferencia}`}
         </button>
+        <label className="dsp-filtro-inativas">
+          <input
+            type="checkbox"
+            checked={mostrarInativas}
+            onChange={(e) => setMostrarInativas(e.target.checked)}
+          />
+          Mostrar inativas
+        </label>
       </div>
 
       {resultado && (
@@ -153,10 +187,16 @@ export function DespesasFixasPage() {
           </thead>
           <tbody>
             {despesas.map((d) => (
-              <tr key={d.id}>
-                <td>{d.descricao}</td>
+              <tr key={d.id} className={!d.ativo ? 'dsp-linha-inativa' : ''}>
+                <td>
+                  {d.descricao}
+                  {!d.ativo && <span className="dsp-tag-inativa">Inativa</span>}
+                </td>
                 <td>{ROTULO_CATEGORIA_DESPESA[d.categoria]}</td>
-                <td>R$ {Number(d.valor).toFixed(2)}</td>
+                <td>
+                  R$ {Number(d.valor).toFixed(2)}
+                  {d.tipoValor === 'variavel' && <span className="dsp-tag-media">média</span>}
+                </td>
                 <td>{d.diaVencimento}</td>
                 <td className="pg-acoes-linha">
                   <button
@@ -168,8 +208,17 @@ export function DespesasFixasPage() {
                   >
                     <Pencil size={13} /> Editar
                   </button>
-                  <button type="button" onClick={() => handleDesativar(d.id!)}>
-                    <Ban size={13} /> Desativar
+                  {d.ativo ? (
+                    <button type="button" onClick={() => handleDesativar(d.id!)}>
+                      <Ban size={13} /> Desativar
+                    </button>
+                  ) : (
+                    <button type="button" onClick={() => handleReativar(d.id!)}>
+                      <RotateCcw size={13} /> Reativar
+                    </button>
+                  )}
+                  <button type="button" onClick={() => handleExcluir(d.id!)}>
+                    <Trash2 size={13} /> Excluir
                   </button>
                 </td>
               </tr>

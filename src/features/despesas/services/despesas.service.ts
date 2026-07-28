@@ -14,6 +14,7 @@ interface LinhaDespesaFixa {
   empresa_id: string | null;
   descricao: string;
   categoria: CategoriaDespesaFixa;
+  tipo_valor: 'fixo' | 'variavel';
   valor: number;
   dia_vencimento: number;
   fornecedor_id: string | null;
@@ -27,6 +28,7 @@ function linhaParaDespesa(l: LinhaDespesaFixa): DespesaFixa {
     empresaId: l.empresa_id ?? '',
     descricao: l.descricao,
     categoria: l.categoria,
+    tipoValor: l.tipo_valor,
     valor: String(l.valor),
     diaVencimento: String(l.dia_vencimento),
     fornecedorId: l.fornecedor_id ?? '',
@@ -40,6 +42,7 @@ function despesaParaLinha(d: DespesaFixa) {
     empresa_id: d.empresaId || null,
     descricao: d.descricao,
     categoria: d.categoria,
+    tipo_valor: d.tipoValor,
     valor: Number(d.valor),
     dia_vencimento: Number(d.diaVencimento),
     fornecedor_id: d.fornecedorId || null,
@@ -93,4 +96,20 @@ export async function salvarDespesaFixa(d: DespesaFixa): Promise<DespesaFixa> {
 export async function definirAtivoDespesaFixa(id: string, ativo: boolean): Promise<void> {
   const { error } = await supabase.from('despesas_fixas').update({ ativo }).eq('id', id);
   if (error) throw error;
+}
+
+/**
+ * Exclui de verdade — só funciona se esta despesa NUNCA gerou uma conta em
+ * financeiro (senão o banco recusa: financeiro.despesa_fixa_id referencia
+ * esta linha). Quem chama deve tratar esse caso (código '23503', violação de
+ * chave estrangeira) sugerindo "Desativar" em vez de excluir.
+ */
+export async function excluirDespesaFixa(id: string): Promise<void> {
+  const { error } = await supabase.from('despesas_fixas').delete().eq('id', id);
+  if (error) throw error;
+}
+
+/** true se o erro veio de uma FK apontando pra esta linha (ex.: já gerou conta). */
+export function ehViolacaoDeReferencia(erro: unknown): boolean {
+  return typeof erro === 'object' && erro !== null && (erro as { code?: string }).code === '23503';
 }

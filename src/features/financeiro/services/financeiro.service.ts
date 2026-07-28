@@ -91,6 +91,22 @@ export async function criarLancamento(l: LancamentoFinanceiro): Promise<Lancamen
   return linhaParaLancamento(data as LinhaFinanceiro);
 }
 
+/**
+ * Corrige o valor de um lançamento ainda pendente — pra ajustar despesas de
+ * valor variável (água, luz...) pro valor real da conta antes de quitar.
+ * Só faz sentido em lançamentos não pagos (histórico já quitado não muda).
+ */
+export async function atualizarValorLancamento(id: string, valor: number): Promise<LancamentoFinanceiro> {
+  const { data, error } = await supabase
+    .from('financeiro')
+    .update({ valor })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return linhaParaLancamento(data as LinhaFinanceiro);
+}
+
 /** Marca um lançamento como quitado (pago ou recebido, conforme o tipo). */
 export async function quitarLancamento(id: string, formaPagamento: FormaPagamento): Promise<LancamentoFinanceiro> {
   const { data, error } = await supabase

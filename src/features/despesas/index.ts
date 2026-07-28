@@ -16,7 +16,9 @@ export {
   validarDespesaFixa,
   semErros,
   ROTULO_CATEGORIA_DESPESA,
+  ROTULO_TIPO_VALOR,
   type CategoriaDespesaFixa,
+  type TipoValorDespesa,
   type DespesaFixa,
   type ErrosValidacao,
 } from './types';

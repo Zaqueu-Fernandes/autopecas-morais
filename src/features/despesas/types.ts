@@ -25,13 +25,28 @@ export const ROTULO_CATEGORIA_DESPESA: Record<CategoriaDespesaFixa, string> = {
   retirada_lucro: 'Retirada de lucro',
 };
 
+/**
+ * 'fixo': valor sempre igual (aluguel, mensalidade) — o campo `valor` É o
+ * valor real. 'variavel': muda todo mês (água, luz) mas tem dia de
+ * vencimento fixo — `valor` é só uma MÉDIA/estimativa; o valor real de cada
+ * mês é ajustado depois em Financeiro, na conta já gerada (ver
+ * atualizarValorLancamento), antes de quitar.
+ */
+export type TipoValorDespesa = 'fixo' | 'variavel';
+
+export const ROTULO_TIPO_VALOR: Record<TipoValorDespesa, string> = {
+  fixo: 'Fixo',
+  variavel: 'Variável',
+};
+
 export interface DespesaFixa {
   id?: string;
   /** A qual empresa (CNPJ) esta despesa pertence — as contas geradas herdam essa empresa. */
   empresaId: string;
   descricao: string;
   categoria: CategoriaDespesaFixa;
-  valor: string; // texto no formulário; vira number ao salvar
+  tipoValor: TipoValorDespesa;
+  valor: string; // texto no formulário; vira number ao salvar — real se fixo, média se variável
   diaVencimento: string; // texto no formulário (1-28); vira number ao salvar
   fornecedorId: string;
   ativo: boolean;
@@ -42,6 +57,7 @@ export const despesaFixaVazia = (): DespesaFixa => ({
   empresaId: '',
   descricao: '',
   categoria: 'despesa_fixa',
+  tipoValor: 'fixo',
   valor: '',
   diaVencimento: '',
   fornecedorId: '',

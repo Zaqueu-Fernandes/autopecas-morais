@@ -8,6 +8,7 @@
 
 export { FormContaPagar } from './components/FormContaPagar';
 export { FormQuitacao } from './components/FormQuitacao';
+export { FormEditarValor } from './components/FormEditarValor';
 export { FormFaturamento } from './components/FormFaturamento';
 export { FormFinalizarVenda } from './components/FormFinalizarVenda';
 

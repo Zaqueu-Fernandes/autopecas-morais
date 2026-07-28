@@ -187,7 +187,24 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   contas do mês", não é automático/agendado). Índice único
   (despesa_fixa_id, vencimento) em financeiro impede duplicar a mesma
   despesa no mesmo mês — gerar de novo só ignora as que já existem.
-- Despesa fixa não é excluída (pode ter contas geradas) — só desativada.
+- Despesa fixa tem `tipo_valor` ('fixo' | 'variavel'): fixo (aluguel,
+  mensalidade) usa o campo valor como o valor real; variável (água, luz —
+  tem dia de vencimento fixo mas o valor muda todo mês) trata o valor
+  cadastrado como MÉDIA/estimativa só pra gerar a conta. O valor real de
+  cada mês é corrigido depois em Financeiro, num lançamento ainda
+  pendente, via "Editar valor" (atualizarValorLancamento) — antes de
+  quitar. "Editar valor" existe pra QUALQUER lançamento pendente (não só
+  os vindos de despesa variável), pago ou a receber — é intencionalmente
+  genérico em vez de restrito, pra também cobrir "Nova conta a pagar"
+  digitada com valor errado.
+- Despesa fixa não é excluída por padrão (pode ter contas geradas,
+  financeiro.despesa_fixa_id aponta pra ela) — o normal é "Desativar" (só
+  para de gerar contas novas). "Excluir" existe (Trash2, ao lado de
+  Editar na lista) mas só funciona quando a despesa NUNCA gerou nenhuma
+  conta — o banco recusa (FK 23503) se já gerou, e a página troca isso
+  por uma mensagem sugerindo Desativar em vez de excluir. Lista tem
+  toggle "Mostrar inativas" (senão uma despesa desativada some da lista
+  pra sempre, sem jeito de reativar pela UI).
 - Fluxo de Caixa (aba própria) é diferente do faturamento do Dashboard:
   conta por data_pagamento (dinheiro que já entrou/saiu de verdade),
   filtra por período, e mostra saldo anterior (tudo quitado antes do

@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { FilePlus2, CircleDollarSign } from 'lucide-react';
+import { FilePlus2, CircleDollarSign, Pencil } from 'lucide-react';
 import {
   type LancamentoFinanceiro,
   type TipoFinanceiro,
@@ -16,9 +16,11 @@ import {
   type DadosContaPagar,
   FormContaPagar,
   FormQuitacao,
+  FormEditarValor,
   listarFinanceiro,
   criarLancamento,
   quitarLancamento,
+  atualizarValorLancamento,
   buscarFluxoCaixa,
   ROTULO_CATEGORIA_PAGAR,
   ROTULO_CATEGORIA_RECEBER,
@@ -58,6 +60,7 @@ export function FinanceiroPage() {
 
   const [mostrarForm, setMostrarForm] = useState(false);
   const [lancamentoParaQuitar, setLancamentoParaQuitar] = useState<LancamentoFinanceiro | null>(null);
+  const [lancamentoParaEditarValor, setLancamentoParaEditarValor] = useState<LancamentoFinanceiro | null>(null);
 
   function nomeEmpresa(id: string | null): string {
     return empresas.find((e) => e.id === id)?.nomeFantasia ?? '—';
@@ -142,6 +145,13 @@ export function FinanceiroPage() {
     await carregar();
   }
 
+  async function handleEditarValor(novoValor: number) {
+    if (!lancamentoParaEditarValor) return;
+    await atualizarValorLancamento(lancamentoParaEditarValor.id!, novoValor);
+    setLancamentoParaEditarValor(null);
+    await carregar();
+  }
+
   if (mostrarForm) {
     return <FormContaPagar onSalvar={handleSalvarContaPagar} onCancelar={() => setMostrarForm(false)} />;
   }
@@ -152,6 +162,17 @@ export function FinanceiroPage() {
         titulo={lancamentoParaQuitar.tipo === 'pagar' ? 'Registrar pagamento' : 'Registrar recebimento'}
         onConfirmar={handleQuitar}
         onCancelar={() => setLancamentoParaQuitar(null)}
+      />
+    );
+  }
+
+  if (lancamentoParaEditarValor) {
+    return (
+      <FormEditarValor
+        descricao={lancamentoParaEditarValor.descricao}
+        valorAtual={lancamentoParaEditarValor.valor}
+        onConfirmar={handleEditarValor}
+        onCancelar={() => setLancamentoParaEditarValor(null)}
       />
     );
   }
@@ -223,9 +244,14 @@ export function FinanceiroPage() {
                 </td>
                 <td className="pg-acoes-linha">
                   {!l.pago && (
-                    <button type="button" onClick={() => setLancamentoParaQuitar(l)}>
-                      <CircleDollarSign size={13} /> Quitar
-                    </button>
+                    <>
+                      <button type="button" onClick={() => setLancamentoParaEditarValor(l)}>
+                        <Pencil size={13} /> Editar valor
+                      </button>
+                      <button type="button" onClick={() => setLancamentoParaQuitar(l)}>
+                        <CircleDollarSign size={13} /> Quitar
+                      </button>
+                    </>
                   )}
                 </td>
               </tr>
