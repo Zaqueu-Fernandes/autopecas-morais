@@ -31,6 +31,14 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   `data-theme` na `<html>`; um script inline no início do `<head>` do
   index.html já aplica isso antes do primeiro paint (evita flash do
   tema errado).
+- `src/shared/components/Rodape.tsx`: créditos + contato, centralizado,
+  no fim de toda página — montado uma vez em App.tsx (depois de
+  `<main>`, aparece em todas as abas) e uma vez em LoginPage.tsx (a
+  única tela fora do layout principal). Ano do copyright é dinâmico
+  (`new Date().getFullYear()`). WhatsApp usa um SVG inline (lucide-react
+  não tem ícone de marca) linkando pra `https://wa.me/<DDI+DDD+número>`
+  — abre o WhatsApp Web/app direto na conversa, sem precisar salvar o
+  contato.
 - Cores estruturais (fundo, cartão, texto, borda, hover) viram variáveis
   CSS globais em App.css (`--cor-fundo`, `--cor-fundo-cartao`,
   `--cor-texto`, `--cor-texto-secundario`, `--cor-borda`,
@@ -45,23 +53,34 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   ficam FIXAS nos dois temas de propósito — não são "estruturais".
   Header do app (`.app-header`) também fica sempre escuro nos dois temas
   (chrome de marca, não muda com o toggle).
-- Identidade visual: `public/icones/IconPage.png` (fundo transparente) é a
-  logo mostrada no cabeçalho (`.app-logo`, App.tsx) — mesma arte, dois
-  arquivos-fonte diferentes porque o cabeçalho precisa de fundo
-  transparente e o ícone do PWA precisa preencher o quadrado inteiro.
-  `public/icones/IconePWA.png` (fundo preto sólido) é a ORIGEM dos ícones
-  do PWA/favicon — nunca referenciada direto no código, só gerou os
-  arquivos abaixo (script descartável, não faz parte do projeto):
-  `pwa-icon-192.png`, `pwa-icon-512.png` (manifest, vite.config.ts,
-  purpose 'any' e 'maskable' com o MESMO arquivo — simplificação: não tem
-  margem de segurança própria pra maskable, se algum launcher Android
-  cortar em círculo pode tocar no conteúdo perto da borda) e
-  `favicon-64.png` (index.html). Os três foram gerados uma vez com
-  `sharp` (redimensiona pra quadrado preenchendo com a cor de fundo real
-  da arte, `#0a0a0b`, depois aplica máscara SVG de cantos arredondados
-  ~20% do tamanho — efeito "squircle" de ícone de app). Se a arte mudar
-  de novo, regenerar os 3 PNGs a partir do novo IconePWA.png com a mesma
-  técnica (não editar os PNGs gerados na mão).
+- Identidade visual: fonte única `public/icones/Iconeapp.png` (arte
+  "badge" 1807×1807, já com bezel metálico e cantos arredondados
+  próprios, mas com uma margem de fundo escuro ao redor) alimenta os TRÊS
+  usos — ícone do PWA, logo da tela de login (`.auth-logo`,
+  LoginPage.tsx) e logo do cabeçalho (`.app-logo`, App.tsx). Não tem mais
+  arquivo-fonte separado por uso (era o caso antes, com IconPage.png/
+  IconePWA.png — ficaram no repo sem uso, histórico). Gerados uma vez com
+  `sharp` (script descartável, não faz parte do projeto): 1) detecta a
+  borda do bezel metálico por luminância (scan de linha, threshold >140)
+  pra recortar rente à margem externa, sem cortar a arte; 2) redimensiona
+  pra 1024×1024; 3) aplica máscara SVG de cantos arredondados ~20% do
+  tamanho (`dest-in`) — como a arte já tem seus próprios cantos
+  arredondados internos, o resultado é um recorte limpo com transparência
+  real nos 4 cantos (não sobra pedacinho do fundo escuro original); 4)
+  exporta `pwa-icon-512.png`, `pwa-icon-192.png` (manifest,
+  vite.config.ts, purpose 'any' e 'maskable' com o MESMO arquivo —
+  simplificação: não tem margem de segurança própria pra maskable, se
+  algum launcher Android cortar em círculo pode tocar no conteúdo perto
+  da borda) e `favicon-64.png` (index.html), com `png({ palette: true })`
+  (quantização de cores, tipo pngquant) pra manter leve mesmo sendo uma
+  arte 3D fotorrealista bem mais pesada que a anterior (512px ficou com
+  ~120KB). `vite.config.ts` também ganhou `workbox.globIgnores:
+  ['icones/**']` — sem isso, o precache do service worker varreria a
+  arte-fonte pesada (`Iconeapp.png`, ~4.8MB, nunca referenciada direto no
+  código) junto com o app, inflando o cache offline à toa; vale pra
+  qualquer arte-fonte que for parar em `public/icones/` no futuro. Se a
+  arte mudar de novo, regenerar os 3 PNGs a partir do novo Iconeapp.png
+  com a mesma técnica (não editar os PNGs gerados na mão).
 
 ## Regras de código (IMPORTANTES)
 

@@ -31,6 +31,7 @@ import { InstalarPwaBanner } from '@/shared/components/InstalarPwaBanner';
 import { AlternarTema } from '@/shared/components/AlternarTema';
 import { AlternarFormatoImpressao } from '@/features/impressao';
 import { useAuth, LoginPage } from '@/features/auth';
+import { Rodape } from '@/shared/components/Rodape';
 
 const ABAS = [
   { id: 'dashboard', label: 'Dashboard', Icone: LayoutDashboard, Componente: DashboardPage },
@@ -58,7 +59,7 @@ function App() {
       <InstalarPwaBanner />
       <header className="app-header">
         <img
-          src="/icones/IconPage.png"
+          src="/pwa-icon-512.png"
           alt="Autopeças Morais — Cuidando da vida do seu carro"
           className="app-logo"
         />
@@ -91,6 +92,7 @@ function App() {
       <main className="app-conteudo">
         <AbaAtual />
       </main>
+      <Rodape />
     </div>
   );
 }

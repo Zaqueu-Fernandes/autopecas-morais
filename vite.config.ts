@@ -11,7 +11,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon-64.png', 'icones/IconPage.png'],
+      includeAssets: ['favicon-64.png'],
+      // icones/ guarda só a arte-fonte (nunca referenciada direto no código, usada
+      // uma vez pra gerar os PNGs do manifest abaixo) — sem isso, o precache do
+      // service worker varreria esses arquivos junto (o workbox globPatterns padrão
+      // inclui todo .png em dist/), inflando o cache offline à toa.
+      workbox: {
+        globIgnores: ['icones/**'],
+      },
       manifest: {
         name: 'Autopeças Morais — Gestão da Oficina',
         short_name: 'Autopeças Morais',

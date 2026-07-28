@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { LogIn } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { Rodape } from '@/shared/components/Rodape';
 
 export function LoginPage() {
   const { entrar } = useAuth();
@@ -66,6 +67,7 @@ export function LoginPage() {
           <LogIn size={16} /> {entrando ? 'Entrando…' : 'Entrar'}
         </button>
       </div>
+      <Rodape />
     </div>
   );
 }
