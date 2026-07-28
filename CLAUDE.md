@@ -598,9 +598,10 @@ Até lá, o sistema gera COMPROVANTE INTERNO ("sem valor fiscal").
      global) — pronta, ligada na OS. Falta ligar o botão na Venda de
      balcão (a camada já suporta). Listas (Clientes, Estoque, Financeiro
      etc.) têm Imprimir + Gerar PDF próprios (BotoesImpressaoLista).
-   - ✅ Estorno de OS/venda faturada — implementado (ver "Estorno e
-     exclusão de lançamento" em Financeiro). Falta só a devolução de peça
-     (estoque físico voltando), que é outra dimensão do mesmo problema.
+   - ✅ Estorno de OS/venda faturada, exclusão de lançamento pendente, e
+     devolução de item (peça física volta ao estoque, ou serviço) de uma
+     OS/venda já faturada — tudo implementado (ver "Estorno e exclusão de
+     lançamento" em Financeiro).
    - ✅ Autenticação + RLS de verdade (feature src/features/auth,
      supabase/migrations/auth_perfis_rls.sql) — substituiu a fase
      provisória (anon+authenticated liberado, `rls_policies.sql`/
