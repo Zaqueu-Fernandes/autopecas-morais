@@ -36,7 +36,7 @@ export function LoginPage() {
   return (
     <div className="auth-tela">
       <div className="auth-cartao">
-        <img src="/icones/IconPage.png" alt="Autopeças Morais" className="auth-logo" />
+        <img src="/pwa-icon-512.png" alt="Autopeças Morais" className="auth-logo" />
         <h1>Entrar</h1>
 
         <div className="auth-campo">
