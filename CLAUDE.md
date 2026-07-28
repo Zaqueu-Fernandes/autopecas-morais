@@ -290,16 +290,42 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   COMO a impressão acontece por baixo, só montam um DocumentoImpressao
   genérico (tipo, título, número, cliente, veículo, itens, total,
   observações, fiscal: false) e chamam printer.imprimir(doc).
-- Fase 1 (pronta): método 'browser' — monta HTML/CSS pra 80mm num iframe
-  escondido e aciona o diálogo de impressão do navegador/SO (funciona com
-  qualquer impressora térmica instalada como impressora do Windows/Android
-  Chrome). Template em services/template.ts.
+- Fase 1 (pronta): método 'browser' — monta um HTML/CSS num iframe escondido
+  e aciona o diálogo de impressão do navegador/SO (funciona com qualquer
+  impressora instalada como impressora do Windows/Android Chrome). Dois
+  formatos possíveis — térmica 80mm ou A4/Carta — escolhidos por uma
+  PREFERÊNCIA GLOBAL (useFormatoImpressao, localStorage, botão no cabeçalho
+  ao lado do tema — mesmo padrão do useTema), não perguntada a cada clique.
+  Templates em services/template.ts (comprovante, uma versão por formato).
 - Botão BotaoImprimir (componente reutilizável, sem CSS próprio — herda a
   classe de quem chama) já ligado na OS (DetalheOS). Venda de balcão ainda
   não tem o botão, mas a camada já dá conta — é só montar o
   DocumentoImpressao lá e reaproveitar.
 - Comprovante é sempre `fiscal: false` — rodapé fixo "DOCUMENTO SEM VALOR
   FISCAL". Ver regra de documentos fiscais abaixo.
+- IMPRESSÃO DE LISTA (diferente do comprovante — que é 1 documento de uma
+  OS/venda): toda tela com `pg-tabela` (Clientes, Fornecedores, Empresas,
+  Categorias, Estoque, Despesas Recorrentes, Financeiro, Fluxo de Caixa, OS,
+  Vendas) tem os botões "Imprimir" e "Gerar PDF" (componente
+  BotoesImpressaoLista, cabeçalho da página, herda a classe *-btn-sec de
+  quem chama). Documento genérico: `{ titulo, subtitulo?, colunas: string[],
+  linhas: string[][] }` (DocumentoListaImpressao) — cada página monta as
+  linhas já formatadas como texto (mesmo formato exibido em tela) a partir
+  dos dados FILTRADOS na hora (busca/filtro aplicado, não a lista inteira).
+  - "Imprimir" → printer.imprimirLista(doc), mesmo mecanismo do comprovante
+    e mesma preferência térmica/A4. Templates em services/templateLista.ts.
+    Térmica 80mm não cabe uma tabela de várias colunas — vira uma "ficha"
+    por registro (1ª coluna como título, demais como rótulo: valor). A4 é
+    uma tabela normal, em paisagem.
+  - "Gerar PDF" → pdf.service.ts (gerarPdfLista), baixa o .pdf direto sem
+    diálogo — só assim os dois botões fazem coisas de fato diferentes.
+    Usa jsPDF + jspdf-autotable, sempre A4 paisagem (formato de papel não
+    faz sentido pra um arquivo digital). ATENÇÃO: jsPDF traz o plugin de
+    `.html()` (html2canvas + dompurify) sempre junto no bundle mesmo sem
+    usar esse recurso — mediu ~380KB gzip a mais no build. Se o tamanho do
+    PWA virar problema, vale trocar por uma lib mais enxuta (ex.: pdfmake)
+    ou gerar o PDF via impressão (usuário escolhe "Salvar como PDF" no
+    diálogo do navegador) em vez de biblioteca dedicada.
 - Fase 2 (futuro): ESC/POS via Web Bluetooth/USB. Só trocaria a
   implementação de imprimir() no printer.service.ts — a assinatura
   printer.imprimir(doc) pras telas continua igual.

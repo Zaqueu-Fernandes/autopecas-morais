@@ -9,5 +9,9 @@
  */
 
 export { BotaoImprimir } from './components/BotaoImprimir';
+export { BotoesImpressaoLista } from './components/BotoesImpressaoLista';
+export { AlternarFormatoImpressao } from './components/AlternarFormatoImpressao';
 export { printer } from './services/printer.service';
-export type { DocumentoImpressao, ItemImpressao } from './types';
+export { gerarPdfLista } from './services/pdf.service';
+export { useFormatoImpressao, type FormatoImpressao } from './hooks/useFormatoImpressao';
+export type { DocumentoImpressao, ItemImpressao, DocumentoListaImpressao } from './types';

@@ -17,6 +17,7 @@ import {
   definirAtivoPeca,
 } from '@/features/estoque';
 import { ImportarXmlNFe } from '@/features/importacao-nfe';
+import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 
 export function EstoquePage() {
   const [pecas, setPecas] = useState<Peca[]>([]);
@@ -70,6 +71,17 @@ export function EstoquePage() {
     (p) => !alvo || p.nome.toLowerCase().includes(alvo) || p.codigo.toLowerCase().includes(alvo),
   );
 
+  const documentoImpressao: DocumentoListaImpressao = {
+    titulo: 'Estoque',
+    colunas: ['Nome', 'Código', 'Estoque', 'Preço venda'],
+    linhas: filtradas.map((p) => [
+      p.nome,
+      p.codigo || '—',
+      `${p.qtd} ${p.unidade}`,
+      `R$ ${Number(p.precoVenda).toFixed(2)}`,
+    ]),
+  };
+
   if (mostrarForm) {
     return (
       <FormPeca
@@ -100,6 +112,7 @@ export function EstoquePage() {
       <div className="pg-head">
         <h1>Estoque</h1>
         <div className="pg-head-acoes">
+          <BotoesImpressaoLista documento={documentoImpressao} className="est-btn-sec" />
           <button type="button" className="est-btn-sec" onClick={() => setMostrarImportarNFe(true)}>
             <FileUp size={16} /> Importar XML
           </button>

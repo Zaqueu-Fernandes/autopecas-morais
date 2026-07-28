@@ -15,6 +15,7 @@ import {
   listarClientes,
   salvarCliente,
 } from '@/features/cadastros';
+import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 
 export function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -58,6 +59,12 @@ export function ClientesPage() {
       c.documento.toLowerCase().includes(alvo),
   );
 
+  const documentoImpressao: DocumentoListaImpressao = {
+    titulo: 'Clientes',
+    colunas: ['Nome', 'Telefone', 'Documento'],
+    linhas: filtrados.map((c) => [c.nome, c.telefone || '—', c.documento || '—']),
+  };
+
   if (mostrarForm) {
     return (
       <FormCliente
@@ -75,16 +82,19 @@ export function ClientesPage() {
     <div className="pg">
       <div className="pg-head">
         <h1>Clientes</h1>
-        <button
-          type="button"
-          className="cad-btn"
-          onClick={() => {
-            setClienteEmEdicao(null);
-            setMostrarForm(true);
-          }}
-        >
-          <UserPlus size={16} /> Novo cliente
-        </button>
+        <div className="pg-head-acoes">
+          <BotoesImpressaoLista documento={documentoImpressao} className="cad-btn-sec" />
+          <button
+            type="button"
+            className="cad-btn"
+            onClick={() => {
+              setClienteEmEdicao(null);
+              setMostrarForm(true);
+            }}
+          >
+            <UserPlus size={16} /> Novo cliente
+          </button>
+        </div>
       </div>
 
       <div className="pg-busca-wrap">

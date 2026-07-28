@@ -15,6 +15,7 @@ import {
   listarVendas,
   abrirVenda,
 } from '@/features/vendas';
+import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 
 export function VendasBalcaoPage() {
   const [vendas, setVendas] = useState<VendaBalcaoResumo[]>([]);
@@ -61,13 +62,22 @@ export function VendasBalcaoPage() {
     );
   }
 
+  const documentoImpressao: DocumentoListaImpressao = {
+    titulo: 'Vendas de Balcão',
+    colunas: ['Nº', 'Cliente', 'Status'],
+    linhas: vendas.map((v) => [`#${v.numero}`, v.clienteNome ?? 'Avulsa', v.status === 'aberta' ? 'Aberta' : 'Finalizada']),
+  };
+
   return (
     <div className="pg">
       <div className="pg-head">
         <h1>Vendas de Balcão</h1>
-        <button type="button" className="vd-btn" onClick={handleNovaVenda} disabled={abrindo}>
-          <ShoppingCart size={16} /> {abrindo ? 'Abrindo…' : 'Nova venda'}
-        </button>
+        <div className="pg-head-acoes">
+          <BotoesImpressaoLista documento={documentoImpressao} className="vd-btn-sec" />
+          <button type="button" className="vd-btn" onClick={handleNovaVenda} disabled={abrindo}>
+            <ShoppingCart size={16} /> {abrindo ? 'Abrindo…' : 'Nova venda'}
+          </button>
+        </div>
       </div>
 
       {carregando && <p>Carregando…</p>}

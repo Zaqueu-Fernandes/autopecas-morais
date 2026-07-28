@@ -26,3 +26,18 @@ export interface DocumentoImpressao {
   observacoes?: string;
   fiscal: false;
 }
+
+/**
+ * Documento genérico pra imprimir/exportar uma LISTA (relatório tabular) —
+ * usado pelas telas de listagem (Clientes, Estoque, Financeiro…), diferente
+ * do comprovante acima (que é um documento único de uma OS/venda). `linhas`
+ * já vem formatada como texto (mesmo formato que aparece na tela) — quem
+ * monta o documento decide o que exibir, esta camada só desenha.
+ */
+export interface DocumentoListaImpressao {
+  titulo: string;
+  /** Ex.: filtro aplicado, período, empresa selecionada — aparece abaixo do título. */
+  subtitulo?: string;
+  colunas: string[];
+  linhas: string[][];
+}

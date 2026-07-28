@@ -13,6 +13,7 @@ import {
   listarFornecedores,
   salvarFornecedor,
 } from '@/features/cadastros';
+import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 
 export function FornecedoresPage() {
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
@@ -55,6 +56,12 @@ export function FornecedoresPage() {
       f.cnpj.toLowerCase().includes(alvo),
   );
 
+  const documentoImpressao: DocumentoListaImpressao = {
+    titulo: 'Fornecedores',
+    colunas: ['Nome', 'Telefone', 'CNPJ'],
+    linhas: filtrados.map((f) => [f.nome, f.telefone || '—', f.cnpj || '—']),
+  };
+
   if (mostrarForm) {
     return (
       <FormFornecedor
@@ -72,16 +79,19 @@ export function FornecedoresPage() {
     <div className="pg">
       <div className="pg-head">
         <h1>Fornecedores</h1>
-        <button
-          type="button"
-          className="cad-btn"
-          onClick={() => {
-            setFornecedorEmEdicao(null);
-            setMostrarForm(true);
-          }}
-        >
-          <Truck size={16} /> Novo fornecedor
-        </button>
+        <div className="pg-head-acoes">
+          <BotoesImpressaoLista documento={documentoImpressao} className="cad-btn-sec" />
+          <button
+            type="button"
+            className="cad-btn"
+            onClick={() => {
+              setFornecedorEmEdicao(null);
+              setMostrarForm(true);
+            }}
+          >
+            <Truck size={16} /> Novo fornecedor
+          </button>
+        </div>
       </div>
 
       <div className="pg-busca-wrap">

@@ -17,6 +17,7 @@ import {
   listarOS,
   criarOS,
 } from '@/features/ordens-servico';
+import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 
 const OPCOES_STATUS: Array<StatusOS | 'todas'> = ['todas', 'aberta', 'em_andamento', 'concluida', 'faturada'];
 
@@ -63,6 +64,18 @@ export function OrdensServicoPage() {
       String(os.numero).includes(alvo),
   );
 
+  const documentoImpressao: DocumentoListaImpressao = {
+    titulo: 'Ordens de Serviço',
+    colunas: ['Nº', 'Cliente', 'Veículo', 'Status', 'Abertura'],
+    linhas: filtradas.map((os) => [
+      `#${os.numero}`,
+      os.clienteNome,
+      os.veiculoPlaca,
+      ROTULO_STATUS_OS[os.status],
+      os.dataAbertura ? new Date(os.dataAbertura).toLocaleDateString('pt-BR') : '—',
+    ]),
+  };
+
   if (osSelecionadaId) {
     return (
       <DetalheOS
@@ -83,9 +96,12 @@ export function OrdensServicoPage() {
     <div className="pg">
       <div className="pg-head">
         <h1>Ordens de Serviço</h1>
-        <button type="button" className="os-btn" onClick={() => setMostrarForm(true)}>
-          <ClipboardPlus size={16} /> Nova OS
-        </button>
+        <div className="pg-head-acoes">
+          <BotoesImpressaoLista documento={documentoImpressao} className="os-btn-sec" />
+          <button type="button" className="os-btn" onClick={() => setMostrarForm(true)}>
+            <ClipboardPlus size={16} /> Nova OS
+          </button>
+        </div>
       </div>
 
       <div className="pg-filtros">

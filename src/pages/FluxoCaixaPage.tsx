@@ -17,6 +17,7 @@ import {
 } from '@/features/financeiro';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
+import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { CartaoResumo } from '@/features/dashboard';
 
 function primeiroDiaDoMes(): string {
@@ -68,10 +69,27 @@ export function FluxoCaixaPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inicio, fim, empresaId]);
 
+  const documentoImpressao: DocumentoListaImpressao = {
+    titulo: 'Fluxo de Caixa',
+    subtitulo: `${new Date(inicio).toLocaleDateString('pt-BR')} a ${new Date(fim).toLocaleDateString('pt-BR')}`,
+    colunas: ['Data', 'Tipo', 'Categoria', 'Descrição', 'Valor', 'Saldo acumulado'],
+    linhas: (resultado?.movimentos ?? []).map((m) => [
+      new Date(m.dataPagamento).toLocaleDateString('pt-BR'),
+      m.tipo === 'pagar' ? 'Saída' : 'Entrada',
+      rotuloCategoria(m.tipo, m.categoria, categorias),
+      m.descricao,
+      `${m.tipo === 'pagar' ? '-' : '+'} R$ ${m.valor.toFixed(2)}`,
+      `R$ ${m.saldoAcumulado.toFixed(2)}`,
+    ]),
+  };
+
   return (
     <div className="pg">
       <div className="pg-head">
         <h1>Fluxo de Caixa</h1>
+        <div className="pg-head-acoes">
+          <BotoesImpressaoLista documento={documentoImpressao} className="fin-btn-sec" />
+        </div>
       </div>
 
       <div className="pg-filtros">

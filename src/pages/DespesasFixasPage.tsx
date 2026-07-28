@@ -26,6 +26,7 @@ import {
 } from '@/features/despesas';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
+import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 
 function descricaoVencimento(d: DespesaFixa): string {
   if (d.periodicidade === 'semanal') return DIAS_SEMANA[Number(d.diaVencimento)] ?? '—';
@@ -144,20 +145,36 @@ export function DespesasFixasPage() {
 
   const mesReferencia = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
+  const documentoImpressao: DocumentoListaImpressao = {
+    titulo: 'Despesas Recorrentes',
+    subtitulo: empresas.find((e) => e.id === empresaId)?.nomeFantasia,
+    colunas: ['Descrição', 'Categoria', 'Valor', 'Periodicidade', 'Vencimento'],
+    linhas: despesas.map((d) => [
+      d.descricao,
+      nomeCategoria(d.categoria),
+      `R$ ${Number(d.valor).toFixed(2)}${d.tipoValor === 'variavel' ? ' (média)' : ''}`,
+      ROTULO_PERIODICIDADE[d.periodicidade],
+      descricaoVencimento(d),
+    ]),
+  };
+
   return (
     <div className="pg">
       <div className="pg-head">
         <h1>Despesas Recorrentes</h1>
-        <button
-          type="button"
-          className="dsp-btn"
-          onClick={() => {
-            setDespesaEmEdicao(null);
-            setMostrarForm(true);
-          }}
-        >
-          <ReceiptText size={16} /> Nova despesa recorrente
-        </button>
+        <div className="pg-head-acoes">
+          <BotoesImpressaoLista documento={documentoImpressao} className="dsp-btn-sec" />
+          <button
+            type="button"
+            className="dsp-btn"
+            onClick={() => {
+              setDespesaEmEdicao(null);
+              setMostrarForm(true);
+            }}
+          >
+            <ReceiptText size={16} /> Nova despesa recorrente
+          </button>
+        </div>
       </div>
 
       <div className="pg-filtros">

@@ -25,6 +25,7 @@ import {
   categoriaEmUso,
   ehViolacaoDeUnicidade,
 } from '@/features/categorias';
+import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 
 export function CategoriasPage() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -108,20 +109,33 @@ export function CategoriasPage() {
     );
   }
 
+  const documentoImpressao: DocumentoListaImpressao = {
+    titulo: 'Categorias',
+    colunas: ['Nome', 'Tipo', 'Status'],
+    linhas: categorias.map((c) => [
+      c.nome,
+      c.protegida ? 'Padrão do sistema' : 'Personalizada',
+      c.ativa ? 'Ativa' : 'Inativa',
+    ]),
+  };
+
   return (
     <div className="pg">
       <div className="pg-head">
         <h1>Categorias</h1>
-        <button
-          type="button"
-          className="dsp-btn"
-          onClick={() => {
-            setCategoriaEmEdicao(null);
-            setMostrarForm(true);
-          }}
-        >
-          <Tags size={16} /> Nova categoria
-        </button>
+        <div className="pg-head-acoes">
+          <BotoesImpressaoLista documento={documentoImpressao} className="dsp-btn-sec" />
+          <button
+            type="button"
+            className="dsp-btn"
+            onClick={() => {
+              setCategoriaEmEdicao(null);
+              setMostrarForm(true);
+            }}
+          >
+            <Tags size={16} /> Nova categoria
+          </button>
+        </div>
       </div>
 
       <div className="pg-filtros">

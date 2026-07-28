@@ -28,6 +28,7 @@ import { DespesasFixasPage } from '@/pages/DespesasFixasPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { InstalarPwaBanner } from '@/shared/components/InstalarPwaBanner';
 import { AlternarTema } from '@/shared/components/AlternarTema';
+import { AlternarFormatoImpressao } from '@/features/impressao';
 
 const ABAS = [
   { id: 'dashboard', label: 'Dashboard', Icone: LayoutDashboard, Componente: DashboardPage },
@@ -70,6 +71,7 @@ function App() {
             );
           })}
         </nav>
+        <AlternarFormatoImpressao />
         <AlternarTema />
       </header>
       <main className="app-conteudo">

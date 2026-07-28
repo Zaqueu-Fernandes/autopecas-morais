@@ -27,6 +27,7 @@ import {
 } from '@/features/financeiro';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
+import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { buscarResumoDashboard } from '@/features/dashboard';
 
 /** Espelha ROTULO_PERIODICIDADE de despesas/types.ts — só pra exibir a tag aqui. */
@@ -189,13 +190,31 @@ export function FinanceiroPage() {
     );
   }
 
+  const documentoImpressao: DocumentoListaImpressao = {
+    titulo: 'Financeiro',
+    subtitulo: filtroEmpresa ? empresas.find((e) => e.id === filtroEmpresa)?.nomeFantasia : 'Todas as empresas',
+    colunas: ['Empresa', 'Tipo', 'Categoria', 'Descrição', 'Valor', 'Vencimento', 'Status'],
+    linhas: lancamentos.map((l) => [
+      nomeEmpresa(l.empresaId),
+      l.tipo === 'pagar' ? 'Pagar' : 'Receber',
+      rotuloCategoria(l, categorias),
+      l.descricao,
+      `R$ ${l.valor.toFixed(2)}`,
+      l.vencimento ? new Date(l.vencimento).toLocaleDateString('pt-BR') : '—',
+      l.pago ? 'Quitado' : 'Pendente',
+    ]),
+  };
+
   return (
     <div className="pg">
       <div className="pg-head">
         <h1>Financeiro</h1>
-        <button type="button" className="fin-btn" onClick={() => setMostrarForm(true)}>
-          <FilePlus2 size={16} /> Nova conta a pagar
-        </button>
+        <div className="pg-head-acoes">
+          <BotoesImpressaoLista documento={documentoImpressao} className="fin-btn-sec" />
+          <button type="button" className="fin-btn" onClick={() => setMostrarForm(true)}>
+            <FilePlus2 size={16} /> Nova conta a pagar
+          </button>
+        </div>
       </div>
 
       <div className="pg-filtros">

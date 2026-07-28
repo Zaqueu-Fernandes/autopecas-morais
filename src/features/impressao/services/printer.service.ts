@@ -17,8 +17,10 @@
  *   entra por aqui também, no campo doc.fiscal.
  */
 
-import { gerarHtmlComprovante } from './template';
-import type { DocumentoImpressao } from '../types';
+import { gerarHtmlComprovanteTermica, gerarHtmlComprovanteA4 } from './template';
+import { gerarHtmlListaTermica, gerarHtmlListaA4 } from './templateLista';
+import { lerFormatoImpressao } from '../hooks/useFormatoImpressao';
+import type { DocumentoImpressao, DocumentoListaImpressao } from '../types';
 
 function imprimirViaBrowser(html: string): void {
   const iframe = document.createElement('iframe');
@@ -55,6 +57,12 @@ function imprimirViaBrowser(html: string): void {
 
 export const printer = {
   imprimir(doc: DocumentoImpressao): void {
-    imprimirViaBrowser(gerarHtmlComprovante(doc));
+    const html = lerFormatoImpressao() === 'a4' ? gerarHtmlComprovanteA4(doc) : gerarHtmlComprovanteTermica(doc);
+    imprimirViaBrowser(html);
+  },
+
+  imprimirLista(doc: DocumentoListaImpressao): void {
+    const html = lerFormatoImpressao() === 'a4' ? gerarHtmlListaA4(doc) : gerarHtmlListaTermica(doc);
+    imprimirViaBrowser(html);
   },
 };

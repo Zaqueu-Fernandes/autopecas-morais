@@ -18,6 +18,7 @@ import {
   salvarEmpresa,
   ROTULO_REGIME,
 } from '@/features/empresa';
+import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 
 export function EmpresasPage() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
@@ -43,6 +44,17 @@ export function EmpresasPage() {
     carregar();
   }, []);
 
+  const documentoImpressao: DocumentoListaImpressao = {
+    titulo: 'Empresas',
+    colunas: ['Nome', 'CNPJ', 'Regime', 'Limite anual MEI'],
+    linhas: empresas.map((e) => [
+      e.nomeFantasia,
+      e.cnpj || '—',
+      ROTULO_REGIME[e.regime],
+      e.regime === 'MEI' ? `R$ ${Number(e.limiteAnualMei).toFixed(2)}` : '—',
+    ]),
+  };
+
   async function handleSalvar(e: Empresa) {
     await salvarEmpresa(e);
     setMostrarForm(false);
@@ -67,16 +79,19 @@ export function EmpresasPage() {
     <div className="pg">
       <div className="pg-head">
         <h1>Empresas</h1>
-        <button
-          type="button"
-          className="emp-btn"
-          onClick={() => {
-            setEmpresaEmEdicao(null);
-            setMostrarForm(true);
-          }}
-        >
-          <Building2 size={16} /> Nova empresa
-        </button>
+        <div className="pg-head-acoes">
+          <BotoesImpressaoLista documento={documentoImpressao} className="emp-btn-sec" />
+          <button
+            type="button"
+            className="emp-btn"
+            onClick={() => {
+              setEmpresaEmEdicao(null);
+              setMostrarForm(true);
+            }}
+          >
+            <Building2 size={16} /> Nova empresa
+          </button>
+        </div>
       </div>
 
       {empresas.length === 0 && !carregando && !erro && (
