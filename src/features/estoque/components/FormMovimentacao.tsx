@@ -1,21 +1,28 @@
 /**
  * ============================================================================
- * FORMULÁRIO DE MOVIMENTAÇÃO — ENTRADA ou AJUSTE
+ * FORMULÁRIO DE MOVIMENTAÇÃO — ENTRADA, AJUSTE ou DEVOLUÇÃO AO FORNECEDOR
  * ============================================================================
  * Saída por uso é feita pelas features de OS/Venda (ainda não implementadas),
- * não por aqui — no estoque só se registra compra (entrada) ou correção
- * manual (ajuste, com motivo obrigatório para auditoria).
+ * não por aqui — no estoque só se registra compra (entrada), correção
+ * manual (ajuste, com motivo obrigatório para auditoria) ou devolução ao
+ * fornecedor (peça que já tinha entrado sai de novo — defeito ou nota
+ * fiscal cancelada).
  */
 
 import { useEffect, useState } from 'react';
 import {
   type DadosEntrada,
   type DadosAjuste,
+  type DadosDevolucaoFornecedor,
+  type MotivoDevolucaoFornecedor,
   dadosEntradaVazio,
   dadosAjusteVazio,
+  dadosDevolucaoFornecedorVazio,
   validarEntrada,
   validarAjuste,
+  validarDevolucaoFornecedor,
   semErros,
+  ROTULO_MOTIVO_DEVOLUCAO_FORNECEDOR,
   type ErrosValidacao,
 } from '../types';
 import { type Fornecedor, listarFornecedores } from '@/features/cadastros';
@@ -33,11 +40,18 @@ interface PropsAjuste {
   onCancelar?: () => void;
 }
 
-type Props = PropsEntrada | PropsAjuste;
+interface PropsDevolucaoFornecedor {
+  tipo: 'devolucaoFornecedor';
+  onSalvar: (d: DadosDevolucaoFornecedor) => Promise<void> | void;
+  onCancelar?: () => void;
+}
+
+type Props = PropsEntrada | PropsAjuste | PropsDevolucaoFornecedor;
 
 export function FormMovimentacao(props: Props) {
   if (props.tipo === 'entrada') return <FormEntrada {...props} />;
-  return <FormAjuste {...props} />;
+  if (props.tipo === 'ajuste') return <FormAjuste {...props} />;
+  return <FormDevolucaoFornecedor {...props} />;
 }
 
 function FormEntrada({ onSalvar, onCancelar }: PropsEntrada) {
@@ -237,6 +251,108 @@ function FormAjuste({ onSalvar, onCancelar }: PropsAjuste) {
         )}
         <button type="button" className="est-btn" onClick={handleSalvar} disabled={salvando}>
           {salvando ? 'Salvando…' : 'Registrar ajuste'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const MOTIVOS_DEVOLUCAO = Object.keys(ROTULO_MOTIVO_DEVOLUCAO_FORNECEDOR) as MotivoDevolucaoFornecedor[];
+
+function FormDevolucaoFornecedor({ onSalvar, onCancelar }: PropsDevolucaoFornecedor) {
+  const [dados, setDados] = useState<DadosDevolucaoFornecedor>(dadosDevolucaoFornecedorVazio());
+  const [erros, setErros] = useState<ErrosValidacao>({});
+  const [salvando, setSalvando] = useState(false);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+
+  useEffect(() => {
+    listarFornecedores().then(setFornecedores).catch(() => setFornecedores([]));
+  }, []);
+
+  function set(patch: Partial<DadosDevolucaoFornecedor>) {
+    setDados((d) => ({ ...d, ...patch }));
+  }
+
+  async function handleSalvar() {
+    const e = validarDevolucaoFornecedor(dados);
+    setErros(e);
+    if (!semErros(e)) return;
+    setSalvando(true);
+    try {
+      await onSalvar(dados);
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  return (
+    <div className="est-form">
+      <div className="est-form-head">
+        <h2>Devolver ao fornecedor</h2>
+      </div>
+
+      <p className="est-aviso">
+        Pra peça que já tinha dado entrada e precisa sair de novo do estoque — defeito ou nota fiscal cancelada.
+      </p>
+
+      <div className="est-tipo">
+        {MOTIVOS_DEVOLUCAO.map((m) => (
+          <button
+            key={m}
+            type="button"
+            className={dados.motivo === m ? 'ativo' : ''}
+            onClick={() => set({ motivo: m })}
+          >
+            {ROTULO_MOTIVO_DEVOLUCAO_FORNECEDOR[m]}
+          </button>
+        ))}
+      </div>
+      {erros.motivo && <span className="est-erro">{erros.motivo}</span>}
+
+      <div className="est-grid">
+        <div className="est-campo">
+          <label>Quantidade *</label>
+          <input
+            inputMode="numeric"
+            value={dados.quantidade}
+            onChange={(e) => set({ quantidade: e.target.value })}
+            aria-invalid={!!erros.quantidade}
+            autoFocus
+          />
+          {erros.quantidade && <span className="est-erro">{erros.quantidade}</span>}
+        </div>
+
+        <div className="est-campo est-col-2">
+          <label>Fornecedor</label>
+          <select value={dados.fornecedorId} onChange={(e) => set({ fornecedorId: e.target.value })}>
+            <option value="">— não informado —</option>
+            {fornecedores.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="est-campo">
+        <label>Observações</label>
+        <textarea
+          rows={2}
+          value={dados.observacoes}
+          onChange={(e) => set({ observacoes: e.target.value })}
+          placeholder="Ex.: número da nota, o que foi combinado com o fornecedor…"
+        />
+      </div>
+
+      <div className="est-acoes">
+        {onCancelar && (
+          <button type="button" className="est-btn-sec" onClick={onCancelar}>
+            Cancelar
+          </button>
+        )}
+        <button type="button" className="est-btn" onClick={handleSalvar} disabled={salvando}>
+          {salvando ? 'Salvando…' : 'Registrar devolução'}
         </button>
       </div>
     </div>

@@ -7,9 +7,14 @@
  */
 
 import { useEffect, useState } from 'react';
-import { PackagePlus, SlidersHorizontal } from 'lucide-react';
-import type { DadosEntrada, DadosAjuste, Movimentacao } from '../types';
-import { listarMovimentacoesPorPeca, registrarEntrada, registrarAjuste } from '../services/movimentacao.service';
+import { PackagePlus, SlidersHorizontal, PackageMinus } from 'lucide-react';
+import type { DadosEntrada, DadosAjuste, DadosDevolucaoFornecedor, Movimentacao } from '../types';
+import {
+  listarMovimentacoesPorPeca,
+  registrarEntrada,
+  registrarAjuste,
+  registrarDevolucaoFornecedor,
+} from '../services/movimentacao.service';
 import { FormMovimentacao } from './FormMovimentacao';
 
 interface Props {
@@ -24,11 +29,32 @@ const ROTULO_TIPO: Record<Movimentacao['tipo'], string> = {
   ajuste: 'Ajuste',
 };
 
+/** Rótulo amigável pras origens conhecidas — o resto (texto livre) aparece como veio. */
+const ROTULO_ORIGEM: Record<string, string> = {
+  compra_fornecedor: 'Compra de fornecedor',
+  ajuste_manual: 'Ajuste manual',
+  os: 'Uso em OS',
+  venda_balcao: 'Uso em venda de balcão',
+  devolucao_fornecedor_defeito: 'Devolução ao fornecedor — defeito',
+  devolucao_fornecedor_nfe_cancelada: 'Devolução ao fornecedor — nota fiscal cancelada',
+};
+
+function rotuloOrigem(origem: string | null): string {
+  if (!origem) return '—';
+  return ROTULO_ORIGEM[origem] ?? origem;
+}
+
+/** Junta origem (rótulo) + observações — pro ajuste manual, o motivo real mora em observações. */
+function descricaoMovimento(m: Movimentacao): string {
+  const partes = [rotuloOrigem(m.origem), m.observacoes].filter((p) => p && p !== '—');
+  return partes.length > 0 ? partes.join(' — ') : '—';
+}
+
 export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
   const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const [acaoAberta, setAcaoAberta] = useState<'entrada' | 'ajuste' | null>(null);
+  const [acaoAberta, setAcaoAberta] = useState<'entrada' | 'ajuste' | 'devolucaoFornecedor' | null>(null);
 
   async function carregar() {
     setCarregando(true);
@@ -73,11 +99,34 @@ export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
     aoRegistrar();
   }
 
+  async function handleSalvarDevolucao(d: DadosDevolucaoFornecedor) {
+    if (!d.motivo) return;
+    await registrarDevolucaoFornecedor({
+      pecaId,
+      quantidade: Number(d.quantidade),
+      motivo: d.motivo,
+      fornecedorId: d.fornecedorId || undefined,
+      observacoes: d.observacoes || undefined,
+    });
+    setAcaoAberta(null);
+    await carregar();
+    aoRegistrar();
+  }
+
   if (acaoAberta === 'entrada') {
     return <FormMovimentacao tipo="entrada" onSalvar={handleSalvarEntrada} onCancelar={() => setAcaoAberta(null)} />;
   }
   if (acaoAberta === 'ajuste') {
     return <FormMovimentacao tipo="ajuste" onSalvar={handleSalvarAjuste} onCancelar={() => setAcaoAberta(null)} />;
+  }
+  if (acaoAberta === 'devolucaoFornecedor') {
+    return (
+      <FormMovimentacao
+        tipo="devolucaoFornecedor"
+        onSalvar={handleSalvarDevolucao}
+        onCancelar={() => setAcaoAberta(null)}
+      />
+    );
   }
 
   return (
@@ -90,6 +139,9 @@ export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
           </button>
           <button type="button" className="est-btn-sec" onClick={() => setAcaoAberta('ajuste')}>
             <SlidersHorizontal size={15} /> Ajustar
+          </button>
+          <button type="button" className="est-btn-sec" onClick={() => setAcaoAberta('devolucaoFornecedor')}>
+            <PackageMinus size={15} /> Devolver ao fornecedor
           </button>
         </span>
       </div>
@@ -110,7 +162,7 @@ export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
                 {m.tipo === 'saida' ? '-' : m.quantidade > 0 ? '+' : ''}
                 {m.quantidade}
               </span>
-              <span className="est-movs-obs">{m.observacoes || m.origem || '—'}</span>
+              <span className="est-movs-obs">{descricaoMovimento(m)}</span>
               <span className="est-movs-data">
                 {m.createdAt && new Date(m.createdAt).toLocaleString('pt-BR')}
               </span>

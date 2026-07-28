@@ -148,3 +148,42 @@ export function validarAjuste(d: DadosAjuste): ErrosValidacao {
   if (!d.observacoes.trim()) erros.observacoes = 'Informe o motivo do ajuste.';
   return erros;
 }
+
+/**
+ * Devolução ao fornecedor: peça que já tinha dado ENTRADA sai de novo do
+ * estoque, sempre por um destes dois motivos — defeito na peça, ou a nota
+ * fiscal da compra foi cancelada. Cada motivo vira uma `origem` diferente
+ * na movimentação (ver registrarDevolucaoFornecedor), pra dar pra filtrar/
+ * relatar cada situação separadamente depois — não é um "ajuste" genérico
+ * de texto livre.
+ */
+export type MotivoDevolucaoFornecedor = 'defeito' | 'nfe_cancelada';
+
+export const ROTULO_MOTIVO_DEVOLUCAO_FORNECEDOR: Record<MotivoDevolucaoFornecedor, string> = {
+  defeito: 'Defeito na peça',
+  nfe_cancelada: 'Nota fiscal cancelada',
+};
+
+/** Dados do formulário de DEVOLUÇÃO AO FORNECEDOR. */
+export interface DadosDevolucaoFornecedor {
+  quantidade: string;
+  motivo: MotivoDevolucaoFornecedor | '';
+  fornecedorId: string;
+  observacoes: string;
+}
+
+export const dadosDevolucaoFornecedorVazio = (): DadosDevolucaoFornecedor => ({
+  quantidade: '',
+  motivo: '',
+  fornecedorId: '',
+  observacoes: '',
+});
+
+export function validarDevolucaoFornecedor(d: DadosDevolucaoFornecedor): ErrosValidacao {
+  const erros: ErrosValidacao = {};
+  const qtd = Number(d.quantidade);
+  if (!d.quantidade.trim() || Number.isNaN(qtd) || qtd <= 0)
+    erros.quantidade = 'Informe uma quantidade maior que zero.';
+  if (!d.motivo) erros.motivo = 'Selecione o motivo da devolução.';
+  return erros;
+}

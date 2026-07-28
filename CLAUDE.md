@@ -150,7 +150,30 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 - "Margem de lucro (%)" no formulário da peça é só uma calculadora:
   sugere preco_venda = custo × (1 + margem/100) a partir do custo
   (digitado, se a peça for nova; cacheado, se estiver editando). O campo
-  de preço continua editável manualmente por cima do valor sugerido.
+  de preço continua editável manualmente por cima do valor sugerido. NÃO
+  é salva no banco — não tem coluna de margem em pecas — então, ao editar
+  uma peça já existente, o valor inicial do campo é CALCULADO na hora a
+  partir de precoCusto/precoVenda cacheados (só pra não nascer em branco;
+  se você editar o preço de venda direto depois, a margem mostrada não
+  se atualiza sozinha até reabrir a tela).
+- DEVOLUÇÃO AO FORNECEDOR (registrarDevolucaoFornecedor, terceiro botão em
+  MovimentacoesDaPeca, ao lado de Entrada/Ajustar): peça que já tinha dado
+  ENTRADA sai de novo do estoque por defeito ou nota fiscal cancelada.
+  Sempre um AJUSTE negativo (não é venda/uso real, nem devolução de
+  cliente — é a compra que não vale mais), então nunca mexe em
+  preco_custo. Cada motivo vira uma `origem` própria (
+  devolucao_fornecedor_defeito / devolucao_fornecedor_nfe_cancelada, em
+  vez do genérico 'ajuste_manual'), pra dar pra filtrar/relatar cada
+  situação separadamente no histórico da peça — foi por isso que também
+  entrou ROTULO_ORIGEM em MovimentacoesDaPeca.tsx (rótulo amigável pra
+  origem + observações juntos na lista, em vez de só observações cru).
+  IMPORTANTE (decisão consciente, não pendência): isso cobre só o lado do
+  ESTOQUE. Compra de fornecedor não tem link com o lançamento financeiro
+  que paga ela (diferente de OS/venda, que tem os_id/venda_id) — uma
+  conta a pagar de fornecedor pode cobrir várias entradas, então não dá
+  pra automatizar qual lançamento estornar. Se a nota já foi paga, o
+  ajuste financeiro é manual: Estornar (ou Excluir, se ainda pendente) na
+  tela Financeiro.
 
 ### Importação de XML de NF-e (feature já pronta em src/features/importacao-nfe)
 

@@ -95,6 +95,33 @@ export async function registrarAjuste(input: {
 }
 
 /**
+ * Devolve peças ao fornecedor — defeito na peça, ou a nota fiscal da compra
+ * foi cancelada. Sempre um AJUSTE negativo (não é "saída" de uso real nem
+ * uma nova "entrada" — é a correção de uma compra que não vale mais), então
+ * nunca mexe em preco_custo (custo_unit fica null, igual qualquer ajuste).
+ * `origem` fica marcada por SITUAÇÃO (defeito x nota cancelada), pra dar pra
+ * filtrar/relatar cada motivo separadamente no histórico da peça depois.
+ */
+export async function registrarDevolucaoFornecedor(input: {
+  pecaId: string;
+  quantidade: number;
+  motivo: 'defeito' | 'nfe_cancelada';
+  fornecedorId?: string;
+  observacoes?: string;
+}): Promise<void> {
+  const origem = input.motivo === 'defeito' ? 'devolucao_fornecedor_defeito' : 'devolucao_fornecedor_nfe_cancelada';
+  const { error } = await supabase.from('movimentacao_estoque').insert({
+    peca_id: input.pecaId,
+    tipo: 'ajuste',
+    quantidade: -Math.abs(input.quantidade),
+    fornecedor_id: input.fornecedorId || null,
+    origem,
+    observacoes: input.observacoes || null,
+  });
+  if (error) throw error;
+}
+
+/**
  * Registra saída por uso (OS ou Venda de balcão), que sabem a origem exata da
  * baixa. Devolve o id da movimentação — quem chama (ex.: os_itens) guarda essa
  * referência pra poder estornar depois.
