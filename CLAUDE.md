@@ -53,34 +53,37 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   ficam FIXAS nos dois temas de propósito — não são "estruturais".
   Header do app (`.app-header`) também fica sempre escuro nos dois temas
   (chrome de marca, não muda com o toggle).
-- Identidade visual: fonte única `public/icones/Iconeapp.png` (arte
-  "badge" 1807×1807, já com bezel metálico e cantos arredondados
-  próprios, mas com uma margem de fundo escuro ao redor) alimenta os TRÊS
-  usos — ícone do PWA, logo da tela de login (`.auth-logo`,
-  LoginPage.tsx) e logo do cabeçalho (`.app-logo`, App.tsx). Não tem mais
-  arquivo-fonte separado por uso (era o caso antes, com IconPage.png/
-  IconePWA.png — ficaram no repo sem uso, histórico). Gerados uma vez com
+- Identidade visual: fonte única `public/icones/img2d_brilhosa.png` (arte
+  "badge" 2D 1254×1254, estilo achatado com brilho/glint nos cantos, já
+  com bezel metálico e cantos arredondados próprios, mas com uma margem
+  de fundo escuro ao redor) alimenta os TRÊS usos — ícone do PWA, logo da
+  tela de login (`.auth-logo`, LoginPage.tsx) e logo do cabeçalho
+  (`.app-logo`, App.tsx). Não tem arquivo-fonte separado por uso. Já teve
+  DUAS artes-fonte anteriores (histórico, arquivos ainda no repo sem uso:
+  `IconPage.png`/`IconePWA.png` — texto+dois arquivos por uso; depois
+  `Iconeapp.png` — versão 3D fotorrealista, trocada por essa por pedido
+  do usuário, "não ficou muito legal o ícone 3D"). Gerados uma vez com
   `sharp` (script descartável, não faz parte do projeto): 1) detecta a
-  borda do bezel metálico por luminância (scan de linha, threshold >140)
+  borda do bezel metálico por luminância (scan de linha, threshold >130)
   pra recortar rente à margem externa, sem cortar a arte; 2) redimensiona
-  pra 1024×1024; 3) aplica máscara SVG de cantos arredondados ~20% do
-  tamanho (`dest-in`) — como a arte já tem seus próprios cantos
-  arredondados internos, o resultado é um recorte limpo com transparência
-  real nos 4 cantos (não sobra pedacinho do fundo escuro original); 4)
-  exporta `pwa-icon-512.png`, `pwa-icon-192.png` (manifest,
-  vite.config.ts, purpose 'any' e 'maskable' com o MESMO arquivo —
-  simplificação: não tem margem de segurança própria pra maskable, se
-  algum launcher Android cortar em círculo pode tocar no conteúdo perto
-  da borda) e `favicon-64.png` (index.html), com `png({ palette: true })`
-  (quantização de cores, tipo pngquant) pra manter leve mesmo sendo uma
-  arte 3D fotorrealista bem mais pesada que a anterior (512px ficou com
-  ~120KB). `vite.config.ts` também ganhou `workbox.globIgnores:
-  ['icones/**']` — sem isso, o precache do service worker varreria a
-  arte-fonte pesada (`Iconeapp.png`, ~4.8MB, nunca referenciada direto no
-  código) junto com o app, inflando o cache offline à toa; vale pra
-  qualquer arte-fonte que for parar em `public/icones/` no futuro. Se a
-  arte mudar de novo, regenerar os 3 PNGs a partir do novo Iconeapp.png
-  com a mesma técnica (não editar os PNGs gerados na mão).
+  pra 1024×1024; 3) aplica máscara SVG de cantos arredondados ~12% do
+  tamanho (`dest-in` — raio menor que a arte 3D anterior, ~20%, porque o
+  bezel desse 2D já é menos arredondado) — como a arte já tem seus
+  próprios cantos arredondados internos, o resultado é um recorte limpo
+  com transparência real nos 4 cantos (não sobra pedacinho do fundo
+  escuro original); 4) exporta `pwa-icon-512.png`, `pwa-icon-192.png`
+  (manifest, vite.config.ts, purpose 'any' e 'maskable' com o MESMO
+  arquivo — simplificação: não tem margem de segurança própria pra
+  maskable, se algum launcher Android cortar em círculo pode tocar no
+  conteúdo perto da borda) e `favicon-64.png` (index.html), com
+  `png({ palette: true })` (quantização de cores, tipo pngquant) — arte
+  2D ficou bem mais leve que a 3D anterior (512px caiu de ~120KB pra
+  ~79KB). `vite.config.ts` tem `workbox.globIgnores: ['icones/**']` —
+  sem isso, o precache do service worker varreria as artes-fonte
+  (inclusive as antigas, ainda no repo) junto com o app, inflando o cache
+  offline à toa. Se a arte mudar de novo, regenerar os 3 PNGs a partir da
+  nova arte-fonte com a mesma técnica (não editar os PNGs gerados na
+  mão).
 
 ## Regras de código (IMPORTANTES)
 
