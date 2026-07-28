@@ -16,6 +16,7 @@ import {
   registrarDevolucaoFornecedor,
 } from '../services/movimentacao.service';
 import { FormMovimentacao } from './FormMovimentacao';
+import { useAuth } from '@/features/auth';
 
 interface Props {
   pecaId: string;
@@ -51,6 +52,7 @@ function descricaoMovimento(m: Movimentacao): string {
 }
 
 export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
+  const { ehAdmin } = useAuth();
   const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -137,7 +139,13 @@ export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
           <button type="button" className="est-btn" onClick={() => setAcaoAberta('entrada')}>
             <PackagePlus size={16} /> Entrada
           </button>
-          <button type="button" className="est-btn-sec" onClick={() => setAcaoAberta('ajuste')}>
+          <button
+            type="button"
+            className="est-btn-sec"
+            onClick={() => ehAdmin && setAcaoAberta('ajuste')}
+            disabled={!ehAdmin}
+            title={ehAdmin ? undefined : 'Essa função requer perfil de administrador'}
+          >
             <SlidersHorizontal size={15} /> Ajustar
           </button>
           <button type="button" className="est-btn-sec" onClick={() => setAcaoAberta('devolucaoFornecedor')}>

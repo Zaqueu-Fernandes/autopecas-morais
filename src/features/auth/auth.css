@@ -1,0 +1,127 @@
+/* ==========================================================================
+   AUTENTICAÇÃO (login) — estilos base. Prefixo .auth- pra não colidir com
+   outras features.
+   ========================================================================== */
+
+.auth-tela {
+  --auth-borda: var(--cor-borda);
+  --auth-borda-foco: #D62839;
+  --auth-erro: #dc2626;
+  --auth-texto: var(--cor-texto);
+  --auth-label: var(--cor-texto-secundario);
+  --auth-btn: #D62839;
+  --auth-btn-texto: #fff;
+
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-fundo);
+  padding: 20px;
+}
+
+.auth-cartao {
+  width: 100%;
+  max-width: 360px;
+  background: var(--cor-fundo-cartao);
+  border: 1px solid var(--auth-borda);
+  border-radius: 14px;
+  padding: 32px 28px;
+  box-shadow: 0 8px 28px var(--cor-sombra);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-logo { height: 64px; width: auto; margin-bottom: 12px; }
+
+.auth-cartao h1 {
+  font-size: 20px;
+  margin: 0 0 20px;
+  color: var(--auth-texto);
+  align-self: flex-start;
+}
+
+.auth-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+  width: 100%;
+}
+.auth-campo label { font-size: 12px; color: var(--auth-label); font-weight: 500; }
+.auth-campo input {
+  border: 1px solid var(--auth-borda);
+  border-radius: 8px;
+  padding: 10px 11px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--cor-fundo-cartao);
+  color: var(--auth-texto);
+  outline: none;
+  transition: border-color .12s;
+}
+.auth-campo input:focus {
+  border-color: var(--auth-borda-foco);
+  box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
+}
+
+.auth-erro {
+  color: var(--auth-erro);
+  font-size: 13px;
+  margin-bottom: 12px;
+  align-self: flex-start;
+}
+
+.auth-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  background: var(--auth-btn);
+  color: var(--auth-btn-texto);
+  padding: 11px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background-color .15s ease;
+}
+.auth-btn:hover:not(:disabled) { background: #c22235; }
+.auth-btn:disabled { opacity: .65; cursor: default; }
+
+/* Indicador de usuário logado + sair, no cabeçalho do app */
+.app-usuario {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #b9bec7;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.app-usuario-papel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  background: rgba(255, 255, 255, .1);
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+.app-sair-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: rgba(255, 255, 255, .06);
+  color: #b9bec7;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color .15s ease, color .15s ease;
+}
+.app-sair-btn:hover { background: rgba(255, 255, 255, .12); color: #fff; }

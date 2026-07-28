@@ -469,6 +469,53 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   (EmpresasPage, ClientesPage, FornecedoresPage, CategoriasPage), sem
   mudança de lógica interna nelas.
 
+### Autenticação e perfis (feature já pronta em src/features/auth)
+
+- Login OBRIGATÓRIO pro app inteiro (App.tsx só renderiza a aplicação se
+  tiver sessão do Supabase Auth ativa; sem sessão, mostra LoginPage — sem
+  cadastro/self-signup na tela, só e-mail+senha). AuthProvider
+  (src/features/auth/hooks/useAuth.tsx) envolve o app inteiro em
+  main.tsx, guarda a sessão (`supabase.auth.getSession` +
+  `onAuthStateChange`) e o perfil (papel) do usuário logado.
+- 2 papéis: `admin` e `operador` (tabela `perfis`, 1 linha por usuário do
+  Supabase Auth, `papel` check constraint). Ao criar um usuário no painel
+  do Supabase, um TRIGGER (`criar_perfil_novo_usuario`, em
+  auth_perfis_rls.sql) cria o perfil automaticamente com papel='operador'
+  — nasce sempre operador por segurança; promover a admin é manual via
+  SQL (update direto em `perfis`, ver instruções de setup dadas ao
+  usuário), nunca por uma tela do app.
+- RLS deixou de ser provisório: as policies antigas
+  "acesso_total_provisorio" (anon+authenticated, using(true) geral) foram
+  substituídas por "acesso_logados" (só `authenticated`) em todas as
+  tabelas do app. Helper `is_admin()` (security definer, checa
+  perfis.papel='admin' e ativo=true pro auth.uid() atual) fica disponível
+  pra policies que precisarem de trava extra de admin.
+- Único caso com trava de admin hoje: AJUSTE MANUAL de estoque (botão
+  "Ajustar" em MovimentacoesDaPeca, ver seção Estoque). A trava é uma
+  ÚNICA policy com WITH CHECK combinado
+  (`origem is distinct from 'ajuste_manual' or is_admin()`) em vez de
+  duas policies separadas — policies permissivas do Postgres se somam
+  com OR, então uma policy "geral" + uma "só admin" não restringiria
+  nada. IMPORTANTE: a trava é por `origem = 'ajuste_manual'`, NÃO por
+  `tipo = 'ajuste'` — devolução ao fornecedor
+  (devolucao_fornecedor_defeito/nfe_cancelada) também usa
+  `tipo: 'ajuste'` no banco mas é uma origem diferente e continua aberta
+  pra qualquer usuário logado (não é a mesma situação de risco: tem
+  motivo/fornecedor obrigatórios, não é "digitar qualquer número").
+- UI: o botão "Ajustar" fica sempre VISÍVEL (não escondido) mas
+  `disabled` pra quem não é admin (`useAuth().ehAdmin`), com
+  `title="Essa função requer perfil de administrador"` no hover — é
+  só UX, a trava de verdade é a policy do banco (RLS), não o
+  `disabled` do botão (que dá pra burlar batendo direto na API).
+- Cabeçalho do app mostra nome/e-mail + badge do papel do usuário logado
+  e um botão de sair (`supabase.auth.signOut()`), ao lado do
+  toggle de tema/formato de impressão.
+- Escopo CONSCIENTE: por enquanto só o ajuste manual de estoque é
+  admin-only. Excluir/Estornar em Financeiro continuam abertos pra
+  qualquer usuário logado (`authenticated`) — não foi pedido restringir
+  isso ainda; se pedirem, é o mesmo padrão (origem/campo discriminador +
+  `is_admin()` no WITH CHECK).
+
 ## Documentos fiscais — cuidado
 
 NÃO implementar emissão fiscal própria falando direto com SEFAZ/prefeitura.
@@ -491,13 +538,11 @@ Até lá, o sistema gera COMPROVANTE INTERNO ("sem valor fiscal").
    - ✅ Estorno de OS/venda faturada — implementado (ver "Estorno e
      exclusão de lançamento" em Financeiro). Falta só a devolução de peça
      (estoque físico voltando), que é outra dimensão do mesmo problema.
-   - RLS: rodei supabase/migrations/rls_policies.sql liberando tudo pra
-     anon/authenticated (era o que estava bloqueando TODO insert/update —
-     Supabase habilita RLS por padrão e sem policy nenhuma fica tudo
-     negado). Isso é PROVISÓRIO: app não tem login ainda, então qualquer
-     um com a URL/anon key (públicas por natureza) lê e escreve em
-     qualquer tabela. Trocar por policies de verdade quando existir
-     Supabase Auth.
+   - ✅ Autenticação + RLS de verdade (feature src/features/auth,
+     supabase/migrations/auth_perfis_rls.sql) — substituiu a fase
+     provisória (anon+authenticated liberado, `rls_policies.sql`/
+     `rls_categorias_nfe.sql`) que só existia porque não tinha login.
+     Ver seção "Autenticação e perfis" abaixo.
 8. Fases futuras (fora do MVP):
    - ✅ Importação XML NF-e (entrada de estoque) — feature já pronta em
      src/features/importacao-nfe.

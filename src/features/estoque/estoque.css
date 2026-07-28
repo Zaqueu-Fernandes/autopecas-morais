@@ -138,8 +138,9 @@
   cursor: pointer;
   transition: filter .15s ease, transform .05s ease;
 }
-.est-btn-sec:hover { filter: brightness(.96); }
-.est-btn-sec:active { transform: scale(.97); }
+.est-btn-sec:hover:not(:disabled) { filter: brightness(.96); }
+.est-btn-sec:active:not(:disabled) { transform: scale(.97); }
+.est-btn-sec:disabled { opacity: .5; cursor: not-allowed; }
 
 /* Movimentações (histórico dentro da linha expandida da peça) */
 .est-movs { font-size: 13px; color: var(--cor-texto); }

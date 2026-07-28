@@ -8,6 +8,7 @@ import {
   ReceiptText,
   Package,
   FolderCog,
+  LogOut,
 } from 'lucide-react';
 import '@/features/cadastros/cadastros.css';
 import '@/features/estoque/estoque.css';
@@ -29,6 +30,7 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { InstalarPwaBanner } from '@/shared/components/InstalarPwaBanner';
 import { AlternarTema } from '@/shared/components/AlternarTema';
 import { AlternarFormatoImpressao } from '@/features/impressao';
+import { useAuth, LoginPage } from '@/features/auth';
 
 const ABAS = [
   { id: 'dashboard', label: 'Dashboard', Icone: LayoutDashboard, Componente: DashboardPage },
@@ -46,6 +48,10 @@ type IdAba = (typeof ABAS)[number]['id'];
 function App() {
   const [abaAtiva, setAbaAtiva] = useState<IdAba>('dashboard');
   const AbaAtual = ABAS.find((a) => a.id === abaAtiva)!.Componente;
+  const { sessao, perfil, carregando, sair } = useAuth();
+
+  if (carregando) return null;
+  if (!sessao) return <LoginPage />;
 
   return (
     <div className="app">
@@ -72,8 +78,15 @@ function App() {
             );
           })}
         </nav>
+        <span className="app-usuario">
+          {perfil?.nome ?? sessao.user.email}
+          {perfil && <span className="app-usuario-papel">{perfil.papel}</span>}
+        </span>
         <AlternarFormatoImpressao />
         <AlternarTema />
+        <button type="button" className="app-sair-btn" onClick={() => sair()} title="Sair">
+          <LogOut size={16} />
+        </button>
       </header>
       <main className="app-conteudo">
         <AbaAtual />
