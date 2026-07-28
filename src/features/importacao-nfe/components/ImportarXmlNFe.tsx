@@ -15,6 +15,7 @@ import { parseNFe } from '../services/parseNFe';
 import { verificarNFeJaImportada, registrarNFeImportada } from '../services/nfeImportadas.service';
 import { type Fornecedor, buscarFornecedorPorCnpj, criarFornecedor } from '@/features/cadastros';
 import { type Peca, listarPecas, criarPeca, pecaVazia, registrarEntrada } from '@/features/estoque';
+import { type Empresa, listarEmpresas } from '@/features/empresa';
 
 type Etapa = 'selecionar' | 'revisar' | 'concluido';
 
@@ -33,6 +34,8 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
   const [criandoFornecedor, setCriandoFornecedor] = useState(false);
   const [pecas, setPecas] = useState<Peca[]>([]);
   const [mapeamento, setMapeamento] = useState<MapeamentoItem[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [empresaId, setEmpresaId] = useState('');
 
   const [importando, setImportando] = useState(false);
   const [resultado, setResultado] = useState<ResultadoImportacaoNFe | null>(null);
@@ -59,14 +62,23 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
         return;
       }
 
-      const [fornecedorEncontrado, listaPecas] = await Promise.all([
+      const [fornecedorEncontrado, listaPecas, listaEmpresas] = await Promise.all([
         buscarFornecedorPorCnpj(extraido.fornecedorCnpj),
         listarPecas(),
+        listarEmpresas(),
       ]);
 
       setDados(extraido);
       setFornecedor(fornecedorEncontrado);
       setPecas(listaPecas);
+      setEmpresas(listaEmpresas);
+
+      // Tenta casar o CNPJ do destinatário (dest) da nota com uma empresa
+      // cadastrada; se achar, pré-seleciona — senão o usuário escolhe na mão.
+      const empresaCasada = listaEmpresas.find(
+        (emp) => emp.cnpj.replace(/\D/g, '') === extraido.destinatarioCnpj && extraido.destinatarioCnpj,
+      );
+      setEmpresaId(empresaCasada?.id ?? (listaEmpresas.length === 1 ? listaEmpresas[0].id! : ''));
       setMapeamento(
         extraido.itens.map((item) => {
           const match = encontrarPecaPorCodigo(item.codigoProduto, listaPecas);
@@ -116,6 +128,10 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
 
   async function handleConfirmarImportacao() {
     if (!dados) return;
+    if (!empresaId) {
+      setErro('Selecione a empresa (CNPJ) que recebeu esta nota antes de confirmar.');
+      return;
+    }
     setImportando(true);
     setErro(null);
     try {
@@ -148,6 +164,7 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
           quantidade,
           custoUnit,
           fornecedorId: fornecedor?.id,
+          empresaId,
           observacoes: `NF-e nº ${dados.numero || '—'} (${dados.fornecedorNome})`,
         });
         entradasRegistradas++;
@@ -175,6 +192,7 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
     setDados(null);
     setFornecedor(null);
     setMapeamento([]);
+    setEmpresaId('');
     setResultado(null);
     setErro(null);
   }
@@ -222,6 +240,25 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
             <button type="button" className="est-btn-sec" onClick={handleCadastrarFornecedor} disabled={criandoFornecedor}>
               {criandoFornecedor ? 'Cadastrando…' : 'Cadastrar fornecedor'}
             </button>
+          )}
+        </div>
+
+        <div className="est-campo">
+          <label>Empresa (CNPJ) que recebeu a nota *</label>
+          <select
+            value={empresaId}
+            onChange={(e) => setEmpresaId(e.target.value)}
+            aria-invalid={!empresaId}
+          >
+            <option value="">— selecione —</option>
+            {empresas.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.nomeFantasia}
+              </option>
+            ))}
+          </select>
+          {empresas.length === 0 && (
+            <span className="est-aviso">Cadastre uma empresa na aba Empresas antes de importar.</span>
           )}
         </div>
 

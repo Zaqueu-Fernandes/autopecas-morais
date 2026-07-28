@@ -13,8 +13,9 @@
  * preço de venda — o campo continua editável manualmente depois.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { type Peca, pecaVazia, validarPeca, semErros, type ErrosValidacao } from '../types';
+import { type Empresa, listarEmpresas } from '@/features/empresa';
 
 interface Props {
   inicial?: Peca;
@@ -27,9 +28,19 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
   const [margem, setMargem] = useState('');
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [salvando, setSalvando] = useState(false);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
 
   const ehNova = !peca.id;
   const custoBase = ehNova ? Number(peca.custoInicial || 0) : peca.precoCusto;
+
+  useEffect(() => {
+    if (!ehNova) return;
+    listarEmpresas().then((lista) => {
+      setEmpresas(lista);
+      if (lista.length === 1) set({ empresaIdInicial: lista[0].id });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ehNova]);
 
   function set(patch: Partial<Peca>) {
     setPeca((p) => ({ ...p, ...patch }));
@@ -148,6 +159,23 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
                 aria-invalid={!!erros.custoInicial}
               />
               {erros.custoInicial && <span className="est-erro">{erros.custoInicial}</span>}
+            </div>
+
+            <div className="est-campo">
+              <label>Empresa (CNPJ) da nota{peca.qtdInicial?.trim() ? ' *' : ''}</label>
+              <select
+                value={peca.empresaIdInicial}
+                onChange={(e) => set({ empresaIdInicial: e.target.value })}
+                aria-invalid={!!erros.empresaIdInicial}
+              >
+                <option value="">— selecione —</option>
+                {empresas.map((emp) => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.nomeFantasia}
+                  </option>
+                ))}
+              </select>
+              {erros.empresaIdInicial && <span className="est-erro">{erros.empresaIdInicial}</span>}
             </div>
           </>
         )}

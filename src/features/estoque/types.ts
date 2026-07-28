@@ -29,6 +29,8 @@ export interface Peca {
   qtdInicial?: string;
   /** Custo unitário do estoque inicial — vira o custo daquela primeira entrada. */
   custoInicial?: string;
+  /** Empresa (CNPJ) da nota do estoque inicial — vira o empresa_id daquela primeira entrada. */
+  empresaIdInicial?: string;
 }
 
 export const pecaVazia = (): Peca => ({
@@ -44,6 +46,7 @@ export const pecaVazia = (): Peca => ({
   qtd: 0,
   qtdInicial: '',
   custoInicial: '',
+  empresaIdInicial: '',
 });
 
 export type ErrosValidacao = Record<string, string>;
@@ -62,6 +65,8 @@ export function validarPeca(p: Peca): ErrosValidacao {
     const custoInicial = Number(p.custoInicial);
     if (!p.custoInicial?.trim() || Number.isNaN(custoInicial) || custoInicial < 0)
       erros.custoInicial = 'Informe o custo unitário do estoque inicial.';
+
+    if (!p.empresaIdInicial) erros.empresaIdInicial = 'Selecione a empresa (CNPJ) da nota.';
   }
 
   return erros;
@@ -81,6 +86,13 @@ export interface Movimentacao {
   quantidade: number;
   custoUnit: number | null;
   fornecedorId: string | null;
+  /**
+   * Empresa (CNPJ) da autopeças morais que recebeu a nota — só preenchido em
+   * 'entrada' (é o destinatário da NF-e do fornecedor). Estoque continua
+   * COMPARTILHADO entre as empresas (não filtra saldo/relatório); é só
+   * controle de qual CNPJ comprou aquele lote. Ver CLAUDE.md.
+   */
+  empresaId: string | null;
   origem: string | null;
   observacoes: string;
   createdAt?: string;
@@ -91,6 +103,7 @@ export interface DadosEntrada {
   quantidade: string;
   custoUnit: string;
   fornecedorId: string;
+  empresaId: string;
   observacoes: string;
 }
 
@@ -98,6 +111,7 @@ export const dadosEntradaVazio = (): DadosEntrada => ({
   quantidade: '',
   custoUnit: '',
   fornecedorId: '',
+  empresaId: '',
   observacoes: '',
 });
 
@@ -109,6 +123,7 @@ export function validarEntrada(d: DadosEntrada): ErrosValidacao {
   const custo = Number(d.custoUnit);
   if (!d.custoUnit.trim() || Number.isNaN(custo) || custo < 0)
     erros.custoUnit = 'Informe o custo unitário.';
+  if (!d.empresaId) erros.empresaId = 'Selecione a empresa (CNPJ) da nota.';
   return erros;
 }
 

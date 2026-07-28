@@ -19,6 +19,7 @@ import {
   type ErrosValidacao,
 } from '../types';
 import { type Fornecedor, listarFornecedores } from '@/features/cadastros';
+import { type Empresa, listarEmpresas } from '@/features/empresa';
 
 interface PropsEntrada {
   tipo: 'entrada';
@@ -44,9 +45,15 @@ function FormEntrada({ onSalvar, onCancelar }: PropsEntrada) {
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [salvando, setSalvando] = useState(false);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
 
   useEffect(() => {
     listarFornecedores().then(setFornecedores).catch(() => setFornecedores([]));
+    listarEmpresas().then((lista) => {
+      setEmpresas(lista);
+      if (lista.length === 1) set({ empresaId: lista[0].id });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function set(patch: Partial<DadosEntrada>) {
@@ -94,6 +101,26 @@ function FormEntrada({ onSalvar, onCancelar }: PropsEntrada) {
             aria-invalid={!!erros.custoUnit}
           />
           {erros.custoUnit && <span className="est-erro">{erros.custoUnit}</span>}
+        </div>
+
+        <div className="est-campo est-col-2">
+          <label>Empresa (CNPJ) *</label>
+          <select
+            value={dados.empresaId}
+            onChange={(e) => set({ empresaId: e.target.value })}
+            aria-invalid={!!erros.empresaId}
+          >
+            <option value="">— selecione —</option>
+            {empresas.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.nomeFantasia}
+              </option>
+            ))}
+          </select>
+          {erros.empresaId && <span className="est-erro">{erros.empresaId}</span>}
+          {empresas.length === 0 && (
+            <span className="est-aviso">Cadastre uma empresa na aba Empresas antes de dar entrada.</span>
+          )}
         </div>
 
         <div className="est-campo est-col-2">

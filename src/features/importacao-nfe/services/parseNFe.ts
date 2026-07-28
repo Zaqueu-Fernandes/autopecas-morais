@@ -8,8 +8,8 @@
  * arquivo veio de uma fonte confiável (o próprio fornecedor).
  *
  * Layout esperado (padrão NF-e do SEFAZ, modelo 55/65):
- *   infNFe > ide (nNF, serie) | emit (CNPJ, xNome) | det > prod (cProd,
- *   xProd, uCom, qCom, vUnCom) | total > ICMSTot (vNF)
+ *   infNFe > ide (nNF, serie) | emit (CNPJ, xNome) | dest (CNPJ) |
+ *   det > prod (cProd, xProd, uCom, qCom, vUnCom) | total > ICMSTot (vNF)
  * Chave de acesso vem de protNFe/infProt/chNFe, ou do atributo Id do
  * próprio infNFe (formato "NFe" + 44 dígitos) quando a nota ainda não tem
  * protocolo de autorização anexado.
@@ -44,6 +44,7 @@ export function parseNFe(xmlTexto: string): DadosNFeExtraida {
   }
 
   const ide = infNFe.getElementsByTagName('ide')[0];
+  const dest = infNFe.getElementsByTagName('dest')[0];
 
   let chaveAcesso = textoDe(doc, 'chNFe');
   if (!chaveAcesso) {
@@ -76,6 +77,7 @@ export function parseNFe(xmlTexto: string): DadosNFeExtraida {
     serie: textoDe(ide, 'serie'),
     fornecedorCnpj: textoDe(emit, 'CNPJ').replace(/\D/g, ''),
     fornecedorNome: textoDe(emit, 'xNome') || 'Fornecedor sem nome na nota',
+    destinatarioCnpj: dest ? textoDe(dest, 'CNPJ').replace(/\D/g, '') : '',
     valorTotal: numeroDe(infNFe, 'vNF'),
     itens,
   };

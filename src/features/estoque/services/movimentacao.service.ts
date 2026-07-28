@@ -20,6 +20,7 @@ interface LinhaMovimentacao {
   quantidade: number;
   custo_unit: number | null;
   fornecedor_id: string | null;
+  empresa_id: string | null;
   origem: string | null;
   observacoes: string | null;
   created_at: string;
@@ -33,6 +34,7 @@ function linhaParaMovimentacao(l: LinhaMovimentacao): Movimentacao {
     quantidade: l.quantidade,
     custoUnit: l.custo_unit,
     fornecedorId: l.fornecedor_id,
+    empresaId: l.empresa_id,
     origem: l.origem,
     observacoes: l.observacoes ?? '',
     createdAt: l.created_at,
@@ -56,6 +58,8 @@ export async function registrarEntrada(input: {
   quantidade: number;
   custoUnit: number;
   fornecedorId?: string;
+  /** Empresa (CNPJ) que recebeu a nota — só controle, não afeta o saldo compartilhado. */
+  empresaId?: string;
   observacoes?: string;
 }): Promise<void> {
   const { error } = await supabase.from('movimentacao_estoque').insert({
@@ -64,6 +68,7 @@ export async function registrarEntrada(input: {
     quantidade: input.quantidade,
     custo_unit: input.custoUnit,
     fornecedor_id: input.fornecedorId || null,
+    empresa_id: input.empresaId || null,
     origem: 'compra_fornecedor',
     observacoes: input.observacoes || null,
   });

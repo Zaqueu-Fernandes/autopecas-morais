@@ -22,6 +22,8 @@ export interface DadosNFeExtraida {
   serie: string;
   fornecedorCnpj: string;
   fornecedorNome: string;
+  /** CNPJ do destinatário (dest) — o CNPJ da autopeças morais que recebeu a nota. */
+  destinatarioCnpj: string;
   valorTotal: number;
   itens: ItemNFeExtraido[];
 }

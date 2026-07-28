@@ -113,6 +113,18 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   usuário a criar a peça e só depois abrir uma segunda tela pra dar
   entrada. Continua sem editar pecas.qtd/preco_custo direto: por baixo
   dos panos é sempre uma movimentação.
+- ENTRADA pede também a empresa (CNPJ) que recebeu a nota do fornecedor
+  (movimentacao_estoque.empresa_id, coluna nullable — só 'entrada' usa;
+  saída/ajuste não têm CNPJ de nota). É OBRIGATÓRIO no formulário nos 3
+  pontos que geram entrada: FormMovimentacao (entrada manual),
+  FormPeca (estoque inicial da peça nova) e ImportarXmlNFe (importação
+  de XML, que tenta casar o CNPJ do destinatário (`dest`) do XML com uma
+  empresa cadastrada e pré-seleciona automaticamente). Mesmo padrão de
+  select das telas do financeiro (Empresa; pré-seleciona se só há uma
+  cadastrada). ATENÇÃO: isso é só controle/rastreio de qual CNPJ pagou o
+  lote — NÃO divide o saldo. pecas.qtd continua somando o razão inteiro,
+  compartilhado entre as empresas (mesma oficina física, ver seção
+  "Múltiplas empresas" acima).
 - "Margem de lucro (%)" no formulário da peça é só uma calculadora:
   sugere preco_venda = custo × (1 + margem/100) a partir do custo
   (digitado, se a peça for nova; cacheado, se estiver editando). O campo
@@ -131,6 +143,9 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   vira "criar peça nova"; usuário revisa/edita quantidade e custo linha a
   linha antes de confirmar. Fornecedor é casado pelo CNPJ (dígitos, sem
   máscara) ou pode ser cadastrado ali mesmo a partir dos dados da nota.
+  Empresa (CNPJ da autopeças morais que recebeu a nota) é casada pelo
+  CNPJ do destinatário (`dest`, não `emit`) da mesma forma; obrigatório
+  escolher antes de confirmar a importação.
 - Ao confirmar: cria as peças que faltarem, registra uma ENTRADA
   (registrarEntrada, feature estoque) por item incluído, e grava a nota
   em nfe_importadas (chave_acesso é única) — reimportar a mesma nota é

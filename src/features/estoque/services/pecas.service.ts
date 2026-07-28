@@ -109,6 +109,7 @@ async function criarPecaComEstoqueInicial(peca: Peca): Promise<Peca> {
     pecaId: nova.id!,
     quantidade: qtdInicial,
     custoUnit: custoInicial,
+    empresaId: peca.empresaIdInicial,
     observacoes: 'Estoque inicial (cadastro da peça)',
   });
 
