@@ -11,6 +11,13 @@
 
 import { supabase } from '@/lib/supabase';
 import { registrarSaida, registrarAjuste, type Peca } from '@/features/estoque';
+import {
+  criarLancamento,
+  atualizarValorLancamento,
+  estornarLancamento,
+  buscarLancamentoDeOS,
+  type FormaPagamento,
+} from '@/features/financeiro';
 import type { ItemOS } from '../types';
 
 interface LinhaItemOS {
@@ -114,4 +121,74 @@ export async function removerItem(item: ItemOS, motivo: string): Promise<void> {
     .update({ removido: true, motivo_remocao: motivo })
     .eq('id', item.id);
   if (error) throw error;
+}
+
+/**
+ * Devolve um item de uma OS JÁ FATURADA — cliente devolveu a peça, ou o
+ * serviço não funcionou e ele quer o dinheiro de volta. Diferente de
+ * removerItem (usado ANTES de faturar, sem tocar no financeiro): aqui
+ * também resolve o lado do dinheiro, conforme o faturamento já tinha sido
+ * pago ou não:
+ *   - Já pago: gera um lançamento de REEMBOLSO (dinheiro saindo de verdade).
+ *   - Ainda pendente: ninguém pagou nada ainda, então só reduz o valor a
+ *     receber; se a devolução zerar o total, estorna o lançamento inteiro
+ *     (e a OS destrava pra 'concluida' — ver estorno.service.ts).
+ * Peça devolvida volta ao estoque via AJUSTE (não sobrescreve preco_custo —
+ * o valor de venda devolvido não deve virar custo de aquisição da peça).
+ */
+export async function devolverItem(
+  item: ItemOS,
+  os: { id: string; numero?: number; clienteId: string },
+  motivo: string,
+  formaPagamento: FormaPagamento,
+): Promise<void> {
+  const lancamento = await buscarLancamentoDeOS(os.id);
+  if (!lancamento) {
+    throw new Error('Não encontrei o faturamento desta OS (pode já ter sido totalmente estornado).');
+  }
+
+  if (item.tipo === 'peca' && item.pecaId) {
+    await registrarAjuste({
+      pecaId: item.pecaId,
+      quantidade: item.quantidade,
+      observacoes: `Devolução de item da OS #${os.numero ?? '—'} (${motivo})`,
+    });
+  }
+
+  const { error } = await supabase
+    .from('os_itens')
+    .update({ removido: true, motivo_remocao: `Devolução: ${motivo}` })
+    .eq('id', item.id);
+  if (error) throw error;
+
+  const valorItem = item.quantidade * item.valorUnit;
+
+  if (lancamento.pago) {
+    await criarLancamento({
+      empresaId: lancamento.empresaId,
+      tipo: 'pagar',
+      categoria: 'estorno',
+      descricao: `Devolução — ${item.descricao} (OS #${os.numero ?? '—'})`,
+      valor: valorItem,
+      pago: true,
+      formaPagamento,
+      dataPagamento: new Date().toISOString(),
+      vencimento: null,
+      clienteId: os.clienteId,
+      fornecedorId: null,
+      osId: os.id,
+      vendaId: null,
+      despesaFixaId: null,
+      periodicidade: null,
+      estornoDeId: lancamento.id,
+      observacoes: motivo,
+    });
+  } else {
+    const restante = lancamento.valor - valorItem;
+    if (restante <= 0) {
+      await estornarLancamento(lancamento.id!, { motivo: `Devolução esvaziou a OS — ${motivo}`, formaPagamento: '' });
+    } else {
+      await atualizarValorLancamento(lancamento.id!, restante);
+    }
+  }
 }

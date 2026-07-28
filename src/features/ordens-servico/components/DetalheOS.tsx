@@ -139,6 +139,8 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
       ) : (
         <ListaItensOS
           osId={os.id!}
+          osNumero={os.numero}
+          osClienteId={os.clienteId}
           bloqueado={bloqueado}
           aoAtualizarTotal={setTotalOS}
           aoAtualizarItens={setItensOS}

@@ -19,6 +19,8 @@ import {
 } from '../types';
 
 interface Props {
+  /** Ex.: "Estornar lançamento" (padrão) ou "Devolver item" (devolução parcial). */
+  titulo?: string;
   descricao: string;
   /** Original já estava pago/recebido — vai gerar contrapartida, então pede forma de pagamento. */
   precisaFormaPagamento: boolean;
@@ -28,7 +30,7 @@ interface Props {
 
 const FORMAS = Object.keys(ROTULO_FORMA_PAGAMENTO) as FormaPagamento[];
 
-export function FormEstorno({ descricao, precisaFormaPagamento, onConfirmar, onCancelar }: Props) {
+export function FormEstorno({ titulo = 'Estornar lançamento', descricao, precisaFormaPagamento, onConfirmar, onCancelar }: Props) {
   const [dados, setDados] = useState<DadosEstorno>(dadosEstornoVazio());
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
@@ -56,7 +58,7 @@ export function FormEstorno({ descricao, precisaFormaPagamento, onConfirmar, onC
   return (
     <div className="fin-form">
       <div className="fin-form-head">
-        <h2>Estornar lançamento</h2>
+        <h2>{titulo}</h2>
       </div>
 
       <p className="fin-aviso">{descricao}</p>

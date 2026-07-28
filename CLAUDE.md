@@ -220,12 +220,31 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
     venda de volta pra 'aberta' (mesma exceção de nomenclatura de
     faturamento.service.ts/venda.service.ts: atualiza só o campo status
     dessas tabelas direto, sem importar código das features de lá).
-  - NÃO cobre devolução de peça (estoque físico voltando) — isso é uma
-    ENTRADA de estoque separada, ainda não implementada (ideia: origem
-    'devolucao_cliente', sem sobrescrever preco_custo — senão o preço de
-    VENDA devolvido contaminaria o custo médio da peça). Quando existir,
-    reaproveita esse mesmo estorno pro lado financeiro; só adiciona a
-    parte de estoque em cima.
+  - Devolução de item (peça OU serviço) de uma OS faturada/venda finalizada:
+    `devolverItem` (ordens-servico/services/itens.service.ts) e
+    `devolverItemVenda` (vendas/services/itens.service.ts) — botão
+    "Devolver" aparece no lugar de "Remover" quando a OS/venda já está
+    travada (`ListaItensOS`/`ListaItensVenda`, reaproveita o componente
+    FormEstorno pra pedir motivo + forma de pagamento). Diferente de
+    `removerItem`/`removerItemVenda` (usado ANTES de faturar, só mexe em
+    estoque): devolução também resolve o financeiro, buscando o
+    lançamento de faturamento ainda válido da OS/venda
+    (`buscarLancamentoDeOS`/`buscarLancamentoDeVenda`) e decidindo pelo
+    estado dele:
+      - Já pago: gera um lançamento de REEMBOLSO (categoria 'estorno',
+        mesmo mecanismo do estorno de lançamento inteiro, só que pelo
+        valor do ITEM, não da OS/venda toda).
+      - Ainda pendente (a_prazo/fiado): ninguém pagou nada ainda, então só
+        reduz o valor a receber (atualizarValorLancamento); se a
+        devolução zerar o total, estorna o lançamento inteiro
+        (estornarLancamento) — que já destrava a OS/venda de volta.
+    Peça devolvida volta ao estoque via AJUSTE (não ENTRADA) — mesmo
+    mecanismo de remoção pré-faturamento, pra não sobrescrever
+    preco_custo com o valor de VENDA devolvido (isso contaminaria o custo
+    médio da peça). Item marcado como `removido=true` com
+    `motivo_remocao` prefixado "Devolução:" (mesma coluna de sempre — não
+    criou campo novo, devolução é conceitualmente "remover item depois de
+    faturado").
 - Despesas fixas recorrentes ficam em despesas_fixas (feature já pronta em
   src/features/despesas) e geram contas do mês por ação explícita ("Gerar
   contas do mês", não é automático/agendado). Índice único

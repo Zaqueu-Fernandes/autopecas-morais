@@ -10,6 +10,13 @@
 
 import { supabase } from '@/lib/supabase';
 import { registrarSaida, registrarAjuste, type Peca } from '@/features/estoque';
+import {
+  criarLancamento,
+  atualizarValorLancamento,
+  estornarLancamento,
+  buscarLancamentoDeVenda,
+  type FormaPagamento,
+} from '@/features/financeiro';
 import type { ItemVenda } from '../types';
 
 interface LinhaItemVenda {
@@ -88,4 +95,68 @@ export async function removerItemVenda(item: ItemVenda, motivo: string): Promise
     .update({ removido: true, motivo_remocao: motivo })
     .eq('id', item.id);
   if (error) throw error;
+}
+
+/**
+ * Devolve um item de uma venda JÁ FINALIZADA — cliente devolveu a peça.
+ * Mesma lógica de devolverItem (ordens-servico): se a venda já tinha sido
+ * paga, gera um REEMBOLSO; se ainda estava pendente, só reduz o valor a
+ * receber (zerando, estorna o lançamento inteiro e destrava a venda).
+ */
+export async function devolverItemVenda(
+  item: ItemVenda,
+  venda: { id: string; numero?: number; clienteId: string | null },
+  motivo: string,
+  formaPagamento: FormaPagamento,
+): Promise<void> {
+  const lancamento = await buscarLancamentoDeVenda(venda.id);
+  if (!lancamento) {
+    throw new Error('Não encontrei o faturamento desta venda (pode já ter sido totalmente estornado).');
+  }
+
+  await registrarAjuste({
+    pecaId: item.pecaId,
+    quantidade: item.quantidade,
+    observacoes: `Devolução de item da venda #${venda.numero ?? '—'} (${motivo})`,
+  });
+
+  const { error } = await supabase
+    .from('venda_itens')
+    .update({ removido: true, motivo_remocao: `Devolução: ${motivo}` })
+    .eq('id', item.id);
+  if (error) throw error;
+
+  const valorItem = item.quantidade * item.valorUnit;
+
+  if (lancamento.pago) {
+    await criarLancamento({
+      empresaId: lancamento.empresaId,
+      tipo: 'pagar',
+      categoria: 'estorno',
+      descricao: `Devolução — ${item.descricao} (venda #${venda.numero ?? '—'})`,
+      valor: valorItem,
+      pago: true,
+      formaPagamento,
+      dataPagamento: new Date().toISOString(),
+      vencimento: null,
+      clienteId: venda.clienteId,
+      fornecedorId: null,
+      osId: null,
+      vendaId: venda.id,
+      despesaFixaId: null,
+      periodicidade: null,
+      estornoDeId: lancamento.id,
+      observacoes: motivo,
+    });
+  } else {
+    const restante = lancamento.valor - valorItem;
+    if (restante <= 0) {
+      await estornarLancamento(lancamento.id!, {
+        motivo: `Devolução esvaziou a venda — ${motivo}`,
+        formaPagamento: '',
+      });
+    } else {
+      await atualizarValorLancamento(lancamento.id!, restante);
+    }
+  }
 }

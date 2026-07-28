@@ -142,6 +142,39 @@ export async function buscarLancamento(id: string): Promise<LancamentoFinanceiro
 }
 
 /**
+ * O lançamento de faturamento ainda válido (não estornado) de uma OS/venda —
+ * usado pela devolução de item (ordens-servico/vendas) pra saber se o
+ * faturamento já foi pago (gera reembolso) ou ainda tá pendente (só reduz o
+ * valor a receber). null se a OS/venda nunca foi faturada ou já foi
+ * totalmente estornada.
+ */
+export async function buscarLancamentoDeOS(osId: string): Promise<LancamentoFinanceiro | null> {
+  const { data, error } = await supabase
+    .from('financeiro')
+    .select('*')
+    .eq('os_id', osId)
+    .eq('estornado', false)
+    .order('created_at', { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  const linha = (data as LinhaFinanceiro[])[0];
+  return linha ? linhaParaLancamento(linha) : null;
+}
+
+export async function buscarLancamentoDeVenda(vendaId: string): Promise<LancamentoFinanceiro | null> {
+  const { data, error } = await supabase
+    .from('financeiro')
+    .select('*')
+    .eq('venda_id', vendaId)
+    .eq('estornado', false)
+    .order('created_at', { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  const linha = (data as LinhaFinanceiro[])[0];
+  return linha ? linhaParaLancamento(linha) : null;
+}
+
+/**
  * Exclui de verdade — só permitido pra lançamento ainda PENDENTE (pago=false)
  * e sem vínculo com OS/venda (osId/vendaId nulos). Lançamento já quitado ou
  * vinculado a OS/venda faturada tem rastro de dinheiro real e trava de status

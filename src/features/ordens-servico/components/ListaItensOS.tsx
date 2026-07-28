@@ -8,14 +8,24 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Trash2, Wrench, PackagePlus } from 'lucide-react';
+import { Trash2, Wrench, PackagePlus, Undo2 } from 'lucide-react';
 import type { DadosItemPeca, DadosItemServico, ItemOS } from '../types';
-import { listarItensPorOS, adicionarItemPeca, adicionarItemServico, removerItem } from '../services/itens.service';
+import {
+  listarItensPorOS,
+  adicionarItemPeca,
+  adicionarItemServico,
+  removerItem,
+  devolverItem,
+} from '../services/itens.service';
 import { FormItemOS } from './FormItemOS';
 import type { Peca } from '@/features/estoque';
+import { FormEstorno, type DadosEstorno } from '@/features/financeiro';
 
 interface Props {
   osId: string;
+  /** Só precisos quando `bloqueado` — vão na descrição/vínculo do reembolso de uma devolução. */
+  osNumero?: number;
+  osClienteId?: string;
   bloqueado?: boolean;
   /** Chamado toda vez que os itens (re)carregam, com o total não removido. */
   aoAtualizarTotal?: (total: number) => void;
@@ -23,11 +33,19 @@ interface Props {
   aoAtualizarItens?: (itens: ItemOS[]) => void;
 }
 
-export function ListaItensOS({ osId, bloqueado = false, aoAtualizarTotal, aoAtualizarItens }: Props) {
+export function ListaItensOS({
+  osId,
+  osNumero,
+  osClienteId,
+  bloqueado = false,
+  aoAtualizarTotal,
+  aoAtualizarItens,
+}: Props) {
   const [itens, setItens] = useState<ItemOS[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [acaoAberta, setAcaoAberta] = useState<'peca' | 'servico' | null>(null);
+  const [itemParaDevolver, setItemParaDevolver] = useState<ItemOS | null>(null);
 
   async function carregar() {
     setCarregando(true);
@@ -73,6 +91,18 @@ export function ListaItensOS({ osId, bloqueado = false, aoAtualizarTotal, aoAtua
     await carregar();
   }
 
+  async function handleDevolver(dados: DadosEstorno) {
+    if (!itemParaDevolver || !osClienteId || !dados.formaPagamento) return;
+    await devolverItem(
+      itemParaDevolver,
+      { id: osId, numero: osNumero, clienteId: osClienteId },
+      dados.motivo,
+      dados.formaPagamento,
+    );
+    setItemParaDevolver(null);
+    await carregar();
+  }
+
   const total = itens.filter((i) => !i.removido).reduce((soma, i) => soma + i.quantidade * i.valorUnit, 0);
 
   if (acaoAberta === 'peca') {
@@ -80,6 +110,19 @@ export function ListaItensOS({ osId, bloqueado = false, aoAtualizarTotal, aoAtua
   }
   if (acaoAberta === 'servico') {
     return <FormItemOS tipo="servico" onSalvar={handleSalvarServico} onCancelar={() => setAcaoAberta(null)} />;
+  }
+  if (itemParaDevolver) {
+    return (
+      <FormEstorno
+        titulo="Devolver item"
+        descricao={`${itemParaDevolver.descricao} — R$ ${(
+          itemParaDevolver.quantidade * itemParaDevolver.valorUnit
+        ).toFixed(2)}`}
+        precisaFormaPagamento
+        onConfirmar={handleDevolver}
+        onCancelar={() => setItemParaDevolver(null)}
+      />
+    );
   }
 
   return (
@@ -115,13 +158,23 @@ export function ListaItensOS({ osId, bloqueado = false, aoAtualizarTotal, aoAtua
                 <span className="os-itens-qtd">{item.quantidade}x</span>
                 <span className="os-itens-valor">R$ {(item.quantidade * item.valorUnit).toFixed(2)}</span>
                 {item.removido ? (
-                  <span className="os-itens-motivo">Removido: {item.motivoRemocao}</span>
+                  <span className="os-itens-motivo">
+                    {item.motivoRemocao?.startsWith('Devolução') ? '' : 'Removido: '}
+                    {item.motivoRemocao}
+                  </span>
                 ) : !bloqueado ? (
                   <button type="button" className="os-itens-remover" onClick={() => handleRemover(item)}>
                     <Trash2 size={14} /> Remover
                   </button>
                 ) : (
-                  <span />
+                  <button
+                    type="button"
+                    className="os-itens-remover"
+                    onClick={() => setItemParaDevolver(item)}
+                    disabled={!osClienteId}
+                  >
+                    <Undo2 size={14} /> Devolver
+                  </button>
                 )}
               </li>
             ))}

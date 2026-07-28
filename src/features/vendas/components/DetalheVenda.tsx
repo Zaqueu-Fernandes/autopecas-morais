@@ -105,7 +105,13 @@ export function DetalheVenda({ vendaId, aoVoltar }: Props) {
           onCancelar={() => setMostrarFinalizacao(false)}
         />
       ) : (
-        <ListaItensVenda vendaId={venda.id!} bloqueado={bloqueado} aoAtualizarTotal={setTotalVenda} />
+        <ListaItensVenda
+          vendaId={venda.id!}
+          vendaNumero={venda.numero}
+          vendaClienteId={venda.clienteId}
+          bloqueado={bloqueado}
+          aoAtualizarTotal={setTotalVenda}
+        />
       )}
     </div>
   );
