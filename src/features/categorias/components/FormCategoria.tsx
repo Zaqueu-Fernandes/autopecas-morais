@@ -22,15 +22,19 @@ interface Props {
 export function FormCategoria({ nomeInicial, protegida, onSalvar, onCancelar }: Props) {
   const [nome, setNome] = useState(nomeInicial ?? '');
   const [erros, setErros] = useState<ErrosValidacao>({});
+  const [erroSalvar, setErroSalvar] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
 
   async function handleSalvar() {
     const e = validarNomeCategoria(nome);
     setErros(e);
     if (!semErros(e)) return;
+    setErroSalvar(null);
     setSalvando(true);
     try {
       await onSalvar(nome);
+    } catch (erro) {
+      setErroSalvar(erro instanceof Error ? erro.message : 'Não foi possível salvar a categoria.');
     } finally {
       setSalvando(false);
     }
@@ -58,6 +62,8 @@ export function FormCategoria({ nomeInicial, protegida, onSalvar, onCancelar }: 
           </span>
         )}
       </div>
+
+      {erroSalvar && <p className="dsp-erro">{erroSalvar}</p>}
 
       <div className="dsp-acoes">
         {onCancelar && (

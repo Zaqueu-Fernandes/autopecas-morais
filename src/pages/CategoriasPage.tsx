@@ -34,7 +34,6 @@ export function CategoriasPage() {
 
   const [mostrarForm, setMostrarForm] = useState(false);
   const [categoriaEmEdicao, setCategoriaEmEdicao] = useState<Categoria | null>(null);
-  const [erroForm, setErroForm] = useState<string | null>(null);
 
   async function carregar() {
     setCarregando(true);
@@ -54,23 +53,21 @@ export function CategoriasPage() {
   }, [mostrarInativas]);
 
   async function handleSalvar(nome: string) {
-    setErroForm(null);
     try {
       if (categoriaEmEdicao?.id) {
         await renomearCategoria(categoriaEmEdicao.id, nome);
       } else {
         await criarCategoria(nome);
       }
-      setMostrarForm(false);
-      setCategoriaEmEdicao(null);
-      await carregar();
     } catch (erro) {
       if (ehViolacaoDeUnicidade(erro)) {
-        setErroForm('Já existe uma categoria com esse nome (ou muito parecido).');
-        return;
+        throw new Error('Já existe uma categoria com esse nome (ou muito parecido).');
       }
-      throw erro;
+      throw new Error('Não foi possível salvar a categoria. Tente de novo em instantes.');
     }
+    setMostrarForm(false);
+    setCategoriaEmEdicao(null);
+    await carregar();
   }
 
   async function handleDesativar(id: string) {
@@ -106,7 +103,6 @@ export function CategoriasPage() {
         onCancelar={() => {
           setMostrarForm(false);
           setCategoriaEmEdicao(null);
-          setErroForm(null);
         }}
       />
     );
@@ -139,7 +135,6 @@ export function CategoriasPage() {
         </label>
       </div>
 
-      {erroForm && <p className="dsp-erro">{erroForm}</p>}
       {carregando && <p>Carregando…</p>}
       {erro && <p className="dsp-erro">{erro}</p>}
 
