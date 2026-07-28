@@ -53,6 +53,7 @@ export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
       quantidade: Number(d.quantidade),
       custoUnit: Number(d.custoUnit),
       fornecedorId: d.fornecedorId || undefined,
+      empresaId: d.empresaId || undefined,
       observacoes: d.observacoes || undefined,
     });
     setAcaoAberta(null);
