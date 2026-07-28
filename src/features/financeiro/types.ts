@@ -8,24 +8,20 @@
 
 export type TipoFinanceiro = 'pagar' | 'receber';
 
-export type CategoriaPagar =
-  | 'fornecedor'
-  | 'despesa_fixa'
-  | 'despesa_variavel'
-  | 'imposto'
-  | 'folha'
-  | 'retirada_lucro';
+export type CategoriaPagar = 'fornecedor' | 'despesa_geral' | 'imposto' | 'folha' | 'retirada_lucro';
 
 export type CategoriaReceber = 'servico_os' | 'venda_balcao';
 
 export const ROTULO_CATEGORIA_PAGAR: Record<CategoriaPagar, string> = {
   fornecedor: 'Fornecedor',
-  despesa_fixa: 'Despesa fixa',
-  despesa_variavel: 'Despesa variável',
+  despesa_geral: 'Despesa geral',
   imposto: 'Imposto',
   folha: 'Folha de pagamento',
   retirada_lucro: 'Retirada de lucro',
 };
+
+/** Espelha despesas/types.ts Periodicidade — duplicado de propósito (ver nota lá). */
+export type Periodicidade = 'semanal' | 'mensal' | 'anual';
 
 export const ROTULO_CATEGORIA_RECEBER: Record<CategoriaReceber, string> = {
   servico_os: 'Serviço (OS)',
@@ -66,6 +62,8 @@ export interface LancamentoFinanceiro {
   osId: string | null;
   vendaId: string | null;
   despesaFixaId: string | null;
+  /** Só preenchido em lançamentos gerados de uma despesa recorrente — manual fica null. */
+  periodicidade: Periodicidade | null;
   observacoes: string;
   createdAt?: string;
 }
@@ -87,7 +85,7 @@ export interface DadosContaPagar {
 
 export const dadosContaPagarVazio = (): DadosContaPagar => ({
   empresaId: '',
-  categoria: 'despesa_variavel',
+  categoria: 'despesa_geral',
   descricao: '',
   valor: '',
   fornecedorId: '',

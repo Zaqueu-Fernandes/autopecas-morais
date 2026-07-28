@@ -14,6 +14,7 @@ import {
   type TipoFinanceiro,
   type FormaPagamento,
   type DadosContaPagar,
+  type Periodicidade,
   FormContaPagar,
   FormQuitacao,
   FormEditarValor,
@@ -25,6 +26,13 @@ import {
   ROTULO_CATEGORIA_PAGAR,
   ROTULO_CATEGORIA_RECEBER,
 } from '@/features/financeiro';
+
+/** Espelha ROTULO_PERIODICIDADE de despesas/types.ts — só pra exibir a tag aqui. */
+const ROTULO_PERIODICIDADE: Record<Periodicidade, string> = {
+  semanal: 'Semanal',
+  mensal: 'Mensal',
+  anual: 'Anual',
+};
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { buscarResumoDashboard } from '@/features/dashboard';
 
@@ -119,6 +127,7 @@ export function FinanceiroPage() {
       osId: null,
       vendaId: null,
       despesaFixaId: null,
+      periodicidade: null,
       observacoes: d.observacoes,
     });
     setMostrarForm(false);
@@ -233,7 +242,10 @@ export function FinanceiroPage() {
                     {l.tipo === 'pagar' ? 'Pagar' : 'Receber'}
                   </span>
                 </td>
-                <td>{rotuloCategoria(l)}</td>
+                <td>
+                  {rotuloCategoria(l)}
+                  {l.periodicidade && <span className="fin-tag">{ROTULO_PERIODICIDADE[l.periodicidade]}</span>}
+                </td>
                 <td>{l.descricao}</td>
                 <td>R$ {l.valor.toFixed(2)}</td>
                 <td>{l.vencimento ? new Date(l.vencimento).toLocaleDateString('pt-BR') : '—'}</td>

@@ -17,8 +17,12 @@ export {
   semErros,
   ROTULO_CATEGORIA_DESPESA,
   ROTULO_TIPO_VALOR,
+  ROTULO_PERIODICIDADE,
+  DIAS_SEMANA,
+  MESES_ANO,
   type CategoriaDespesaFixa,
   type TipoValorDespesa,
+  type Periodicidade,
   type DespesaFixa,
   type ErrosValidacao,
 } from './types';

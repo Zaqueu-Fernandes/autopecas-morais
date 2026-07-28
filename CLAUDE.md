@@ -177,8 +177,7 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 
 - Tabela única `financeiro` com discriminador `tipo` ('pagar' | 'receber').
 - Toda saída é financeiro tipo='pagar' com uma `categoria`:
-  fornecedor | despesa_fixa | despesa_variavel | imposto | folha |
-  retirada_lucro
+  fornecedor | despesa_geral | imposto | folha | retirada_lucro
 - REGRA DE OURO: retirada_lucro NUNCA entra no cálculo de lucro (é o
   destino do lucro, não um custo) — ainda não há cálculo de lucro/dashboard,
   só a regra documentada pra quando existir.
@@ -187,16 +186,44 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   contas do mês", não é automático/agendado). Índice único
   (despesa_fixa_id, vencimento) em financeiro impede duplicar a mesma
   despesa no mesmo mês — gerar de novo só ignora as que já existem.
-- Despesa fixa tem `tipo_valor` ('fixo' | 'variavel'): fixo (aluguel,
-  mensalidade) usa o campo valor como o valor real; variável (água, luz —
-  tem dia de vencimento fixo mas o valor muda todo mês) trata o valor
-  cadastrado como MÉDIA/estimativa só pra gerar a conta. O valor real de
-  cada mês é corrigido depois em Financeiro, num lançamento ainda
+- Página/menu chama-se "Despesas Recorrentes" (era "Despesas Fixas") —
+  nomes internos (DespesaFixa, despesas_fixas, FormDespesaFixa,
+  DespesasFixasPage) continuam iguais de propósito, só o texto visível
+  pro usuário mudou.
+- Despesa recorrente tem `tipo_valor` ('fixo' | 'variavel'): fixo
+  (aluguel, mensalidade) usa o campo valor como o valor real; variável
+  (água, luz — tem vencimento fixo mas o valor muda todo mês) trata o
+  valor cadastrado como MÉDIA/estimativa só pra gerar a conta. O valor
+  real de cada mês é corrigido depois em Financeiro, num lançamento ainda
   pendente, via "Editar valor" (atualizarValorLancamento) — antes de
   quitar. "Editar valor" existe pra QUALQUER lançamento pendente (não só
   os vindos de despesa variável), pago ou a receber — é intencionalmente
   genérico em vez de restrito, pra também cobrir "Nova conta a pagar"
   digitada com valor errado.
+- Despesa recorrente tem `periodicidade` ('semanal' | 'mensal' | 'anual')
+  — eixo INDEPENDENTE de tipo_valor (uma despesa anual pode ser fixa ou
+  variável). Muda o que `dia_vencimento` significa: mensal = dia do mês
+  (1-28, como sempre foi); anual = dia do mês + `mes_vencimento` (1-12);
+  semanal = dia da semana (0=domingo…6=sábado). "Gerar contas do mês"
+  (gerarContasDoMes → calcularVencimentosDoMes) calcula quais vencimentos
+  caem dentro do mês de referência pra cada despesa: mensal sempre gera 1;
+  anual só gera no mês certo (0 nos demais); semanal pode gerar vários no
+  mesmo mês (um por dia da semana escolhido que cair naquele mês). O
+  índice único (despesa_fixa_id, vencimento) continua sendo o que evita
+  duplicar, então isso funciona sem precisar guardar "última geração" em
+  lugar nenhum. financeiro também ganhou `periodicidade` (nullable — só
+  lançamento GERADO de despesa recorrente carrega isso; lançamento manual
+  fica NULL), só pra mostrar a tag na lista sem precisar de join.
+- Categoria de despesa/lançamento a pagar perdeu 'despesa_fixa' e
+  'despesa_variavel', fundidas numa única 'despesa_geral' ("Despesa
+  geral"): com tipo_valor e periodicidade já existindo como campos
+  próprios, ter uma categoria chamada "fixa" (que podia conviver com
+  tipo_valor='variavel' — contraditório) só confundia. fornecedor/
+  imposto/folha/retirada_lucro continuam — são classificação contábil de
+  verdade (a REGRA DE OURO de retirada_lucro nunca entrar no lucro
+  depende de distinguir essa categoria das outras). Migration faz backfill
+  das linhas antigas (despesas_fixas.categoria e financeiro.categoria)
+  pra 'despesa_geral'.
 - Despesa fixa não é excluída por padrão (pode ter contas geradas,
   financeiro.despesa_fixa_id aponta pra ela) — o normal é "Desativar" (só
   para de gerar contas novas). "Excluir" existe (Trash2, ao lado de

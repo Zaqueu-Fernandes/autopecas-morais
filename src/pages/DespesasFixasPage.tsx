@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * PÁGINA — DESPESAS FIXAS
+ * PÁGINA — DESPESAS RECORRENTES
  * ============================================================================
  * Cadastra as despesas recorrentes (aluguel, internet, DAS...) e gera as
  * contas do mês (lançamentos em Financeiro) com um clique. Cada despesa
@@ -21,8 +21,20 @@ import {
   ehViolacaoDeReferencia,
   gerarContasDoMes,
   ROTULO_CATEGORIA_DESPESA,
+  ROTULO_PERIODICIDADE,
+  DIAS_SEMANA,
+  MESES_ANO,
 } from '@/features/despesas';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
+
+function descricaoVencimento(d: DespesaFixa): string {
+  if (d.periodicidade === 'semanal') return DIAS_SEMANA[Number(d.diaVencimento)] ?? '—';
+  if (d.periodicidade === 'anual') {
+    const mes = MESES_ANO[Number(d.mesVencimento) - 1] ?? '—';
+    return `Dia ${d.diaVencimento} de ${mes}`;
+  }
+  return `Dia ${d.diaVencimento}`;
+}
 
 export function DespesasFixasPage() {
   const [despesas, setDespesas] = useState<DespesaFixa[]>([]);
@@ -53,7 +65,7 @@ export function DespesasFixasPage() {
         await listarDespesasFixas({ empresaId: empresaId || undefined, somenteAtivas: !mostrarInativas }),
       );
     } catch {
-      setErro('Não foi possível carregar as despesas fixas.');
+      setErro('Não foi possível carregar as despesas recorrentes.');
     } finally {
       setCarregando(false);
     }
@@ -72,7 +84,7 @@ export function DespesasFixasPage() {
   }
 
   async function handleDesativar(id: string) {
-    if (!window.confirm('Desativar esta despesa fixa? Ela deixa de gerar contas novas.')) return;
+    if (!window.confirm('Desativar esta despesa recorrente? Ela deixa de gerar contas novas.')) return;
     await definirAtivoDespesaFixa(id, false);
     await carregar();
   }
@@ -83,7 +95,7 @@ export function DespesasFixasPage() {
   }
 
   async function handleExcluir(id: string) {
-    if (!window.confirm('Excluir esta despesa fixa? Essa ação não pode ser desfeita.')) return;
+    if (!window.confirm('Excluir esta despesa recorrente? Essa ação não pode ser desfeita.')) return;
     try {
       await excluirDespesaFixa(id);
       await carregar();
@@ -128,7 +140,7 @@ export function DespesasFixasPage() {
   return (
     <div className="pg">
       <div className="pg-head">
-        <h1>Despesas Fixas</h1>
+        <h1>Despesas Recorrentes</h1>
         <button
           type="button"
           className="dsp-btn"
@@ -137,7 +149,7 @@ export function DespesasFixasPage() {
             setMostrarForm(true);
           }}
         >
-          <ReceiptText size={16} /> Nova despesa fixa
+          <ReceiptText size={16} /> Nova despesa recorrente
         </button>
       </div>
 
@@ -181,7 +193,8 @@ export function DespesasFixasPage() {
               <th>Descrição</th>
               <th>Categoria</th>
               <th>Valor</th>
-              <th>Dia vcto.</th>
+              <th>Periodicidade</th>
+              <th>Vencimento</th>
               <th></th>
             </tr>
           </thead>
@@ -197,7 +210,8 @@ export function DespesasFixasPage() {
                   R$ {Number(d.valor).toFixed(2)}
                   {d.tipoValor === 'variavel' && <span className="dsp-tag-media">média</span>}
                 </td>
-                <td>{d.diaVencimento}</td>
+                <td>{ROTULO_PERIODICIDADE[d.periodicidade]}</td>
+                <td>{descricaoVencimento(d)}</td>
                 <td className="pg-acoes-linha">
                   <button
                     type="button"
@@ -225,7 +239,7 @@ export function DespesasFixasPage() {
             ))}
             {despesas.length === 0 && (
               <tr>
-                <td colSpan={5}>Nenhuma despesa fixa cadastrada.</td>
+                <td colSpan={6}>Nenhuma despesa recorrente cadastrada.</td>
               </tr>
             )}
           </tbody>

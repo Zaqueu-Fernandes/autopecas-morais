@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * FORMULÁRIO DE DESPESA FIXA
+ * FORMULÁRIO DE DESPESA RECORRENTE
  * ============================================================================
  * Cadastra/edita a definição recorrente. "Gerar contas do mês" (na página)
  * é quem realmente lança em financeiro — este formulário só guarda a regra.
@@ -11,11 +11,15 @@ import {
   type DespesaFixa,
   type CategoriaDespesaFixa,
   type TipoValorDespesa,
+  type Periodicidade,
   despesaFixaVazia,
   validarDespesaFixa,
   semErros,
   ROTULO_CATEGORIA_DESPESA,
   ROTULO_TIPO_VALOR,
+  ROTULO_PERIODICIDADE,
+  DIAS_SEMANA,
+  MESES_ANO,
   type ErrosValidacao,
 } from '../types';
 import { type Fornecedor, listarFornecedores } from '@/features/cadastros';
@@ -63,7 +67,7 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
   return (
     <div className="dsp-form">
       <div className="dsp-form-head">
-        <h2>{despesa.id ? 'Editar despesa fixa' : 'Nova despesa fixa'}</h2>
+        <h2>{despesa.id ? 'Editar despesa recorrente' : 'Nova despesa recorrente'}</h2>
       </div>
 
       <div className="dsp-grid">
@@ -160,18 +164,72 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
           )}
         </div>
 
-        <div className="dsp-campo">
-          <label>Dia do vencimento *</label>
-          <input
-            inputMode="numeric"
-            value={despesa.diaVencimento}
-            onChange={(e) => set({ diaVencimento: e.target.value })}
-            placeholder="1 a 28"
-            aria-invalid={!!erros.diaVencimento}
-          />
-          {erros.diaVencimento && <span className="dsp-erro">{erros.diaVencimento}</span>}
+        <div className="dsp-campo dsp-col-2">
+          <label>Com que frequência se repete?</label>
+          <div className="dsp-radios">
+            {(Object.keys(ROTULO_PERIODICIDADE) as Periodicidade[]).map((p) => (
+              <label key={p}>
+                <input
+                  type="radio"
+                  name="periodicidade"
+                  checked={despesa.periodicidade === p}
+                  onChange={() => set({ periodicidade: p, diaVencimento: '', mesVencimento: '' })}
+                />
+                {ROTULO_PERIODICIDADE[p]}
+              </label>
+            ))}
+          </div>
         </div>
 
+        {despesa.periodicidade === 'semanal' ? (
+          <div className="dsp-campo">
+            <label>Dia da semana *</label>
+            <select
+              value={despesa.diaVencimento}
+              onChange={(e) => set({ diaVencimento: e.target.value })}
+              aria-invalid={!!erros.diaVencimento}
+            >
+              <option value="">— selecione —</option>
+              {DIAS_SEMANA.map((nome, i) => (
+                <option key={i} value={i}>
+                  {nome}
+                </option>
+              ))}
+            </select>
+            {erros.diaVencimento && <span className="dsp-erro">{erros.diaVencimento}</span>}
+          </div>
+        ) : (
+          <div className="dsp-campo">
+            <label>Dia do vencimento *</label>
+            <input
+              inputMode="numeric"
+              value={despesa.diaVencimento}
+              onChange={(e) => set({ diaVencimento: e.target.value })}
+              placeholder="1 a 28"
+              aria-invalid={!!erros.diaVencimento}
+            />
+            {erros.diaVencimento && <span className="dsp-erro">{erros.diaVencimento}</span>}
+          </div>
+        )}
+
+        {despesa.periodicidade === 'anual' && (
+          <div className="dsp-campo">
+            <label>Mês *</label>
+            <select
+              value={despesa.mesVencimento}
+              onChange={(e) => set({ mesVencimento: e.target.value })}
+              aria-invalid={!!erros.mesVencimento}
+            >
+              <option value="">— selecione —</option>
+              {MESES_ANO.map((nome, i) => (
+                <option key={i} value={i + 1}>
+                  {nome}
+                </option>
+              ))}
+            </select>
+            {erros.mesVencimento && <span className="dsp-erro">{erros.mesVencimento}</span>}
+          </div>
+        )}
       </div>
 
       <div className="dsp-campo">

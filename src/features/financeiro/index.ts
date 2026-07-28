@@ -35,6 +35,7 @@ export {
   type TipoFinanceiro,
   type CategoriaPagar,
   type CategoriaReceber,
+  type Periodicidade,
   type FormaPagamento,
   type LancamentoFinanceiro,
   type DadosContaPagar,

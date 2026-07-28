@@ -39,7 +39,7 @@ const ABAS = [
   { id: 'vendas', label: 'Vendas de Balcão', Icone: ShoppingCart, Componente: VendasBalcaoPage },
   { id: 'financeiro', label: 'Financeiro', Icone: Wallet, Componente: FinanceiroPage },
   { id: 'fluxo-caixa', label: 'Fluxo de Caixa', Icone: ArrowLeftRight, Componente: FluxoCaixaPage },
-  { id: 'despesas', label: 'Despesas Fixas', Icone: ReceiptText, Componente: DespesasFixasPage },
+  { id: 'despesas', label: 'Despesas Recorrentes', Icone: ReceiptText, Componente: DespesasFixasPage },
   { id: 'empresas', label: 'Empresas', Icone: Building2, Componente: EmpresasPage },
   { id: 'clientes', label: 'Clientes', Icone: Users, Componente: ClientesPage },
   { id: 'fornecedores', label: 'Fornecedores', Icone: Truck, Componente: FornecedoresPage },

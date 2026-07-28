@@ -31,6 +31,7 @@ export async function finalizarVenda(input: {
     osId: null,
     vendaId,
     despesaFixaId: null,
+    periodicidade: null,
     observacoes: '',
   };
 
