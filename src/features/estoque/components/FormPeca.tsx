@@ -10,7 +10,12 @@
  *
  * "Margem de lucro (%)" é só uma calculadora: aplica sobre o custo (o
  * digitado, se for peça nova; o cacheado, se estiver editando) e sugere o
- * preço de venda — o campo continua editável manualmente depois.
+ * preço de venda — o campo continua editável manualmente depois. NÃO é
+ * salva no banco (pecas não tem coluna de margem) — ao editar uma peça já
+ * existente, o valor inicial do campo é CALCULADO na hora a partir de
+ * precoCusto/precoVenda cacheados, pra não nascer em branco (isso é só
+ * pra preencher a tela; se você editar o preço de venda na mão depois, a
+ * margem mostrada não se atualiza sozinha, igual sempre foi).
  */
 
 import { useEffect, useState } from 'react';
@@ -23,9 +28,16 @@ interface Props {
   onCancelar?: () => void;
 }
 
+function calcularMargemAtual(custo: number, venda: number): string {
+  if (custo <= 0 || Number.isNaN(venda)) return '';
+  return (((venda - custo) / custo) * 100).toFixed(1);
+}
+
 export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
   const [peca, setPeca] = useState<Peca>(inicial ?? pecaVazia());
-  const [margem, setMargem] = useState('');
+  const [margem, setMargem] = useState(() =>
+    inicial?.id ? calcularMargemAtual(inicial.precoCusto, Number(inicial.precoVenda)) : '',
+  );
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [salvando, setSalvando] = useState(false);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
