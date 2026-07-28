@@ -8,5 +8,6 @@
 
 export { CartaoResumo } from './components/CartaoResumo';
 export { MonitorMei } from './components/MonitorMei';
+export { MonitorCustoAquisicao } from './components/MonitorCustoAquisicao';
 export { MonitorMeiEmpresa } from './components/MonitorMeiEmpresa';
 export { buscarResumoDashboard, type ResumoDashboard } from './services/dashboard.service';

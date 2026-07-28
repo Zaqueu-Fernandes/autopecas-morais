@@ -26,6 +26,17 @@ export interface ResumoDashboard {
   aPagarPendente: number;
   aPagarVencidoValor: number;
   aPagarVencidoQtd: number;
+  /**
+   * Soma de quantidade × custo_unit das ENTRADAS de estoque do ano corrente
+   * (compra de peças) — não é despesa financeira, é o valor gasto compondo
+   * estoque. Serve de alerta antecipado do limite do MEI: venda = custo +
+   * margem, então se o custo sozinho já está perto do limite anual, o
+   * faturamento (que inclui a margem em cima disso) vai passar do limite
+   * ainda mais rápido. Só conta movimentações com empresa_id preenchido —
+   * entradas registradas antes dessa feature existir ficam de fora (não dá
+   * pra saber de qual CNPJ era a nota).
+   */
+  custoAquisicaoAno: number;
 }
 
 export async function buscarResumoDashboard(empresaId?: string): Promise<ResumoDashboard> {
@@ -77,6 +88,19 @@ export async function buscarResumoDashboard(empresaId?: string): Promise<ResumoD
   const vencidos = (pagarPendente ?? []).filter((r) => r.vencimento && r.vencimento < hojeISO);
   const aPagarVencidoValor = vencidos.reduce((soma, r) => soma + Number(r.valor), 0);
 
+  let queryEntradasAno = supabase
+    .from('movimentacao_estoque')
+    .select('quantidade, custo_unit')
+    .eq('tipo', 'entrada')
+    .gte('created_at', inicioAno);
+  if (empresaId) queryEntradasAno = queryEntradasAno.eq('empresa_id', empresaId);
+  const { data: entradasAno, error: erroEntradas } = await queryEntradasAno;
+  if (erroEntradas) throw erroEntradas;
+  const custoAquisicaoAno = (entradasAno ?? []).reduce(
+    (soma, e) => soma + Number(e.quantidade) * Number(e.custo_unit ?? 0),
+    0,
+  );
+
   return {
     faturamentoMes,
     faturamentoAno,
@@ -86,5 +110,6 @@ export async function buscarResumoDashboard(empresaId?: string): Promise<ResumoD
     aPagarPendente,
     aPagarVencidoValor,
     aPagarVencidoQtd: vencidos.length,
+    custoAquisicaoAno,
   };
 }

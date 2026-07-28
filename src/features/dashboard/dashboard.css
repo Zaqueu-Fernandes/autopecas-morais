@@ -85,6 +85,7 @@
 .dash-monitor-empresa { flex: 1 1 320px; }
 .dash-monitor-empresa h3 { font-size: 13px; color: var(--cor-texto-secundario); margin: 0 0 6px; font-weight: 600; }
 .dash-monitor-empresa .dash-mei { margin-bottom: 0; }
+.dash-monitor-empresa .dash-mei + .dash-mei { margin-top: 12px; }
 
 @media (max-width: 520px) {
   .dash-grid { grid-template-columns: 1fr 1fr; }

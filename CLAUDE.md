@@ -344,6 +344,19 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   configurar antes de mostrar qualquer número.
 - KPIs adicionais: faturamento do mês/ano, a receber pendente, a pagar
   pendente, contas atrasadas (vencidas e não pagas).
+- Monitor de custo de aquisição de peças (MonitorCustoAquisicao, logo
+  abaixo do de faturamento, mesmo cartão por empresa): soma
+  quantidade × custo_unit das movimentacao_estoque tipo='entrada' do ano
+  corrente (por created_at), comparado com o MESMO limite_anual_mei. É
+  alerta ANTECIPADO, não uma regra nova — venda = custo + margem, então o
+  faturamento (o que de fato conta pro limite do MEI) é sempre maior que o
+  custo de aquisição sozinho; se o custo já está perto do limite, o
+  faturamento vai estourar ainda mais rápido assim que essas peças forem
+  vendidas. Só soma movimentações com empresa_id preenchido — entradas
+  registradas antes da feature de empresa em estoque (ver
+  supabase/migrations/estoque_empresa.sql) ficam de fora, não dá pra saber
+  de qual CNPJ era a nota. Também só aparece pra regime='MEI' (igual ao
+  monitor de faturamento — pra ME o limite anual não se aplica mais).
 
 ### Cadastros (feature já pronta em src/features/cadastros)
 
