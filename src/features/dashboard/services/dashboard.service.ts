@@ -51,6 +51,7 @@ export async function buscarResumoDashboard(empresaId?: string): Promise<ResumoD
     .from('financeiro')
     .select('valor, created_at')
     .eq('tipo', 'receber')
+    .eq('estornado', false)
     .in('categoria', ['servico_os', 'venda_balcao'])
     .gte('created_at', inicioAno);
   if (empresaId) queryReceitas = queryReceitas.eq('empresa_id', empresaId);
@@ -66,6 +67,7 @@ export async function buscarResumoDashboard(empresaId?: string): Promise<ResumoD
     .from('financeiro')
     .select('valor')
     .eq('tipo', 'pagar')
+    .eq('estornado', false)
     .gte('vencimento', inicioMesData)
     .lte('vencimento', fimMesData);
   if (empresaId) queryDespesasMes = queryDespesasMes.eq('empresa_id', empresaId);
@@ -73,13 +75,23 @@ export async function buscarResumoDashboard(empresaId?: string): Promise<ResumoD
   if (erroDespesasMes) throw erroDespesasMes;
   const despesasMes = (despesasDoMes ?? []).reduce((soma, r) => soma + Number(r.valor), 0);
 
-  let queryReceber = supabase.from('financeiro').select('valor').eq('tipo', 'receber').eq('pago', false);
+  let queryReceber = supabase
+    .from('financeiro')
+    .select('valor')
+    .eq('tipo', 'receber')
+    .eq('pago', false)
+    .eq('estornado', false);
   if (empresaId) queryReceber = queryReceber.eq('empresa_id', empresaId);
   const { data: receberPendente, error: erroReceber } = await queryReceber;
   if (erroReceber) throw erroReceber;
   const aReceberPendente = (receberPendente ?? []).reduce((soma, r) => soma + Number(r.valor), 0);
 
-  let queryPagar = supabase.from('financeiro').select('valor, vencimento').eq('tipo', 'pagar').eq('pago', false);
+  let queryPagar = supabase
+    .from('financeiro')
+    .select('valor, vencimento')
+    .eq('tipo', 'pagar')
+    .eq('pago', false)
+    .eq('estornado', false);
   if (empresaId) queryPagar = queryPagar.eq('empresa_id', empresaId);
   const { data: pagarPendente, error: erroPagar } = await queryPagar;
   if (erroPagar) throw erroPagar;

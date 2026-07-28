@@ -19,7 +19,7 @@ export type TipoFinanceiro = 'pagar' | 'receber';
  */
 export type CategoriaPagar = string;
 
-export type CategoriaReceber = 'servico_os' | 'venda_balcao';
+export type CategoriaReceber = 'servico_os' | 'venda_balcao' | 'estorno';
 
 /** Espelha despesas/types.ts Periodicidade — duplicado de propósito (ver nota lá). */
 export type Periodicidade = 'semanal' | 'mensal' | 'anual';
@@ -27,6 +27,7 @@ export type Periodicidade = 'semanal' | 'mensal' | 'anual';
 export const ROTULO_CATEGORIA_RECEBER: Record<CategoriaReceber, string> = {
   servico_os: 'Serviço (OS)',
   venda_balcao: 'Venda de balcão',
+  estorno: 'Estorno / Reembolso',
 };
 
 export type FormaPagamento =
@@ -65,6 +66,17 @@ export interface LancamentoFinanceiro {
   despesaFixaId: string | null;
   /** Só preenchido em lançamentos gerados de uma despesa recorrente — manual fica null. */
   periodicidade: Periodicidade | null;
+  /**
+   * true = este lançamento foi cancelado depois (ver estornarLancamento) —
+   * não conta mais em faturamento/pendências. Opcional na criação (igual
+   * `id`/`createdAt`) — o banco assume false; só existe de verdade depois
+   * de estornar.
+   */
+  estornado?: boolean;
+  estornadoEm?: string | null;
+  estornadoMotivo?: string | null;
+  /** Preenchido só no lançamento de CONTRAPARTIDA — aponta pro original que ele reverte. */
+  estornoDeId?: string | null;
   observacoes: string;
   createdAt?: string;
 }
@@ -151,5 +163,24 @@ export function validarFaturamento(d: DadosFaturamento): ErrosValidacao {
     erros.formaPagamento = 'Selecione a forma de pagamento.';
   if (d.situacao === 'a_prazo' && !d.vencimento)
     erros.vencimento = 'Informe o vencimento.';
+  return erros;
+}
+
+// ---- Estorno (cancela um lançamento já quitado ou vinculado a OS/venda) -----
+
+export interface DadosEstorno {
+  motivo: string;
+  /** Só pedido quando o original já estava pago/recebido — vira a forma de pagamento da contrapartida. */
+  formaPagamento: FormaPagamento | '';
+}
+
+export const dadosEstornoVazio = (): DadosEstorno => ({ motivo: '', formaPagamento: '' });
+
+/** `precisaFormaPagamento` = o lançamento original já estava quitado (vai gerar contrapartida). */
+export function validarEstorno(d: DadosEstorno, precisaFormaPagamento: boolean): ErrosValidacao {
+  const erros: ErrosValidacao = {};
+  if (!d.motivo.trim()) erros.motivo = 'Explique o motivo do estorno.';
+  if (precisaFormaPagamento && !d.formaPagamento)
+    erros.formaPagamento = 'Selecione como o dinheiro está sendo devolvido.';
   return erros;
 }

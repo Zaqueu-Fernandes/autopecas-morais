@@ -8,20 +8,24 @@
  */
 
 import { useEffect, useState } from 'react';
-import { FilePlus2, CircleDollarSign, Pencil } from 'lucide-react';
+import { FilePlus2, CircleDollarSign, Pencil, Trash2, Undo2 } from 'lucide-react';
 import {
   type LancamentoFinanceiro,
   type TipoFinanceiro,
   type FormaPagamento,
   type DadosContaPagar,
+  type DadosEstorno,
   type Periodicidade,
   FormContaPagar,
   FormQuitacao,
   FormEditarValor,
+  FormEstorno,
   listarFinanceiro,
   criarLancamento,
   quitarLancamento,
   atualizarValorLancamento,
+  excluirLancamento,
+  estornarLancamento,
   buscarFluxoCaixa,
   ROTULO_CATEGORIA_RECEBER,
 } from '@/features/financeiro';
@@ -71,6 +75,7 @@ export function FinanceiroPage() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [lancamentoParaQuitar, setLancamentoParaQuitar] = useState<LancamentoFinanceiro | null>(null);
   const [lancamentoParaEditarValor, setLancamentoParaEditarValor] = useState<LancamentoFinanceiro | null>(null);
+  const [lancamentoParaEstornar, setLancamentoParaEstornar] = useState<LancamentoFinanceiro | null>(null);
 
   function nomeEmpresa(id: string | null): string {
     return empresas.find((e) => e.id === id)?.nomeFantasia ?? '—';
@@ -165,6 +170,23 @@ export function FinanceiroPage() {
     await carregar();
   }
 
+  async function handleExcluir(l: LancamentoFinanceiro) {
+    if (!window.confirm('Excluir este lançamento? Essa ação não pode ser desfeita.')) return;
+    try {
+      await excluirLancamento(l.id!);
+      await carregar();
+    } catch (erro) {
+      window.alert(erro instanceof Error ? erro.message : 'Não foi possível excluir este lançamento.');
+    }
+  }
+
+  async function handleEstornar(dados: DadosEstorno) {
+    if (!lancamentoParaEstornar) return;
+    await estornarLancamento(lancamentoParaEstornar.id!, dados);
+    setLancamentoParaEstornar(null);
+    await carregar();
+  }
+
   if (mostrarForm) {
     return <FormContaPagar onSalvar={handleSalvarContaPagar} onCancelar={() => setMostrarForm(false)} />;
   }
@@ -190,6 +212,17 @@ export function FinanceiroPage() {
     );
   }
 
+  if (lancamentoParaEstornar) {
+    return (
+      <FormEstorno
+        descricao={`${lancamentoParaEstornar.descricao} — R$ ${lancamentoParaEstornar.valor.toFixed(2)}`}
+        precisaFormaPagamento={lancamentoParaEstornar.pago}
+        onConfirmar={handleEstornar}
+        onCancelar={() => setLancamentoParaEstornar(null)}
+      />
+    );
+  }
+
   const documentoImpressao: DocumentoListaImpressao = {
     titulo: 'Financeiro',
     subtitulo: filtroEmpresa ? empresas.find((e) => e.id === filtroEmpresa)?.nomeFantasia : 'Todas as empresas',
@@ -201,7 +234,7 @@ export function FinanceiroPage() {
       l.descricao,
       `R$ ${l.valor.toFixed(2)}`,
       l.vencimento ? new Date(l.vencimento).toLocaleDateString('pt-BR') : '—',
-      l.pago ? 'Quitado' : 'Pendente',
+      l.estornado ? 'Estornado' : l.pago ? 'Quitado' : 'Pendente',
     ]),
   };
 
@@ -272,12 +305,16 @@ export function FinanceiroPage() {
                 <td>R$ {l.valor.toFixed(2)}</td>
                 <td>{l.vencimento ? new Date(l.vencimento).toLocaleDateString('pt-BR') : '—'}</td>
                 <td>
-                  <span className={`fin-badge-status ${l.pago ? 'fin-badge-pago' : 'fin-badge-pendente'}`}>
-                    {l.pago ? 'Quitado' : 'Pendente'}
+                  <span
+                    className={`fin-badge-status ${
+                      l.estornado ? 'fin-badge-estornado' : l.pago ? 'fin-badge-pago' : 'fin-badge-pendente'
+                    }`}
+                  >
+                    {l.estornado ? 'Estornado' : l.pago ? 'Quitado' : 'Pendente'}
                   </span>
                 </td>
                 <td className="pg-acoes-linha">
-                  {!l.pago && (
+                  {!l.estornado && !l.pago && (
                     <>
                       <button type="button" onClick={() => setLancamentoParaEditarValor(l)}>
                         <Pencil size={13} /> Editar valor
@@ -286,6 +323,16 @@ export function FinanceiroPage() {
                         <CircleDollarSign size={13} /> Quitar
                       </button>
                     </>
+                  )}
+                  {!l.estornado && !l.pago && !l.osId && !l.vendaId && (
+                    <button type="button" onClick={() => handleExcluir(l)}>
+                      <Trash2 size={13} /> Excluir
+                    </button>
+                  )}
+                  {!l.estornado && (l.pago || l.osId || l.vendaId) && (
+                    <button type="button" onClick={() => setLancamentoParaEstornar(l)}>
+                      <Undo2 size={13} /> Estornar
+                    </button>
                   )}
                 </td>
               </tr>

@@ -11,10 +11,12 @@ export { FormQuitacao } from './components/FormQuitacao';
 export { FormEditarValor } from './components/FormEditarValor';
 export { FormFaturamento } from './components/FormFaturamento';
 export { FormFinalizarVenda } from './components/FormFinalizarVenda';
+export { FormEstorno } from './components/FormEstorno';
 
 export * from './services/financeiro.service';
 export { faturarOS } from './services/faturamento.service';
 export { finalizarVenda } from './services/venda.service';
+export { estornarLancamento } from './services/estorno.service';
 export {
   buscarFluxoCaixa,
   type MovimentoCaixa,
@@ -28,6 +30,8 @@ export {
   validarQuitacao,
   dadosFaturamentoVazio,
   validarFaturamento,
+  dadosEstornoVazio,
+  validarEstorno,
   ROTULO_CATEGORIA_RECEBER,
   ROTULO_FORMA_PAGAMENTO,
   ROTULO_SITUACAO,
@@ -41,5 +45,6 @@ export {
   type DadosQuitacao,
   type SituacaoRecebimento,
   type DadosFaturamento,
+  type DadosEstorno,
   type ErrosValidacao,
 } from './types';

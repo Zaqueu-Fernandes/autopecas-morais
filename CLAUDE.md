@@ -170,8 +170,9 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   1. À vista: pago=true, forma preenchida, data_pagamento=hoje
   2. A prazo: pago=false, vencimento=data
   3. Em aberto (fiado): pago=false, vencimento=NULL, amarrado ao cliente
-- OS faturada trava para edição (correção só via estorno — estorno ainda
-  não foi implementado; hoje faturar é uma via de mão única).
+- OS faturada trava para edição (correção só via estorno — ver "Estorno e
+  exclusão de lançamento" em Financeiro. Estornar o lançamento de
+  faturamento dessa OS destrava ela de volta pra 'concluida').
 - DetalheOS mostra as 4 etapas (Aberta/Em andamento/Concluída/Faturada)
   como uma trilha de progresso animada (EtapasOS — check nas concluídas,
   pulso na atual, conector acende conforme avança), estilo apps de
@@ -189,6 +190,42 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 - REGRA DE OURO: retirada_lucro NUNCA entra no cálculo de lucro (é o
   destino do lucro, não um custo) — ainda não há cálculo de lucro/dashboard,
   só a regra documentada pra quando existir.
+- Estorno e exclusão de lançamento (src/features/financeiro/services/
+  estorno.service.ts + excluirLancamento em financeiro.service.ts): nunca
+  se apaga um lançamento já quitado ou vinculado a OS/venda — isso some com
+  rastro contábil e pode desincronizar estoque/OS sem avisar (foi
+  literalmente o problema resolvido na mão numa limpeza de dados de teste
+  antes dessa feature existir). Duas ações, condicionais ao estado do
+  lançamento:
+  - **Excluir** (de verdade, `financeiro.delete`): só permitido pra
+    lançamento PENDENTE (pago=false) E sem `osId`/`vendaId` — ou seja,
+    uma "Nova conta a pagar" manual digitada errada, sem nenhuma cascata.
+    Validado no SERVICE (não só escondendo o botão), lança erro se não
+    for elegível.
+  - **Estornar** (`estornarLancamento`): pra tudo mais — já quitado
+    (qualquer origem) OU vinculado a OS/venda (mesmo pendente). Marca o
+    original com `estornado=true/estornado_em/estornado_motivo`
+    (preservado, some das contas de faturamento/pendências —
+    dashboard.service.ts filtra `estornado=false`, mas fluxoCaixa.service.ts
+    NÃO filtra, de propósito: fluxo de caixa é o diário do que realmente
+    aconteceu, os dois movimentos de caixa — o original e a devolução —
+    devem aparecer cada um na sua data real). Se o original já estava
+    pago/recebido, gera um lançamento de CONTRAPARTIDA (tipo invertido,
+    categoria protegida 'estorno', mesmo valor, pago=true,
+    data_pagamento=agora, `estornoDeId` apontando pro original) —
+    representa o dinheiro saindo/voltando de verdade. Categoria 'estorno'
+    é filtrada FORA dos seletores manuais (FormContaPagar/
+    FormDespesaFixa) — só o próprio estorno usa. Se o original tem osId,
+    destrava a OS de volta pra 'concluida'; se tem vendaId, destrava a
+    venda de volta pra 'aberta' (mesma exceção de nomenclatura de
+    faturamento.service.ts/venda.service.ts: atualiza só o campo status
+    dessas tabelas direto, sem importar código das features de lá).
+  - NÃO cobre devolução de peça (estoque físico voltando) — isso é uma
+    ENTRADA de estoque separada, ainda não implementada (ideia: origem
+    'devolucao_cliente', sem sobrescrever preco_custo — senão o preço de
+    VENDA devolvido contaminaria o custo médio da peça). Quando existir,
+    reaproveita esse mesmo estorno pro lado financeiro; só adiciona a
+    parte de estoque em cima.
 - Despesas fixas recorrentes ficam em despesas_fixas (feature já pronta em
   src/features/despesas) e geram contas do mês por ação explícita ("Gerar
   contas do mês", não é automático/agendado). Índice único
@@ -282,7 +319,8 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   remover devolve via AJUSTE, item removido fica marcado (não apagado).
 - Finalização reaproveita as mesmas 3 situações de recebimento da OS
   (categoria='venda_balcao' em financeiro) e trava a venda
-  (status='finalizada') — mesma ressalva: sem estorno ainda.
+  (status='finalizada') — correção via estorno do lançamento (ver Financeiro),
+  que destrava a venda de volta pra 'aberta'.
 
 ### Impressão (feature já pronta em src/features/impressao — Fase 1)
 
@@ -387,9 +425,13 @@ Até lá, o sistema gera COMPROVANTE INTERNO ("sem valor fiscal").
 5. ✅ Despesas e categorias financeiras
 6. ✅ Dashboard + monitor de faturamento MEI
 7. Pendências conhecidas antes de "fases futuras":
-   - ✅ Impressão (Fase 1: comprovante HTML/CSS 80mm) — pronta, ligada na
-     OS. Falta ligar o botão na Venda de balcão (a camada já suporta).
-   - Estorno de OS/venda faturada — hoje faturar é via de mão única.
+   - ✅ Impressão (Fase 1: comprovante térmica 80mm + A4/Carta, preferência
+     global) — pronta, ligada na OS. Falta ligar o botão na Venda de
+     balcão (a camada já suporta). Listas (Clientes, Estoque, Financeiro
+     etc.) têm Imprimir + Gerar PDF próprios (BotoesImpressaoLista).
+   - ✅ Estorno de OS/venda faturada — implementado (ver "Estorno e
+     exclusão de lançamento" em Financeiro). Falta só a devolução de peça
+     (estoque físico voltando), que é outra dimensão do mesmo problema.
    - RLS: rodei supabase/migrations/rls_policies.sql liberando tudo pra
      anon/authenticated (era o que estava bloqueando TODO insert/update —
      Supabase habilita RLS por padrão e sem policy nenhuma fica tudo

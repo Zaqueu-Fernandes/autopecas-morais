@@ -107,11 +107,14 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
             aria-invalid={!!erros.categoria}
           >
             <option value="">— selecione —</option>
-            {categorias.map((c) => (
-              <option key={c.chave} value={c.chave}>
-                {c.nome}
-              </option>
-            ))}
+            {/* 'estorno' é gerada automaticamente por estornarLancamento — não é escolha manual */}
+            {categorias
+              .filter((c) => c.chave !== 'estorno')
+              .map((c) => (
+                <option key={c.chave} value={c.chave}>
+                  {c.nome}
+                </option>
+              ))}
           </select>
           {erros.categoria && <span className="dsp-erro">{erros.categoria}</span>}
         </div>

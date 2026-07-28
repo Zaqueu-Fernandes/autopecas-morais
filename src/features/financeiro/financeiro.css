@@ -159,8 +159,9 @@
   padding: 2px 8px;
   border-radius: 999px;
 }
-.fin-badge-pago     { background: #dcfce7; color: #166534; }
-.fin-badge-pendente { background: #fef3c7; color: #92400e; }
+.fin-badge-pago      { background: #dcfce7; color: #166534; }
+.fin-badge-pendente  { background: #fef3c7; color: #92400e; }
+.fin-badge-estornado { background: var(--cor-fundo-secundario); color: var(--cor-texto-secundario); }
 
 /* Filtro de período (Fluxo de Caixa) */
 .fin-campo-inline {
