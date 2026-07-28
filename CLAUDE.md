@@ -53,32 +53,32 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   ficam FIXAS nos dois temas de propósito — não são "estruturais".
   Header do app (`.app-header`) também fica sempre escuro nos dois temas
   (chrome de marca, não muda com o toggle).
-- Identidade visual: fonte única `public/icones/img2d_brilhosa.png` (arte
-  "badge" 2D 1254×1254, estilo achatado com brilho/glint nos cantos, já
-  com bezel metálico e cantos arredondados próprios, mas com uma margem
-  de fundo escuro ao redor) alimenta os TRÊS usos — ícone do PWA, logo da
-  tela de login (`.auth-logo`, LoginPage.tsx) e logo do cabeçalho
-  (`.app-logo`, App.tsx). Não tem arquivo-fonte separado por uso. Já teve
-  DUAS artes-fonte anteriores (histórico, arquivos ainda no repo sem uso:
-  `IconPage.png`/`IconePWA.png` — texto+dois arquivos por uso; depois
-  `Iconeapp.png` — versão 3D fotorrealista, trocada por essa por pedido
-  do usuário, "não ficou muito legal o ícone 3D"). Gerados uma vez com
-  `sharp` (script descartável, não faz parte do projeto): 1) detecta a
-  borda do bezel metálico por luminância (scan de linha, threshold >130)
-  pra recortar rente à margem externa, sem cortar a arte; 2) redimensiona
-  pra 1024×1024; 3) aplica máscara SVG de cantos arredondados ~12% do
-  tamanho (`dest-in` — raio menor que a arte 3D anterior, ~20%, porque o
-  bezel desse 2D já é menos arredondado) — como a arte já tem seus
-  próprios cantos arredondados internos, o resultado é um recorte limpo
-  com transparência real nos 4 cantos (não sobra pedacinho do fundo
-  escuro original); 4) exporta `pwa-icon-512.png`, `pwa-icon-192.png`
-  (manifest, vite.config.ts, purpose 'any' e 'maskable' com o MESMO
-  arquivo — simplificação: não tem margem de segurança própria pra
-  maskable, se algum launcher Android cortar em círculo pode tocar no
-  conteúdo perto da borda) e `favicon-64.png` (index.html), com
-  `png({ palette: true })` (quantização de cores, tipo pngquant) — arte
-  2D ficou bem mais leve que a 3D anterior (512px caiu de ~120KB pra
-  ~79KB). `vite.config.ts` tem `workbox.globIgnores: ['icones/**']` —
+- Identidade visual: fonte única `public/icones/img2d_brilhosa.png.png`
+  (sim, extensão duplicada no nome — veio assim de um rename acidental
+  fora da sessão, não mexer) alimenta os TRÊS usos — ícone do PWA, logo
+  da tela de login (`.auth-logo`, LoginPage.tsx) e logo do cabeçalho
+  (`.app-logo`, App.tsx). Não tem arquivo-fonte separado por uso. Essa
+  arte é um recorte mais fechado do mesmo desenho 2D (sem a moldura/bezel
+  metálico nem a tag "CUIDANDO DA VIDA DO SEU CARRO" que a versão
+  anterior tinha) — 1090×1039, fundo escuro preenchendo o quadro inteiro,
+  SEM cantos arredondados próprios (diferente das artes anteriores, que
+  já vinham com bezel arredondado embutido). Já teve outras 2 versões
+  antes dessa (histórico, arquivos ainda no repo sem uso: `IconPage.png`/
+  `IconePWA.png`; depois `Iconeapp.png`, versão 3D fotorrealista, trocada
+  por pedido do usuário — "não ficou muito legal o ícone 3D"). Gerados
+  uma vez com `sharp` (script descartável, não faz parte do projeto): 1)
+  redimensiona/recorta pra quadrado 1024×1024 (`fit: 'cover'`, centrado —
+  essa arte não tem moldura pra alinhar por luminância como as
+  anteriores); 2) aplica máscara SVG de cantos arredondados ~18% do
+  tamanho (`dest-in`) — como a arte NÃO tem cantos próprios dessa vez, a
+  máscara faz o trabalho inteiro de criar a transparência arredondada; 3)
+  exporta `pwa-icon-512.png`, `pwa-icon-192.png` (manifest,
+  vite.config.ts, purpose 'any' e 'maskable' com o MESMO arquivo —
+  simplificação: não tem margem de segurança própria pra maskable, se
+  algum launcher Android cortar em círculo pode tocar no conteúdo perto
+  da borda) e `favicon-64.png` (index.html), com `png({ palette: true })`
+  (quantização de cores, tipo pngquant) pra manter leve (512px ficou com
+  ~73KB). `vite.config.ts` tem `workbox.globIgnores: ['icones/**']` —
   sem isso, o precache do service worker varreria as artes-fonte
   (inclusive as antigas, ainda no repo) junto com o app, inflando o cache
   offline à toa. Se a arte mudar de novo, regenerar os 3 PNGs a partir da
