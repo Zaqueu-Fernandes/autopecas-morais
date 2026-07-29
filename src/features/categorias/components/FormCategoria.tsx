@@ -28,7 +28,10 @@ export function FormCategoria({ nomeInicial, protegida, onSalvar, onCancelar }: 
   async function handleSalvar() {
     const e = validarNomeCategoria(nome);
     setErros(e);
-    if (!semErros(e)) return;
+    if (!semErros(e)) {
+      document.getElementById('categoria-nome')?.focus();
+      return;
+    }
     setErroSalvar(null);
     setSalvando(true);
     try {
@@ -47,8 +50,9 @@ export function FormCategoria({ nomeInicial, protegida, onSalvar, onCancelar }: 
       </div>
 
       <div className="dsp-campo">
-        <label>Nome *</label>
+        <label htmlFor="categoria-nome">Nome *</label>
         <input
+          id="categoria-nome"
           value={nome}
           onChange={(e) => setNome(e.target.value)}
           placeholder="Ex.: manutenção de veículos, marketing…"
@@ -63,7 +67,7 @@ export function FormCategoria({ nomeInicial, protegida, onSalvar, onCancelar }: 
         )}
       </div>
 
-      {erroSalvar && <p className="dsp-erro">{erroSalvar}</p>}
+      {erroSalvar && <p className="dsp-erro" aria-live="polite">{erroSalvar}</p>}
 
       <div className="dsp-acoes">
         {onCancelar && (

@@ -21,6 +21,7 @@ import { FormItemOS } from './FormItemOS';
 import type { Peca } from '@/features/estoque';
 import { FormEstorno, type DadosEstorno } from '@/features/financeiro';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 interface Props {
   osId: string;
@@ -87,9 +88,20 @@ export function ListaItensOS({
   }
 
   async function handleRemover(item: ItemOS) {
-    const motivo = window.prompt('Motivo da remoção deste item:');
-    if (!motivo) return;
-    await removerItem(item, motivo);
+    const ok = await confirmar({
+      titulo: 'Remover item',
+      tom: 'perigo',
+      mensagem: [
+        `“${item.descricao}” será removido desta OS.`,
+        item.tipo === 'peca'
+          ? 'A peça volta pro estoque (ajuste de volta, sem mexer no custo médio).'
+          : 'O serviço deixa de contar no total da OS.',
+        'O item não é apagado de verdade — continua no histórico, marcado como removido.',
+      ],
+      textoConfirmar: 'Remover',
+    });
+    if (!ok) return;
+    await removerItem(item, 'Removido pelo usuário antes do faturamento.');
     await carregar();
   }
 
@@ -101,7 +113,7 @@ export function ListaItensOS({
       titulo: 'Confirmar devolução de item',
       tom: 'perigo',
       mensagem: [
-        `"${item.descricao}" — R$ ${valor.toFixed(2)}.`,
+        `“${item.descricao}” — ${formatarMoeda(valor)}.`,
         item.tipo === 'peca'
           ? 'A peça volta pro estoque (ajuste, sem mexer no custo médio) e o item fica marcado como devolvido no histórico da OS.'
           : 'O serviço fica marcado como devolvido no histórico da OS (não afeta estoque).',
@@ -133,9 +145,9 @@ export function ListaItensOS({
     return (
       <FormEstorno
         titulo="Devolver item"
-        descricao={`${itemParaDevolver.descricao} — R$ ${(
-          itemParaDevolver.quantidade * itemParaDevolver.valorUnit
-        ).toFixed(2)}`}
+        descricao={`${itemParaDevolver.descricao} — ${formatarMoeda(
+          itemParaDevolver.quantidade * itemParaDevolver.valorUnit,
+        )}`}
         precisaFormaPagamento
         onConfirmar={handleDevolver}
         onCancelar={() => setItemParaDevolver(null)}
@@ -174,7 +186,7 @@ export function ListaItensOS({
                 </span>
                 <span className="os-itens-descricao">{item.descricao}</span>
                 <span className="os-itens-qtd">{item.quantidade}x</span>
-                <span className="os-itens-valor">R$ {(item.quantidade * item.valorUnit).toFixed(2)}</span>
+                <span className="os-itens-valor">{formatarMoeda(item.quantidade * item.valorUnit)}</span>
                 {item.removido ? (
                   <span className="os-itens-motivo">
                     {item.motivoRemocao?.startsWith('Devolução') ? '' : 'Removido: '}
@@ -197,7 +209,7 @@ export function ListaItensOS({
               </li>
             ))}
           </ul>
-          <div className="os-itens-total">Total: R$ {total.toFixed(2)}</div>
+          <div className="os-itens-total">Total: {formatarMoeda(total)}</div>
         </>
       )}
     </div>

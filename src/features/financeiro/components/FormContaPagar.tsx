@@ -26,6 +26,7 @@ interface Props {
 export function FormContaPagar({ onSalvar, onCancelar }: Props) {
   const [dados, setDados] = useState<DadosContaPagar>(dadosContaPagarVazio());
   const [erros, setErros] = useState<ErrosValidacao>({});
+  const [erroSalvar, setErroSalvar] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
@@ -49,9 +50,12 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
     const e = validarContaPagar(dados);
     setErros(e);
     if (!semErros(e)) return;
+    setErroSalvar(null);
     setSalvando(true);
     try {
       await onSalvar(dados);
+    } catch (erro) {
+      setErroSalvar(erro instanceof Error ? erro.message : 'Não foi possível salvar esta conta.');
     } finally {
       setSalvando(false);
     }
@@ -65,8 +69,9 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
 
       <div className="fin-grid">
         <div className="fin-campo">
-          <label>Empresa (CNPJ) *</label>
+          <label htmlFor="cp-empresa">Empresa (CNPJ) *</label>
           <select
+            id="cp-empresa"
             value={dados.empresaId}
             onChange={(e) => set({ empresaId: e.target.value })}
             aria-invalid={!!erros.empresaId}
@@ -78,12 +83,17 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
               </option>
             ))}
           </select>
-          {erros.empresaId && <span className="fin-erro">{erros.empresaId}</span>}
+          {erros.empresaId && (
+            <span className="fin-erro" aria-live="polite">
+              {erros.empresaId}
+            </span>
+          )}
         </div>
 
         <div className="fin-campo">
-          <label>Categoria *</label>
+          <label htmlFor="cp-categoria">Categoria *</label>
           <select
+            id="cp-categoria"
             value={dados.categoria}
             onChange={(e) => set({ categoria: e.target.value })}
             aria-invalid={!!erros.categoria}
@@ -98,13 +108,18 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
                 </option>
               ))}
           </select>
-          {erros.categoria && <span className="fin-erro">{erros.categoria}</span>}
+          {erros.categoria && (
+            <span className="fin-erro" aria-live="polite">
+              {erros.categoria}
+            </span>
+          )}
         </div>
 
         {dados.categoria === 'fornecedor' && (
           <div className="fin-campo">
-            <label>Fornecedor *</label>
+            <label htmlFor="cp-fornecedor">Fornecedor *</label>
             <select
+              id="cp-fornecedor"
               value={dados.fornecedorId}
               onChange={(e) => set({ fornecedorId: e.target.value })}
               aria-invalid={!!erros.fornecedorId}
@@ -116,50 +131,80 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
                 </option>
               ))}
             </select>
-            {erros.fornecedorId && <span className="fin-erro">{erros.fornecedorId}</span>}
+            {erros.fornecedorId && (
+              <span className="fin-erro" aria-live="polite">
+                {erros.fornecedorId}
+              </span>
+            )}
           </div>
         )}
 
         <div className="fin-campo fin-col-2">
-          <label>Descrição *</label>
+          <label htmlFor="cp-descricao">Descrição *</label>
           <input
+            id="cp-descricao"
             value={dados.descricao}
             onChange={(e) => set({ descricao: e.target.value })}
             placeholder="Ex.: compra de peças, conta de luz…"
             aria-invalid={!!erros.descricao}
             autoFocus
           />
-          {erros.descricao && <span className="fin-erro">{erros.descricao}</span>}
+          {erros.descricao && (
+            <span className="fin-erro" aria-live="polite">
+              {erros.descricao}
+            </span>
+          )}
         </div>
 
         <div className="fin-campo">
-          <label>Valor (R$) *</label>
+          <label htmlFor="cp-valor">Valor (R$) *</label>
           <input
+            id="cp-valor"
             inputMode="decimal"
             value={dados.valor}
             onChange={(e) => set({ valor: e.target.value })}
             placeholder="0,00"
             aria-invalid={!!erros.valor}
           />
-          {erros.valor && <span className="fin-erro">{erros.valor}</span>}
+          {erros.valor && (
+            <span className="fin-erro" aria-live="polite">
+              {erros.valor}
+            </span>
+          )}
         </div>
 
         <div className="fin-campo">
-          <label>Vencimento *</label>
+          <label htmlFor="cp-vencimento">Vencimento *</label>
           <input
+            id="cp-vencimento"
             type="date"
             value={dados.vencimento}
             onChange={(e) => set({ vencimento: e.target.value })}
             aria-invalid={!!erros.vencimento}
           />
-          {erros.vencimento && <span className="fin-erro">{erros.vencimento}</span>}
+          {erros.vencimento && (
+            <span className="fin-erro" aria-live="polite">
+              {erros.vencimento}
+            </span>
+          )}
         </div>
       </div>
 
       <div className="fin-campo">
-        <label>Observações</label>
-        <textarea rows={2} value={dados.observacoes} onChange={(e) => set({ observacoes: e.target.value })} />
+        <label htmlFor="cp-observacoes">Observações</label>
+        <textarea
+          id="cp-observacoes"
+          rows={2}
+          value={dados.observacoes}
+          onChange={(e) => set({ observacoes: e.target.value })}
+        />
       </div>
+
+      {erroSalvar && (
+        <p className="fin-erro" aria-live="polite">
+          {erroSalvar}
+        </p>
+      )}
 
       <div className="fin-acoes">
         {onCancelar && (

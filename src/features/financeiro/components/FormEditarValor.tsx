@@ -19,6 +19,7 @@ interface Props {
 export function FormEditarValor({ descricao, valorAtual, onConfirmar, onCancelar }: Props) {
   const [valor, setValor] = useState(String(valorAtual));
   const [erro, setErro] = useState('');
+  const [erroSalvar, setErroSalvar] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
 
   async function handleConfirmar() {
@@ -28,9 +29,12 @@ export function FormEditarValor({ descricao, valorAtual, onConfirmar, onCancelar
       return;
     }
     setErro('');
+    setErroSalvar(null);
     setSalvando(true);
     try {
       await onConfirmar(numero);
+    } catch (erro) {
+      setErroSalvar(erro instanceof Error ? erro.message : 'Não foi possível salvar este valor.');
     } finally {
       setSalvando(false);
     }
@@ -45,8 +49,9 @@ export function FormEditarValor({ descricao, valorAtual, onConfirmar, onCancelar
       <p className="fin-aviso">{descricao}</p>
 
       <div className="fin-campo">
-        <label>Valor (R$) *</label>
+        <label htmlFor="ev-valor">Valor (R$) *</label>
         <input
+          id="ev-valor"
           inputMode="decimal"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
@@ -54,8 +59,18 @@ export function FormEditarValor({ descricao, valorAtual, onConfirmar, onCancelar
           aria-invalid={!!erro}
           autoFocus
         />
-        {erro && <span className="fin-erro">{erro}</span>}
+        {erro && (
+          <span className="fin-erro" aria-live="polite">
+            {erro}
+          </span>
+        )}
       </div>
+
+      {erroSalvar && (
+        <p className="fin-erro" aria-live="polite">
+          {erroSalvar}
+        </p>
+      )}
 
       <div className="fin-acoes">
         {onCancelar && (

@@ -21,6 +21,7 @@ import {
 } from '../types';
 import { faturarOS } from '../services/faturamento.service';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 interface Props {
   osId: string;
@@ -36,6 +37,7 @@ const FORMAS = Object.keys(ROTULO_FORMA_PAGAMENTO) as FormaPagamento[];
 export function FormFaturamento({ osId, clienteId, valorTotal, onFaturado, onCancelar }: Props) {
   const [dados, setDados] = useState<DadosFaturamento>(dadosFaturamentoVazio());
   const [erros, setErros] = useState<ErrosValidacao>({});
+  const [erroSalvar, setErroSalvar] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
 
@@ -55,10 +57,13 @@ export function FormFaturamento({ osId, clienteId, valorTotal, onFaturado, onCan
     const e = validarFaturamento(dados);
     setErros(e);
     if (!semErros(e)) return;
+    setErroSalvar(null);
     setSalvando(true);
     try {
       await faturarOS({ osId, clienteId, valorTotal, dados });
       onFaturado();
+    } catch (erro) {
+      setErroSalvar(erro instanceof Error ? erro.message : 'Não foi possível faturar esta OS.');
     } finally {
       setSalvando(false);
     }
@@ -68,12 +73,13 @@ export function FormFaturamento({ osId, clienteId, valorTotal, onFaturado, onCan
     <div className="fin-form">
       <div className="fin-form-head">
         <h2>Faturar OS</h2>
-        <span className="fin-tag">Total: R$ {valorTotal.toFixed(2)}</span>
+        <span className="fin-tag">Total: {formatarMoeda(valorTotal)}</span>
       </div>
 
       <div className="fin-campo">
-        <label>Empresa (CNPJ) *</label>
+        <label htmlFor="ft-empresa">Empresa (CNPJ) *</label>
         <select
+          id="ft-empresa"
           value={dados.empresaId}
           onChange={(e) => set({ empresaId: e.target.value })}
           aria-invalid={!!erros.empresaId}
@@ -85,7 +91,11 @@ export function FormFaturamento({ osId, clienteId, valorTotal, onFaturado, onCan
             </option>
           ))}
         </select>
-        {erros.empresaId && <span className="fin-erro">{erros.empresaId}</span>}
+        {erros.empresaId && (
+          <span className="fin-erro" aria-live="polite">
+            {erros.empresaId}
+          </span>
+        )}
         {empresas.length === 0 && (
           <span className="fin-aviso">Cadastre uma empresa na aba Empresas antes de faturar.</span>
         )}
@@ -97,6 +107,7 @@ export function FormFaturamento({ osId, clienteId, valorTotal, onFaturado, onCan
             key={s}
             type="button"
             className={dados.situacao === s ? 'ativo' : ''}
+            aria-pressed={dados.situacao === s}
             onClick={() => set({ situacao: s })}
           >
             {ROTULO_SITUACAO[s]}
@@ -106,8 +117,9 @@ export function FormFaturamento({ osId, clienteId, valorTotal, onFaturado, onCan
 
       {dados.situacao === 'a_vista' && (
         <div className="fin-campo">
-          <label>Forma de pagamento *</label>
+          <label htmlFor="ft-forma">Forma de pagamento *</label>
           <select
+            id="ft-forma"
             value={dados.formaPagamento}
             onChange={(e) => set({ formaPagamento: e.target.value as FormaPagamento })}
             aria-invalid={!!erros.formaPagamento}
@@ -119,20 +131,29 @@ export function FormFaturamento({ osId, clienteId, valorTotal, onFaturado, onCan
               </option>
             ))}
           </select>
-          {erros.formaPagamento && <span className="fin-erro">{erros.formaPagamento}</span>}
+          {erros.formaPagamento && (
+            <span className="fin-erro" aria-live="polite">
+              {erros.formaPagamento}
+            </span>
+          )}
         </div>
       )}
 
       {dados.situacao === 'a_prazo' && (
         <div className="fin-campo">
-          <label>Vencimento *</label>
+          <label htmlFor="ft-vencimento">Vencimento *</label>
           <input
+            id="ft-vencimento"
             type="date"
             value={dados.vencimento}
             onChange={(e) => set({ vencimento: e.target.value })}
             aria-invalid={!!erros.vencimento}
           />
-          {erros.vencimento && <span className="fin-erro">{erros.vencimento}</span>}
+          {erros.vencimento && (
+            <span className="fin-erro" aria-live="polite">
+              {erros.vencimento}
+            </span>
+          )}
         </div>
       )}
 
@@ -143,6 +164,12 @@ export function FormFaturamento({ osId, clienteId, valorTotal, onFaturado, onCan
       )}
 
       <p className="fin-aviso">Depois de faturar, a OS trava e não aceita mais itens.</p>
+
+      {erroSalvar && (
+        <p className="fin-erro" aria-live="polite">
+          {erroSalvar}
+        </p>
+      )}
 
       <div className="fin-acoes">
         {onCancelar && (

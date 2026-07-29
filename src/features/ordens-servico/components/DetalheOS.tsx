@@ -91,13 +91,13 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
       </button>
 
       <div className="os-detalhe-head">
-        <div>
+        <div className="os-detalhe-titulo">
           <h1>OS #{os.numero}</h1>
           <p className="os-detalhe-sub">
             {os.clienteNome} — {os.veiculoPlaca} {os.veiculoMarcaModelo}
           </p>
         </div>
-        <div className="os-detalhe-status">
+        <div className="os-detalhe-status" aria-live="polite">
           {proximoStatus && (
             <button type="button" className="os-btn" onClick={handleAvancar} disabled={avancando}>
               {avancando ? 'Avançando…' : `Avançar para ${ROTULO_STATUS_OS[proximoStatus]}`}

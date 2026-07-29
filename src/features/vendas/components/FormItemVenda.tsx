@@ -15,6 +15,7 @@ import {
   type ErrosValidacao,
 } from '../types';
 import { type Peca, listarPecas } from '@/features/estoque';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 interface Props {
   onSalvar: (d: DadosItemVenda, peca: Peca) => Promise<void> | void;
@@ -43,7 +44,11 @@ export function FormItemVenda({ onSalvar, onCancelar }: Props) {
       e.quantidade = `Só há ${pecaSelecionada.qtd} ${pecaSelecionada.unidade} em estoque.`;
     }
     setErros(e);
-    if (!semErros(e) || !pecaSelecionada) return;
+    if (!semErros(e) || !pecaSelecionada) {
+      if (e.pecaId) document.getElementById('vd-item-peca')?.focus();
+      else if (e.quantidade) document.getElementById('vd-item-peca-quantidade')?.focus();
+      return;
+    }
 
     setSalvando(true);
     try {
@@ -63,12 +68,14 @@ export function FormItemVenda({ onSalvar, onCancelar }: Props) {
 
       <div className="vd-grid">
         <div className="vd-campo vd-col-2">
-          <label>Peça *</label>
+          <label htmlFor="vd-item-peca">Peça *</label>
           <select
+            id="vd-item-peca"
+            name="pecaId"
+            autoComplete="off"
             value={dados.pecaId}
             onChange={(e) => set({ pecaId: e.target.value })}
             aria-invalid={!!erros.pecaId}
-            autoFocus
           >
             <option value="">— selecione —</option>
             {pecas.map((p) => (
@@ -81,8 +88,11 @@ export function FormItemVenda({ onSalvar, onCancelar }: Props) {
         </div>
 
         <div className="vd-campo">
-          <label>Quantidade *</label>
+          <label htmlFor="vd-item-peca-quantidade">Quantidade *</label>
           <input
+            id="vd-item-peca-quantidade"
+            name="quantidade"
+            autoComplete="off"
             inputMode="numeric"
             value={dados.quantidade}
             onChange={(e) => set({ quantidade: e.target.value })}
@@ -93,8 +103,10 @@ export function FormItemVenda({ onSalvar, onCancelar }: Props) {
 
         {pecaSelecionada && (
           <div className="vd-campo">
-            <label>Preço unitário</label>
-            <p className="vd-valor-info">R$ {Number(pecaSelecionada.precoVenda).toFixed(2)}</p>
+            <label id="vd-item-peca-preco-label">Preço unitário</label>
+            <p className="vd-valor-info" aria-labelledby="vd-item-peca-preco-label">
+              {formatarMoeda(Number(pecaSelecionada.precoVenda))}
+            </p>
           </div>
         )}
       </div>

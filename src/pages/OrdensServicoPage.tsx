@@ -112,9 +112,16 @@ export function OrdensServicoPage() {
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por cliente, placa ou número…"
+            aria-label="Buscar ordem de serviço"
+            type="search"
+            autoComplete="off"
           />
         </div>
-        <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value as StatusOS | 'todas')}>
+        <select
+          value={filtroStatus}
+          onChange={(e) => setFiltroStatus(e.target.value as StatusOS | 'todas')}
+          aria-label="Filtrar por status"
+        >
           {OPCOES_STATUS.map((s) => (
             <option key={s} value={s}>
               {s === 'todas' ? 'Todos os status' : ROTULO_STATUS_OS[s]}
@@ -123,10 +130,11 @@ export function OrdensServicoPage() {
         </select>
       </div>
 
-      {carregando && <p>Carregando…</p>}
-      {erro && <p className="os-erro">{erro}</p>}
+      {carregando && <p aria-live="polite">Carregando…</p>}
+      {erro && <p className="os-erro" aria-live="polite">{erro}</p>}
 
       {!carregando && !erro && (
+        <div className="pg-tabela-wrap">
         <table className="pg-tabela">
           <thead>
             <tr>
@@ -142,7 +150,7 @@ export function OrdensServicoPage() {
             {filtradas.map((os) => (
               <tr key={os.id}>
                 <td>#{os.numero}</td>
-                <td>{os.clienteNome}</td>
+                <td className="pg-tabela-truncar">{os.clienteNome}</td>
                 <td>{os.veiculoPlaca}</td>
                 <td>
                   <span className={`os-badge-status os-badge-status-${os.status}`}>
@@ -164,6 +172,7 @@ export function OrdensServicoPage() {
             )}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

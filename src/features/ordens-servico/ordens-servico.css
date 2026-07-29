@@ -48,9 +48,9 @@
   outline: none;
   transition: border-color .12s;
 }
-.os-campo input:focus,
-.os-campo select:focus,
-.os-campo textarea:focus {
+.os-campo input:focus-visible,
+.os-campo select:focus-visible,
+.os-campo textarea:focus-visible {
   border-color: var(--os-borda-foco);
   box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
 }
@@ -59,7 +59,7 @@
 .os-campo textarea[aria-invalid="true"] {
   border-color: var(--os-erro);
 }
-.os-valor-info { margin: 0; padding: 9px 0; font-size: 14px; }
+.os-valor-info { margin: 0; padding: 9px 0; font-size: 14px; font-variant-numeric: tabular-nums; }
 
 .os-erro { color: var(--os-erro); font-size: 11px; }
 .os-aviso { color: var(--os-aviso); font-size: 11px; }
@@ -123,7 +123,7 @@
 .os-itens-lista { list-style: none; margin: 0; padding: 0; }
 .os-itens-lista li {
   display: grid;
-  grid-template-columns: 70px 1fr 40px 90px auto;
+  grid-template-columns: 70px minmax(0, 1fr) 40px 90px auto;
   align-items: center;
   gap: 10px;
   padding: 8px 0;
@@ -131,9 +131,9 @@
 }
 .os-itens-lista li:last-child { border-bottom: none; }
 .os-item-removido { opacity: .55; text-decoration: line-through; }
-.os-itens-descricao { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.os-itens-descricao { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .os-itens-qtd { color: var(--cor-texto-secundario); }
-.os-itens-valor { font-weight: 600; text-align: right; }
+.os-itens-valor { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 .os-itens-motivo { font-size: 11px; color: var(--cor-texto-secundario); text-decoration: none; }
 .os-itens-lista li button {
   display: inline-flex;
@@ -154,6 +154,7 @@
   font-weight: 700;
   font-size: 15px;
   margin-top: 10px;
+  font-variant-numeric: tabular-nums;
 }
 
 .os-badge {
@@ -179,10 +180,9 @@
   font-weight: 500;
   cursor: pointer;
   padding: 0 0 12px;
-  transition: gap .15s ease;
 }
-.os-voltar:hover { gap: 8px;
-}
+.os-voltar svg { transition: transform .15s ease; }
+.os-voltar:hover svg { transform: translateX(-3px); }
 .os-detalhe-head {
   display: flex;
   align-items: flex-start;
@@ -192,8 +192,14 @@
   margin-bottom: 16px;
 }
 .os-detalhe-head h1 { font-size: 20px; margin: 0; }
-.os-detalhe-sub { margin: 4px 0 0; color: var(--cor-texto-secundario); font-size: 13px; }
-.os-detalhe-status { display: flex; align-items: center; gap: 10px; }
+.os-detalhe-titulo { min-width: 0; }
+.os-detalhe-sub {
+  margin: 4px 0 0;
+  color: var(--cor-texto-secundario);
+  font-size: 13px;
+  overflow-wrap: break-word;
+}
+.os-detalhe-status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 .os-badge-status {
   font-size: 12px;

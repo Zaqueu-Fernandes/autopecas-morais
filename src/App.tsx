@@ -56,14 +56,17 @@ function App() {
 
   return (
     <div className="app">
+      <a href="#app-conteudo" className="app-skip-link">Pular para o conteúdo principal</a>
       <InstalarPwaBanner />
       <header className="app-header">
         <img
           src="/pwa-icon-512.png"
           alt="Autopeças Morais — Cuidando da vida do seu carro"
           className="app-logo"
+          width={512}
+          height={512}
         />
-        <nav className="app-nav">
+        <nav className="app-nav" aria-label="Navegação principal">
           {ABAS.map((a) => {
             const Icone = a.Icone;
             return (
@@ -71,25 +74,32 @@ function App() {
                 key={a.id}
                 type="button"
                 className={a.id === abaAtiva ? 'app-nav-btn ativo' : 'app-nav-btn'}
+                aria-current={a.id === abaAtiva ? 'page' : undefined}
                 onClick={() => setAbaAtiva(a.id)}
               >
-                <Icone size={16} />
+                <Icone size={16} aria-hidden="true" />
                 {a.label}
               </button>
             );
           })}
         </nav>
         <span className="app-usuario">
-          {perfil?.nome ?? sessao.user.email}
+          <span className="app-usuario-nome">{perfil?.nome ?? sessao.user.email}</span>
           {perfil && <span className="app-usuario-papel">{perfil.papel}</span>}
         </span>
         <AlternarFormatoImpressao />
         <AlternarTema />
-        <button type="button" className="app-sair-btn" onClick={() => sair()} title="Sair">
-          <LogOut size={16} />
+        <button
+          type="button"
+          className="app-sair-btn"
+          onClick={() => sair()}
+          title="Sair"
+          aria-label="Sair da conta"
+        >
+          <LogOut size={16} aria-hidden="true" />
         </button>
       </header>
-      <main className="app-conteudo">
+      <main className="app-conteudo" id="app-conteudo">
         <AbaAtual />
       </main>
       <Rodape />

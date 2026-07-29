@@ -103,7 +103,7 @@ export function VeiculosDoCliente({ clienteId }: Props) {
             setMostrarForm(true);
           }}
         >
-          <CarFront size={16} /> Novo veículo
+          <CarFront size={16} aria-hidden="true" /> Novo veículo
         </button>
       </div>
 
@@ -131,10 +131,10 @@ export function VeiculosDoCliente({ clienteId }: Props) {
                     setMostrarForm(true);
                   }}
                 >
-                  <Pencil size={13} /> Editar
+                  <Pencil size={13} aria-hidden="true" /> Editar
                 </button>
                 <button type="button" onClick={() => handleExcluir(v)}>
-                  <Trash2 size={13} /> Excluir
+                  <Trash2 size={13} aria-hidden="true" /> Excluir
                 </button>
               </span>
             </li>

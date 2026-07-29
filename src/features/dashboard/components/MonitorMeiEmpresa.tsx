@@ -29,22 +29,24 @@ export function MonitorMeiEmpresa({ empresa }: Props) {
   return (
     <div className="dash-monitor-empresa">
       <h3>{empresa.nomeFantasia}</h3>
-      {resumo === null ? (
-        <p>Carregando…</p>
-      ) : (
-        <>
-          <MonitorMei
-            regime={empresa.regime}
-            faturamentoAno={resumo.faturamentoAno}
-            limiteAnualMei={Number(empresa.limiteAnualMei)}
-          />
-          <MonitorCustoAquisicao
-            regime={empresa.regime}
-            custoAquisicaoAno={resumo.custoAquisicaoAno}
-            limiteAnualMei={Number(empresa.limiteAnualMei)}
-          />
-        </>
-      )}
+      <div aria-live="polite">
+        {resumo === null ? (
+          <p>Carregando…</p>
+        ) : (
+          <>
+            <MonitorMei
+              regime={empresa.regime}
+              faturamentoAno={resumo.faturamentoAno}
+              limiteAnualMei={Number(empresa.limiteAnualMei)}
+            />
+            <MonitorCustoAquisicao
+              regime={empresa.regime}
+              custoAquisicaoAno={resumo.custoAquisicaoAno}
+              limiteAnualMei={Number(empresa.limiteAnualMei)}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 }

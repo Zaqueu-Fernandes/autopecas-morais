@@ -34,6 +34,7 @@ import { type Categoria, listarCategorias } from '@/features/categorias';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { buscarResumoDashboard } from '@/features/dashboard';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 /** Espelha ROTULO_PERIODICIDADE de despesas/types.ts — só pra exibir a tag aqui. */
 const ROTULO_PERIODICIDADE: Record<Periodicidade, string> = {
@@ -119,7 +120,7 @@ export function FinanceiroPage() {
         const ok = await confirmar({
           titulo: 'Resultado do mês vai ficar negativo',
           tom: 'aviso',
-          mensagem: `Essa conta a pagar deixa o resultado do mês desta empresa negativo (R$ ${projetado.toFixed(2)}). É uma situação real de negócio, não um erro — o sistema não bloqueia, só avisa antes de lançar.`,
+          mensagem: `Essa conta a pagar deixa o resultado do mês desta empresa negativo (${formatarMoeda(projetado)}). É uma situação real de negócio, não um erro — o sistema não bloqueia, só avisa antes de lançar.`,
           textoConfirmar: 'Lançar mesmo assim',
         });
         if (!ok) return;
@@ -159,7 +160,7 @@ export function FinanceiroPage() {
         const ok = await confirmar({
           titulo: 'Saldo de caixa do mês vai ficar negativo',
           tom: 'aviso',
-          mensagem: `Esse pagamento deixa o saldo de caixa do mês desta empresa negativo (R$ ${projetado.toFixed(2)}). É uma situação real de negócio, não um erro — o sistema não bloqueia, só avisa antes de quitar.`,
+          mensagem: `Esse pagamento deixa o saldo de caixa do mês desta empresa negativo (${formatarMoeda(projetado)}). É uma situação real de negócio, não um erro — o sistema não bloqueia, só avisa antes de quitar.`,
           textoConfirmar: 'Pagar mesmo assim',
         });
         if (!ok) return;
@@ -183,7 +184,7 @@ export function FinanceiroPage() {
       titulo: 'Excluir este lançamento?',
       tom: 'perigo',
       mensagem: [
-        `"${l.descricao}" — R$ ${l.valor.toFixed(2)} vai ser apagado definitivamente, sem deixar rastro no histórico.`,
+        `"${l.descricao}" — ${formatarMoeda(l.valor)} vai ser apagado definitivamente, sem deixar rastro no histórico.`,
         'Só é permitido porque ele ainda está pendente e não está vinculado a nenhuma OS/venda faturada — se já tivesse sido quitado ou tivesse vínculo, a opção seria "Estornar" em vez de excluir.',
       ],
       textoConfirmar: 'Sim, excluir definitivamente',
@@ -209,7 +210,7 @@ export function FinanceiroPage() {
     const consequencias: string[] = [];
     if (l.pago) {
       consequencias.push(
-        `Como já foi quitado, vai gerar um lançamento de contrapartida (R$ ${l.valor.toFixed(2)}, categoria "Estorno") representando o dinheiro saindo/voltando de verdade.`,
+        `Como já foi quitado, vai gerar um lançamento de contrapartida (${formatarMoeda(l.valor)}, categoria "Estorno") representando o dinheiro saindo/voltando de verdade.`,
       );
     } else {
       consequencias.push('Ainda estava pendente — só sai das contas a pagar/receber, sem gerar contrapartida financeira.');
@@ -221,7 +222,7 @@ export function FinanceiroPage() {
     const ok = await confirmar({
       titulo: 'Confirmar estorno',
       tom: 'perigo',
-      mensagem: [`"${l.descricao}" — R$ ${l.valor.toFixed(2)}.`, ...consequencias],
+      mensagem: [`"${l.descricao}" — ${formatarMoeda(l.valor)}.`, ...consequencias],
       textoConfirmar: 'Sim, estornar',
     });
     if (!ok) return;
@@ -259,7 +260,7 @@ export function FinanceiroPage() {
   if (lancamentoParaEstornar) {
     return (
       <FormEstorno
-        descricao={`${lancamentoParaEstornar.descricao} — R$ ${lancamentoParaEstornar.valor.toFixed(2)}`}
+        descricao={`${lancamentoParaEstornar.descricao} — ${formatarMoeda(lancamentoParaEstornar.valor)}`}
         precisaFormaPagamento={lancamentoParaEstornar.pago}
         onConfirmar={handleEstornar}
         onCancelar={() => setLancamentoParaEstornar(null)}
@@ -276,7 +277,7 @@ export function FinanceiroPage() {
       l.tipo === 'pagar' ? 'Pagar' : 'Receber',
       rotuloCategoria(l, categorias),
       l.descricao,
-      `R$ ${l.valor.toFixed(2)}`,
+      formatarMoeda(l.valor),
       l.vencimento ? new Date(l.vencimento).toLocaleDateString('pt-BR') : '—',
       l.estornado ? 'Estornado' : l.pago ? 'Quitado' : 'Pendente',
     ]),
@@ -295,7 +296,11 @@ export function FinanceiroPage() {
       </div>
 
       <div className="pg-filtros">
-        <select value={filtroEmpresa} onChange={(e) => setFiltroEmpresa(e.target.value)}>
+        <select
+          value={filtroEmpresa}
+          onChange={(e) => setFiltroEmpresa(e.target.value)}
+          aria-label="Filtrar por empresa"
+        >
           <option value="">Todas as empresas</option>
           {empresas.map((emp) => (
             <option key={emp.id} value={emp.id}>
@@ -303,22 +308,31 @@ export function FinanceiroPage() {
             </option>
           ))}
         </select>
-        <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value as FiltroTipo)}>
+        <select
+          value={filtroTipo}
+          onChange={(e) => setFiltroTipo(e.target.value as FiltroTipo)}
+          aria-label="Filtrar por tipo"
+        >
           <option value="todos">Pagar e receber</option>
           <option value="pagar">Só a pagar</option>
           <option value="receber">Só a receber</option>
         </select>
-        <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value as FiltroStatus)}>
+        <select
+          value={filtroStatus}
+          onChange={(e) => setFiltroStatus(e.target.value as FiltroStatus)}
+          aria-label="Filtrar por status"
+        >
           <option value="pendentes">Pendentes</option>
           <option value="quitados">Quitados</option>
           <option value="todos">Todos</option>
         </select>
       </div>
 
-      {carregando && <p>Carregando…</p>}
-      {erro && <p className="fin-erro">{erro}</p>}
+      {carregando && <p aria-live="polite">Carregando…</p>}
+      {erro && <p className="fin-erro" aria-live="polite">{erro}</p>}
 
       {!carregando && !erro && (
+        <div className="pg-tabela-wrap">
         <table className="pg-tabela">
           <thead>
             <tr>
@@ -345,8 +359,8 @@ export function FinanceiroPage() {
                   {rotuloCategoria(l, categorias)}
                   {l.periodicidade && <span className="fin-tag">{ROTULO_PERIODICIDADE[l.periodicidade]}</span>}
                 </td>
-                <td>{l.descricao}</td>
-                <td>R$ {l.valor.toFixed(2)}</td>
+                <td className="pg-tabela-truncar">{l.descricao}</td>
+                <td>{formatarMoeda(l.valor)}</td>
                 <td>{l.vencimento ? new Date(l.vencimento).toLocaleDateString('pt-BR') : '—'}</td>
                 <td>
                   <span
@@ -388,6 +402,7 @@ export function FinanceiroPage() {
             )}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

@@ -6,7 +6,7 @@
  */
 
 const NUMERO_WHATSAPP = '5588994014262';
-const NUMERO_EXIBICAO = '88 9 9401-4262';
+const NUMERO_EXIBICAO = '88 9 9401-4262';
 
 function IconeWhatsApp({ size = 16 }: { size?: number }) {
   return (

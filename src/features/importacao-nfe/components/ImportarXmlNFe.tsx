@@ -16,6 +16,7 @@ import { verificarNFeJaImportada, registrarNFeImportada } from '../services/nfeI
 import { type Fornecedor, buscarFornecedorPorCnpj, criarFornecedor } from '@/features/cadastros';
 import { type Peca, listarPecas, criarPeca, pecaVazia, registrarEntrada } from '@/features/estoque';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 type Etapa = 'selecionar' | 'revisar' | 'concluido';
 
@@ -225,7 +226,7 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
       <div className="nfe-form">
         <div className="nfe-form-head">
           <h2>Revisar importação — NF-e nº {dados.numero || '—'}</h2>
-          <span className="nfe-tag">Total da nota: R$ {dados.valorTotal.toFixed(2)}</span>
+          <span className="nfe-tag">Total da nota: {formatarMoeda(dados.valorTotal)}</span>
         </div>
 
         <div className="nfe-fornecedor">
@@ -244,8 +245,9 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
         </div>
 
         <div className="est-campo">
-          <label>Empresa (CNPJ) que recebeu a nota *</label>
+          <label htmlFor="nfe-empresa">Empresa (CNPJ) que recebeu a nota *</label>
           <select
+            id="nfe-empresa"
             value={empresaId}
             onChange={(e) => setEmpresaId(e.target.value)}
             aria-invalid={!empresaId}
@@ -262,71 +264,89 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
           )}
         </div>
 
-        {erro && <p className="est-erro">{erro}</p>}
+        {erro && (
+          <p className="est-erro" aria-live="polite">
+            {erro}
+          </p>
+        )}
 
-        <table className="nfe-tabela">
-          <thead>
-            <tr>
-              <th></th>
-              <th>Item da nota</th>
-              <th>Peça no estoque</th>
-              <th>Quantidade</th>
-              <th>Custo unit. (R$)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dados.itens.map((item, i) => {
-              const map = mapeamento[i];
-              if (!map) return null;
-              return (
-                <tr key={i} className={!map.incluir ? 'nfe-linha-excluida' : ''}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={map.incluir}
-                      onChange={(e) => atualizarItem(i, { incluir: e.target.checked })}
-                    />
-                  </td>
-                  <td>
-                    <strong>{item.descricao}</strong>
-                    <br />
-                    <span className="nfe-item-codigo">Cód. na nota: {item.codigoProduto || '—'}</span>
-                  </td>
-                  <td>
-                    <select
-                      value={map.pecaId}
-                      disabled={!map.incluir}
-                      onChange={(e) => atualizarItem(i, { pecaId: e.target.value })}
-                    >
-                      <option value="nova">— criar peça nova —</option>
-                      {pecas.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nome} {p.codigo && `(${p.codigo})`}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <input
-                      inputMode="numeric"
-                      value={map.quantidade}
-                      disabled={!map.incluir}
-                      onChange={(e) => atualizarItem(i, { quantidade: e.target.value })}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      inputMode="decimal"
-                      value={map.custoUnit}
-                      disabled={!map.incluir}
-                      onChange={(e) => atualizarItem(i, { custoUnit: e.target.value })}
-                    />
-                  </td>
+        {dados.itens.length === 0 ? (
+          <p className="nfe-instrucao">Nenhum item pra importar — esta nota não trouxe itens.</p>
+        ) : (
+          <div className="nfe-tabela-wrap">
+            <table className="nfe-tabela">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Item da nota</th>
+                  <th>Peça no estoque</th>
+                  <th>Quantidade</th>
+                  <th>Custo unit. (R$)</th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {dados.itens.map((item, i) => {
+                  const map = mapeamento[i];
+                  if (!map) return null;
+                  return (
+                    <tr key={i} className={!map.incluir ? 'nfe-linha-excluida' : ''}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={map.incluir}
+                          aria-label={`Incluir "${item.descricao}" na importação`}
+                          onChange={(e) => atualizarItem(i, { incluir: e.target.checked })}
+                        />
+                      </td>
+                      <td>
+                        <strong>{item.descricao}</strong>
+                        <br />
+                        <span className="nfe-item-codigo">Cód. na nota: {item.codigoProduto || '—'}</span>
+                      </td>
+                      <td>
+                        <select
+                          value={map.pecaId}
+                          disabled={!map.incluir}
+                          aria-label="Peça no estoque"
+                          onChange={(e) => atualizarItem(i, { pecaId: e.target.value })}
+                        >
+                          <option value="nova">— criar peça nova —</option>
+                          {pecas.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.nome} {p.codigo && `(${p.codigo})`}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          inputMode="numeric"
+                          name={`quantidade-${i}`}
+                          autoComplete="off"
+                          value={map.quantidade}
+                          disabled={!map.incluir}
+                          aria-label="Quantidade"
+                          onChange={(e) => atualizarItem(i, { quantidade: e.target.value })}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          inputMode="decimal"
+                          name={`custo-unitario-${i}`}
+                          autoComplete="off"
+                          value={map.custoUnit}
+                          disabled={!map.incluir}
+                          aria-label="Custo unitário"
+                          onChange={(e) => atualizarItem(i, { custoUnit: e.target.value })}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <div className="nfe-acoes">
           <button type="button" className="est-btn-sec" onClick={aoCancelar}>
@@ -357,7 +377,11 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
         <input type="file" accept=".xml,text/xml" onChange={handleArquivo} disabled={lendo} hidden />
       </label>
 
-      {erro && <p className="est-erro">{erro}</p>}
+      {erro && (
+        <p className="est-erro" aria-live="polite">
+          {erro}
+        </p>
+      )}
 
       <div className="nfe-acoes">
         <button type="button" className="est-btn-sec" onClick={aoCancelar}>

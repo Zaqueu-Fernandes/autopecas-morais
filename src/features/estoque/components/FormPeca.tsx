@@ -21,6 +21,7 @@
 import { useEffect, useState } from 'react';
 import { type Peca, pecaVazia, validarPeca, semErros, type ErrosValidacao } from '../types';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 interface Props {
   inicial?: Peca;
@@ -61,7 +62,8 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
   function aplicarMargem(margemStr: string, custo: number) {
     const m = Number(margemStr);
     if (margemStr.trim() && !Number.isNaN(m) && custo > 0) {
-      set({ precoVenda: (custo * (1 + m / 100)).toFixed(2) });
+      // Campo usa formato pt-BR (vírgula decimal) igual o usuário digitaria na mão.
+      set({ precoVenda: (custo * (1 + m / 100)).toFixed(2).replace('.', ',') });
     }
   }
 
@@ -75,10 +77,26 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
     if (margem.trim()) aplicarMargem(margem, Number(valor || 0));
   }
 
+  /** Foca o primeiro campo com erro, na ordem em que aparecem no formulário. */
+  function focarPrimeiroErro(e: ErrosValidacao) {
+    const ordem: Array<[string, string]> = [
+      ['nome', 'est-peca-nome'],
+      ['qtdInicial', 'est-peca-qtd-inicial'],
+      ['custoInicial', 'est-peca-custo-inicial'],
+      ['empresaIdInicial', 'est-peca-empresa-inicial'],
+      ['precoVenda', 'est-peca-preco-venda'],
+    ];
+    const primeiro = ordem.find(([chave]) => e[chave]);
+    if (primeiro) document.getElementById(primeiro[1])?.focus();
+  }
+
   async function handleSalvar() {
     const e = validarPeca(peca);
     setErros(e);
-    if (!semErros(e)) return;
+    if (!semErros(e)) {
+      focarPrimeiroErro(e);
+      return;
+    }
 
     setSalvando(true);
     try {
@@ -94,15 +112,18 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
         <h2>{peca.id ? 'Editar peça' : 'Nova peça'}</h2>
         {peca.id && (
           <span className="est-tag">
-            Estoque: {peca.qtd} {peca.unidade} · Custo: R$ {peca.precoCusto.toFixed(2)}
+            Estoque: {peca.qtd} {peca.unidade} · Custo: {formatarMoeda(peca.precoCusto)}
           </span>
         )}
       </div>
 
       <div className="est-grid">
         <div className="est-campo est-col-2">
-          <label>Nome *</label>
+          <label htmlFor="est-peca-nome">Nome *</label>
           <input
+            id="est-peca-nome"
+            name="nome"
+            autoComplete="off"
             value={peca.nome}
             onChange={(e) => set({ nome: e.target.value })}
             aria-invalid={!!erros.nome}
@@ -112,8 +133,12 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
         </div>
 
         <div className="est-campo">
-          <label>Código / SKU</label>
+          <label htmlFor="est-peca-codigo">Código / SKU</label>
           <input
+            id="est-peca-codigo"
+            name="codigo"
+            autoComplete="off"
+            spellCheck={false}
             value={peca.codigo}
             onChange={(e) => set({ codigo: e.target.value })}
             placeholder="Opcional"
@@ -121,8 +146,11 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
         </div>
 
         <div className="est-campo">
-          <label>Categoria</label>
+          <label htmlFor="est-peca-categoria">Categoria</label>
           <input
+            id="est-peca-categoria"
+            name="categoria"
+            autoComplete="off"
             value={peca.categoria}
             onChange={(e) => set({ categoria: e.target.value })}
             placeholder="Ex.: filtros, freios…"
@@ -130,8 +158,11 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
         </div>
 
         <div className="est-campo">
-          <label>Unidade</label>
+          <label htmlFor="est-peca-unidade">Unidade</label>
           <input
+            id="est-peca-unidade"
+            name="unidade"
+            autoComplete="off"
             value={peca.unidade}
             onChange={(e) => set({ unidade: e.target.value })}
             placeholder="un, cx, litro, kg…"
@@ -150,8 +181,9 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
         {ehNova && (
           <>
             <div className="est-campo">
-              <label>Quantidade inicial</label>
+              <label htmlFor="est-peca-qtd-inicial">Quantidade inicial</label>
               <input
+                id="est-peca-qtd-inicial"
                 inputMode="numeric"
                 value={peca.qtdInicial}
                 onChange={(e) => set({ qtdInicial: e.target.value })}
@@ -162,8 +194,11 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
             </div>
 
             <div className="est-campo">
-              <label>Custo unitário (R$){peca.qtdInicial?.trim() ? ' *' : ''}</label>
+              <label htmlFor="est-peca-custo-inicial">
+                Custo unitário (R$){peca.qtdInicial?.trim() ? ' *' : ''}
+              </label>
               <input
+                id="est-peca-custo-inicial"
                 inputMode="decimal"
                 value={peca.custoInicial}
                 onChange={(e) => handleCustoInicialChange(e.target.value)}
@@ -174,8 +209,11 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
             </div>
 
             <div className="est-campo">
-              <label>Empresa (CNPJ) da nota{peca.qtdInicial?.trim() ? ' *' : ''}</label>
+              <label htmlFor="est-peca-empresa-inicial">
+                Empresa (CNPJ) da nota{peca.qtdInicial?.trim() ? ' *' : ''}
+              </label>
               <select
+                id="est-peca-empresa-inicial"
                 value={peca.empresaIdInicial}
                 onChange={(e) => set({ empresaIdInicial: e.target.value })}
                 aria-invalid={!!erros.empresaIdInicial}
@@ -193,24 +231,27 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
         )}
 
         <div className="est-campo">
-          <label>Margem de lucro (%)</label>
+          <label htmlFor="est-peca-margem">Margem de lucro (%)</label>
           <input
+            id="est-peca-margem"
             inputMode="decimal"
             value={margem}
             onChange={(e) => handleMargemChange(e.target.value)}
             placeholder="Ex.: 40"
             disabled={custoBase <= 0}
+            aria-describedby={custoBase <= 0 ? 'est-peca-margem-ajuda' : undefined}
           />
           {custoBase <= 0 && (
-            <span className="est-aviso">
+            <span className="est-aviso" id="est-peca-margem-ajuda">
               {ehNova ? 'Informe o custo unitário pra calcular a partir da margem.' : 'Esta peça ainda não tem custo registrado.'}
             </span>
           )}
         </div>
 
         <div className="est-campo">
-          <label>Preço de venda (R$)</label>
+          <label htmlFor="est-peca-preco-venda">Preço de venda (R$)</label>
           <input
+            id="est-peca-preco-venda"
             inputMode="decimal"
             value={peca.precoVenda}
             onChange={(e) => set({ precoVenda: e.target.value })}
@@ -223,8 +264,9 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
       </div>
 
       <div className="est-campo">
-        <label>Descrição</label>
+        <label htmlFor="est-peca-descricao">Descrição</label>
         <textarea
+          id="est-peca-descricao"
           rows={2}
           value={peca.descricao}
           onChange={(e) => set({ descricao: e.target.value })}
@@ -232,8 +274,9 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
       </div>
 
       <div className="est-campo">
-        <label>Observações</label>
+        <label htmlFor="est-peca-observacoes">Observações</label>
         <textarea
+          id="est-peca-observacoes"
           rows={2}
           value={peca.observacoes}
           onChange={(e) => set({ observacoes: e.target.value })}

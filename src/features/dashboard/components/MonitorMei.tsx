@@ -7,6 +7,7 @@
  */
 
 import type { RegimeTributario } from '@/features/empresa';
+import { formatarMoeda, formatarPercentual } from '@/shared/utils/formatadores';
 
 interface Props {
   regime: RegimeTributario;
@@ -31,13 +32,16 @@ export function MonitorMei({ regime, faturamentoAno, limiteAnualMei }: Props) {
     <div className={`dash-mei dash-mei-${tom}`}>
       <div className="dash-mei-cabecalho">
         <strong>Monitor de faturamento MEI</strong>
-        <span>{percentual.toFixed(0)}% do limite anual</span>
+        <span>{formatarPercentual(percentual)} do limite anual</span>
       </div>
       <div className="dash-mei-barra">
-        <div className="dash-mei-barra-preenchida" style={{ width: `${Math.min(percentual, 100)}%` }} />
+        <div
+          className="dash-mei-barra-preenchida"
+          style={{ transform: `scaleX(${Math.min(percentual, 100) / 100})` }}
+        />
       </div>
       <p className="dash-mei-detalhe">
-        R$ {faturamentoAno.toFixed(2)} faturados de R$ {limiteAnualMei.toFixed(2)} permitidos este ano
+        {formatarMoeda(faturamentoAno)} faturados de {formatarMoeda(limiteAnualMei)} permitidos este ano
       </p>
       {tom === 'perigo' && (
         <p className="dash-mei-mensagem">

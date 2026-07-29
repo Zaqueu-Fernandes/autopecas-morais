@@ -25,15 +25,19 @@ const FORMAS = Object.keys(ROTULO_FORMA_PAGAMENTO) as FormaPagamento[];
 export function FormQuitacao({ titulo, onConfirmar, onCancelar }: Props) {
   const [dados, setDados] = useState<DadosQuitacao>({ formaPagamento: '' });
   const [erros, setErros] = useState<ErrosValidacao>({});
+  const [erroSalvar, setErroSalvar] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
 
   async function handleConfirmar() {
     const e = validarQuitacao(dados);
     setErros(e);
     if (!semErros(e) || !dados.formaPagamento) return;
+    setErroSalvar(null);
     setSalvando(true);
     try {
       await onConfirmar(dados.formaPagamento);
+    } catch (erro) {
+      setErroSalvar(erro instanceof Error ? erro.message : 'Não foi possível confirmar esta quitação.');
     } finally {
       setSalvando(false);
     }
@@ -46,8 +50,9 @@ export function FormQuitacao({ titulo, onConfirmar, onCancelar }: Props) {
       </div>
 
       <div className="fin-campo">
-        <label>Forma de pagamento *</label>
+        <label htmlFor="qt-forma">Forma de pagamento *</label>
         <select
+          id="qt-forma"
           value={dados.formaPagamento}
           onChange={(e) => setDados({ formaPagamento: e.target.value as FormaPagamento })}
           aria-invalid={!!erros.formaPagamento}
@@ -60,8 +65,18 @@ export function FormQuitacao({ titulo, onConfirmar, onCancelar }: Props) {
             </option>
           ))}
         </select>
-        {erros.formaPagamento && <span className="fin-erro">{erros.formaPagamento}</span>}
+        {erros.formaPagamento && (
+          <span className="fin-erro" aria-live="polite">
+            {erros.formaPagamento}
+          </span>
+        )}
       </div>
+
+      {erroSalvar && (
+        <p className="fin-erro" aria-live="polite">
+          {erroSalvar}
+        </p>
+      )}
 
       <div className="fin-acoes">
         {onCancelar && (

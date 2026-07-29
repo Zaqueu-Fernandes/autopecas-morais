@@ -49,7 +49,12 @@ export function FormOS({ onSalvar, onCancelar }: Props) {
   async function handleSalvar() {
     const e = validarOS(os);
     setErros(e);
-    if (!semErros(e)) return;
+    if (!semErros(e)) {
+      if (e.clienteId) document.getElementById('os-form-cliente')?.focus();
+      else if (e.veiculoId) document.getElementById('os-form-veiculo')?.focus();
+      else if (e.descricaoProblema) document.getElementById('os-form-problema')?.focus();
+      return;
+    }
     setSalvando(true);
     try {
       await onSalvar(os);
@@ -66,12 +71,14 @@ export function FormOS({ onSalvar, onCancelar }: Props) {
 
       <div className="os-grid">
         <div className="os-campo">
-          <label>Cliente *</label>
+          <label htmlFor="os-form-cliente">Cliente *</label>
           <select
+            id="os-form-cliente"
+            name="clienteId"
+            autoComplete="off"
             value={os.clienteId}
             onChange={(e) => set({ clienteId: e.target.value, veiculoId: '' })}
             aria-invalid={!!erros.clienteId}
-            autoFocus
           >
             <option value="">— selecione —</option>
             {clientes.map((c) => (
@@ -84,8 +91,11 @@ export function FormOS({ onSalvar, onCancelar }: Props) {
         </div>
 
         <div className="os-campo">
-          <label>Veículo *</label>
+          <label htmlFor="os-form-veiculo">Veículo *</label>
           <select
+            id="os-form-veiculo"
+            name="veiculoId"
+            autoComplete="off"
             value={os.veiculoId}
             onChange={(e) => set({ veiculoId: e.target.value })}
             disabled={!os.clienteId || carregandoVeiculos}
@@ -110,8 +120,11 @@ export function FormOS({ onSalvar, onCancelar }: Props) {
       </div>
 
       <div className="os-campo">
-        <label>Problema relatado *</label>
+        <label htmlFor="os-form-problema">Problema relatado *</label>
         <textarea
+          id="os-form-problema"
+          name="descricaoProblema"
+          autoComplete="off"
           rows={3}
           value={os.descricaoProblema}
           onChange={(e) => set({ descricaoProblema: e.target.value })}
@@ -122,8 +135,11 @@ export function FormOS({ onSalvar, onCancelar }: Props) {
       </div>
 
       <div className="os-campo">
-        <label>Observações</label>
+        <label htmlFor="os-form-observacoes">Observações</label>
         <textarea
+          id="os-form-observacoes"
+          name="observacoes"
+          autoComplete="off"
           rows={2}
           value={os.observacoes}
           onChange={(e) => set({ observacoes: e.target.value })}

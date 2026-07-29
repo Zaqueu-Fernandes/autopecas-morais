@@ -28,6 +28,7 @@ import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 function descricaoVencimento(d: DespesaFixa): string {
   if (d.periodicidade === 'semanal') return DIAS_SEMANA[Number(d.diaVencimento)] ?? '—';
@@ -173,7 +174,7 @@ export function DespesasFixasPage() {
     linhas: despesas.map((d) => [
       d.descricao,
       nomeCategoria(d.categoria),
-      `R$ ${Number(d.valor).toFixed(2)}${d.tipoValor === 'variavel' ? ' (média)' : ''}`,
+      `${formatarMoeda(Number(d.valor))}${d.tipoValor === 'variavel' ? ' (média)' : ''}`,
       ROTULO_PERIODICIDADE[d.periodicidade],
       descricaoVencimento(d),
     ]),
@@ -199,7 +200,7 @@ export function DespesasFixasPage() {
       </div>
 
       <div className="pg-filtros">
-        <select value={empresaId} onChange={(e) => setEmpresaId(e.target.value)}>
+        <select value={empresaId} onChange={(e) => setEmpresaId(e.target.value)} aria-label="Filtrar por empresa">
           {empresas.length === 0 && <option value="">Nenhuma empresa cadastrada</option>}
           {empresas.map((emp) => (
             <option key={emp.id} value={emp.id}>
@@ -228,10 +229,11 @@ export function DespesasFixasPage() {
         </p>
       )}
 
-      {carregando && <p>Carregando…</p>}
-      {erro && <p className="dsp-erro">{erro}</p>}
+      {carregando && <p aria-live="polite">Carregando…</p>}
+      {erro && <p className="dsp-erro" aria-live="polite">{erro}</p>}
 
       {!carregando && !erro && (
+        <div className="pg-tabela-wrap">
         <table className="pg-tabela">
           <thead>
             <tr>
@@ -246,13 +248,13 @@ export function DespesasFixasPage() {
           <tbody>
             {despesas.map((d) => (
               <tr key={d.id} className={!d.ativo ? 'dsp-linha-inativa' : ''}>
-                <td>
+                <td className="pg-tabela-truncar">
                   {d.descricao}
                   {!d.ativo && <span className="dsp-tag-inativa">Inativa</span>}
                 </td>
                 <td>{nomeCategoria(d.categoria)}</td>
                 <td>
-                  R$ {Number(d.valor).toFixed(2)}
+                  {formatarMoeda(Number(d.valor))}
                   {d.tipoValor === 'variavel' && <span className="dsp-tag-media">média</span>}
                 </td>
                 <td>{ROTULO_PERIODICIDADE[d.periodicidade]}</td>
@@ -289,6 +291,7 @@ export function DespesasFixasPage() {
             )}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

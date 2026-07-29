@@ -86,9 +86,9 @@
   outline: none;
   transition: border-color .12s;
 }
-.cad-campo input:focus,
-.cad-campo select:focus,
-.cad-campo textarea:focus {
+.cad-campo input:focus-visible,
+.cad-campo select:focus-visible,
+.cad-campo textarea:focus-visible {
   border-color: var(--cad-borda-foco);
   box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
 }
@@ -218,4 +218,4 @@
   border-radius: 6px;
   transition: background-color .12s ease;
 }
-.cad-veiculos-acoes button:hover { background: #fee2e2; }
+.cad-veiculos-acoes button:hover { background: var(--cor-fundo-perigo); }

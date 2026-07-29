@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light;
   --cor-fundo: #f4f5f7;
   --cor-fundo-cartao: #ffffff;
   --cor-fundo-secundario: #eef0f3;
@@ -14,6 +15,7 @@
 }
 
 :root[data-theme='dark'] {
+  color-scheme: dark;
   --cor-fundo: #15161a;
   --cor-fundo-cartao: #1e2025;
   --cor-fundo-secundario: #2a2d33;
@@ -30,6 +32,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
+    color-scheme: dark;
     --cor-fundo: #15161a;
     --cor-fundo-cartao: #1e2025;
     --cor-fundo-secundario: #2a2d33;
@@ -47,6 +50,23 @@
 
 * { box-sizing: border-box; }
 
+/* Toque no mobile: sem delay de double-tap-zoom e sem o flash cinza padrão do navegador */
+button, a, [role='button'], input, select, textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Respeita o usuário que pediu menos animação no SO — vale pra todo o app,
+   inclusive as animações específicas de cada feature (ex.: pulso de EtapasOS) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
@@ -57,6 +77,24 @@ body {
 }
 
 .app { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Foge da tela até receber foco (Tab) — deixa quem navega por teclado pular
+   direto pro conteúdo sem passar por todos os botões do cabeçalho */
+.app-skip-link {
+  position: absolute;
+  top: -40px;
+  left: 8px;
+  z-index: 1000;
+  background: #D62839;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 0 0 8px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top .15s ease;
+}
+.app-skip-link:focus-visible { top: 0; }
 
 /* Banner de instalação do PWA */
 .pwa-banner {
@@ -163,6 +201,17 @@ body {
 
 .app-conteudo { flex: 1; padding: 20px; }
 
+/* Em telas estreitas o cabeçalho não cabe tudo numa linha só (logo + 8 abas +
+   usuário + 3 botões) — sem isso a linha estoura e o body inteiro ganha
+   scroll horizontal, o pior tipo de quebra em celular. A navegação vira uma
+   segunda linha, com largura total, deixando ela usar o wrap que já tem. */
+@media (max-width: 680px) {
+  .app-header { flex-wrap: wrap; gap: 10px; padding: 10px 14px; }
+  .app-nav { order: 3; flex: 1 1 100%; }
+  .app-logo { height: 44px; }
+  .app-usuario-nome { max-width: 38vw; }
+}
+
 /* Páginas de listagem (Clientes, Fornecedores…) */
 .pg { max-width: 900px; }
 .pg-head-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -223,7 +272,7 @@ body {
   cursor: pointer;
   transition: border-color .15s ease;
 }
-.pg-filtros select:focus { outline: none; border-color: #D62839; }
+.pg-filtros select:focus-visible { outline: none; border-color: #D62839; box-shadow: 0 0 0 3px rgba(214, 40, 57, .12); }
 
 .pg-busca-wrap { position: relative; width: 100%; max-width: 360px; margin-bottom: 16px; }
 .pg-busca-icone {
@@ -249,7 +298,16 @@ body {
   color: var(--cor-texto);
   transition: border-color .15s ease, box-shadow .15s ease;
 }
-.pg-busca:focus { border-color: #D62839; box-shadow: 0 0 0 3px rgba(214, 40, 57, .12); }
+.pg-busca:focus-visible { border-color: #D62839; box-shadow: 0 0 0 3px rgba(214, 40, 57, .12); }
+
+/* Envolve toda .pg-tabela — em telas estreitas a tabela rola na horizontal
+   dentro dessa faixa, em vez de estourar a largura da página (nunca a página
+   inteira ganha scroll horizontal). */
+.pg-tabela-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* Trunca célula de texto longo (nome/descrição) com reticências, pra não
+   esticar a coluna e empurrar as outras pra fora da tela no mobile. */
+.pg-tabela-truncar { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .pg-tabela {
   width: 100%;
@@ -265,6 +323,7 @@ body {
   text-align: left;
   padding: 10px 12px;
   border-bottom: 1px solid var(--cor-fundo-secundario);
+  font-variant-numeric: tabular-nums;
 }
 .pg-tabela th { color: var(--cor-texto-secundario); font-size: 12px; font-weight: 600; }
 .pg-tabela tbody tr { transition: background-color .12s ease; }

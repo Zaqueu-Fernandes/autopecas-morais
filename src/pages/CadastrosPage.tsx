@@ -37,6 +37,7 @@ export function CadastrosPage() {
               key={a.id}
               type="button"
               className={a.id === subAbaAtiva ? 'pg-subnav-btn ativo' : 'pg-subnav-btn'}
+              aria-current={a.id === subAbaAtiva ? 'page' : undefined}
               onClick={() => setSubAbaAtiva(a.id)}
             >
               <Icone size={14} />

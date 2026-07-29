@@ -49,7 +49,7 @@ export function InstalarPwaBanner() {
     <div className="pwa-banner">
       <div className="pwa-banner-linha">
         <div className="pwa-banner-conteudo">
-          <Download size={20} />
+          <Download size={20} aria-hidden="true" />
           <div className="pwa-banner-texto">
             <strong>Instale o Autopeças Morais</strong>
             <span>Acesso rápido direto da tela inicial — funciona até offline nos cadastros.</span>
@@ -58,7 +58,13 @@ export function InstalarPwaBanner() {
 
         <div className="pwa-banner-acoes">
           {plataforma === 'ios' ? (
-            <button type="button" className="pwa-banner-btn" onClick={() => setMostrarInstrucoesIos((v) => !v)}>
+            <button
+              type="button"
+              className="pwa-banner-btn"
+              onClick={() => setMostrarInstrucoesIos((v) => !v)}
+              aria-expanded={mostrarInstrucoesIos}
+              aria-controls="pwa-instrucoes-ios"
+            >
               Como instalar
             </button>
           ) : (
@@ -67,16 +73,16 @@ export function InstalarPwaBanner() {
             </button>
           )}
           <button type="button" className="pwa-banner-fechar" onClick={dispensar} aria-label="Fechar">
-            <X size={16} />
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
       </div>
 
       {mostrarInstrucoesIos && (
-        <div className="pwa-banner-instrucoes">
-          <Share size={14} />
+        <div className="pwa-banner-instrucoes" id="pwa-instrucoes-ios">
+          <Share size={14} aria-hidden="true" />
           Toque em <strong>Compartilhar</strong> na barra do Safari e depois em{' '}
-          <strong>"Adicionar à Tela de Início"</strong>.
+          <strong>“Adicionar à Tela de Início”</strong>.
         </div>
       )}
     </div>

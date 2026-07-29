@@ -19,6 +19,7 @@ import {
   ROTULO_REGIME,
 } from '@/features/empresa';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 export function EmpresasPage() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
@@ -51,7 +52,7 @@ export function EmpresasPage() {
       e.nomeFantasia,
       e.cnpj || '—',
       ROTULO_REGIME[e.regime],
-      e.regime === 'MEI' ? `R$ ${Number(e.limiteAnualMei).toFixed(2)}` : '—',
+      e.regime === 'MEI' ? formatarMoeda(Number(e.limiteAnualMei)) : '—',
     ]),
   };
 
@@ -101,10 +102,11 @@ export function EmpresasPage() {
         </p>
       )}
 
-      {carregando && <p>Carregando…</p>}
-      {erro && <p className="emp-erro">{erro}</p>}
+      {carregando && <p aria-live="polite">Carregando…</p>}
+      {erro && <p className="emp-erro" aria-live="polite">{erro}</p>}
 
       {!carregando && !erro && empresas.length > 0 && (
+        <div className="pg-tabela-wrap">
         <table className="pg-tabela">
           <thead>
             <tr>
@@ -121,7 +123,7 @@ export function EmpresasPage() {
                 <td>{e.nomeFantasia}</td>
                 <td>{e.cnpj || '—'}</td>
                 <td>{ROTULO_REGIME[e.regime]}</td>
-                <td>{e.regime === 'MEI' ? `R$ ${Number(e.limiteAnualMei).toFixed(2)}` : '—'}</td>
+                <td>{e.regime === 'MEI' ? formatarMoeda(Number(e.limiteAnualMei)) : '—'}</td>
                 <td className="pg-acoes-linha">
                   <button
                     type="button"
@@ -137,6 +139,7 @@ export function EmpresasPage() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

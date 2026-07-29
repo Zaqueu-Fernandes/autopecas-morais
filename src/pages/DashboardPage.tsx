@@ -16,6 +16,7 @@ import {
   MonitorMeiEmpresa,
   buscarResumoDashboard,
 } from '@/features/dashboard';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 export function DashboardPage() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
@@ -49,8 +50,8 @@ export function DashboardPage() {
       .catch(() => setErro('Não foi possível carregar o resumo financeiro.'));
   }, [empresaSelecionadaId]);
 
-  if (carregando) return <p>Carregando…</p>;
-  if (erro) return <p className="dash-erro">{erro}</p>;
+  if (carregando) return <p aria-live="polite">Carregando…</p>;
+  if (erro) return <p className="dash-erro" aria-live="polite">{erro}</p>;
 
   if (empresas.length === 0) {
     return (
@@ -79,7 +80,11 @@ export function DashboardPage() {
       </div>
 
       <div className="pg-filtros">
-        <select value={empresaSelecionadaId} onChange={(e) => setEmpresaSelecionadaId(e.target.value)}>
+        <select
+          value={empresaSelecionadaId}
+          onChange={(e) => setEmpresaSelecionadaId(e.target.value)}
+          aria-label="Filtrar por empresa"
+        >
           {empresas.map((emp) => (
             <option key={emp.id} value={emp.id}>
               {emp.nomeFantasia}
@@ -92,38 +97,38 @@ export function DashboardPage() {
         <div className="dash-grid">
           <CartaoResumo
             titulo="Faturamento do mês"
-            valor={`R$ ${resumo.faturamentoMes.toFixed(2)}`}
+            valor={formatarMoeda(resumo.faturamentoMes)}
             icone={<Wallet size={15} />}
           />
           <CartaoResumo
             titulo="Despesas do mês"
-            valor={`R$ ${resumo.despesasMes.toFixed(2)}`}
+            valor={formatarMoeda(resumo.despesasMes)}
             icone={<Receipt size={15} />}
           />
           <CartaoResumo
             titulo="Resultado do mês"
-            valor={`R$ ${resumo.resultadoMes.toFixed(2)}`}
+            valor={formatarMoeda(resumo.resultadoMes)}
             tom={resumo.resultadoMes < 0 ? 'perigo' : 'neutro'}
             icone={<Scale size={15} />}
           />
           <CartaoResumo
             titulo="Faturamento do ano"
-            valor={`R$ ${resumo.faturamentoAno.toFixed(2)}`}
+            valor={formatarMoeda(resumo.faturamentoAno)}
             icone={<CalendarRange size={15} />}
           />
           <CartaoResumo
             titulo="A receber (pendente)"
-            valor={`R$ ${resumo.aReceberPendente.toFixed(2)}`}
+            valor={formatarMoeda(resumo.aReceberPendente)}
             icone={<HandCoins size={15} />}
           />
           <CartaoResumo
             titulo="A pagar (pendente)"
-            valor={`R$ ${resumo.aPagarPendente.toFixed(2)}`}
+            valor={formatarMoeda(resumo.aPagarPendente)}
             icone={<FileClock size={15} />}
           />
           <CartaoResumo
             titulo="Contas atrasadas"
-            valor={`${resumo.aPagarVencidoQtd} (R$ ${resumo.aPagarVencidoValor.toFixed(2)})`}
+            valor={`${resumo.aPagarVencidoQtd} (${formatarMoeda(resumo.aPagarVencidoValor)})`}
             tom={resumo.aPagarVencidoQtd > 0 ? 'perigo' : 'neutro'}
             icone={<AlertTriangle size={15} />}
           />

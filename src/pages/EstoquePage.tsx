@@ -19,6 +19,7 @@ import {
 import { ImportarXmlNFe } from '@/features/importacao-nfe';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 export function EstoquePage() {
   const { confirmar } = useConfirmacao();
@@ -89,7 +90,7 @@ export function EstoquePage() {
       p.nome,
       p.codigo || '—',
       `${p.qtd} ${p.unidade}`,
-      `R$ ${Number(p.precoVenda).toFixed(2)}`,
+      formatarMoeda(Number(p.precoVenda)),
     ]),
   };
 
@@ -147,6 +148,9 @@ export function EstoquePage() {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por nome ou código…"
+          aria-label="Buscar peça"
+          type="search"
+          autoComplete="off"
         />
       </div>
 
@@ -161,10 +165,11 @@ export function EstoquePage() {
         </label>
       </div>
 
-      {carregando && <p>Carregando…</p>}
-      {erro && <p className="est-erro">{erro}</p>}
+      {carregando && <p aria-live="polite">Carregando…</p>}
+      {erro && <p className="est-erro" aria-live="polite">{erro}</p>}
 
       {!carregando && !erro && (
+        <div className="pg-tabela-wrap">
         <table className="pg-tabela">
           <thead>
             <tr>
@@ -179,7 +184,7 @@ export function EstoquePage() {
             {filtradas.map((p) => (
               <Fragment key={p.id}>
                 <tr className={!p.ativo ? 'dsp-linha-inativa' : ''}>
-                  <td>
+                  <td className="pg-tabela-truncar">
                     {p.nome}
                     {!p.ativo && <span className="dsp-tag-inativa">Inativa</span>}
                   </td>
@@ -187,7 +192,7 @@ export function EstoquePage() {
                   <td>
                     {p.qtd} {p.unidade}
                   </td>
-                  <td>R$ {Number(p.precoVenda).toFixed(2)}</td>
+                  <td>{formatarMoeda(Number(p.precoVenda))}</td>
                   <td className="pg-acoes-linha">
                     <button
                       type="button"
@@ -209,6 +214,7 @@ export function EstoquePage() {
                     )}
                     <button
                       type="button"
+                      aria-expanded={pecaExpandidaId === p.id}
                       onClick={() => setPecaExpandidaId(pecaExpandidaId === p.id ? null : p.id!)}
                     >
                       <History size={13} /> Movimentações
@@ -232,6 +238,7 @@ export function EstoquePage() {
             )}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

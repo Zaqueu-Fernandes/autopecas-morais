@@ -101,13 +101,17 @@ export function FornecedoresPage() {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por nome, telefone ou CNPJ…"
+          aria-label="Buscar fornecedor"
+          type="search"
+          autoComplete="off"
         />
       </div>
 
-      {carregando && <p>Carregando…</p>}
-      {erro && <p className="cad-erro">{erro}</p>}
+      {carregando && <p aria-live="polite">Carregando…</p>}
+      {erro && <p className="cad-erro" aria-live="polite">{erro}</p>}
 
       {!carregando && !erro && (
+        <div className="pg-tabela-wrap">
         <table className="pg-tabela">
           <thead>
             <tr>
@@ -120,7 +124,7 @@ export function FornecedoresPage() {
           <tbody>
             {filtrados.map((f) => (
               <tr key={f.id}>
-                <td>{f.nome}</td>
+                <td className="pg-tabela-truncar">{f.nome}</td>
                 <td>{f.telefone || '—'}</td>
                 <td>{f.cnpj || '—'}</td>
                 <td className="pg-acoes-linha">
@@ -143,6 +147,7 @@ export function FornecedoresPage() {
             )}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

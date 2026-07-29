@@ -34,7 +34,7 @@
   outline: none;
   transition: border-color .12s;
 }
-.emp-campo input:focus {
+.emp-campo input:focus-visible {
   border-color: var(--emp-borda-foco);
   box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
 }

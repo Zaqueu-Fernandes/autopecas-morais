@@ -64,25 +64,29 @@ export function CamposEndereco({ valor, onChange, erros = {} }: Props) {
 
       <div className="cad-grid">
         <div className="cad-campo cad-cep">
-          <label>CEP</label>
+          <label htmlFor="cad-endereco-cep">CEP</label>
           <div className="cad-cep-wrap">
             <input
+              id="cad-endereco-cep"
               inputMode="numeric"
+              autoComplete="postal-code"
               value={formatarCEP(valor.cep)}
               placeholder="00000-000"
               onChange={(e) => onChange({ cep: e.target.value })}
               onBlur={handleBlurCep}
               aria-invalid={!!erros.cep}
             />
-            {buscando && <span className="cad-cep-status">buscando…</span>}
+            {buscando && <span className="cad-cep-status" aria-live="polite">buscando…</span>}
           </div>
           {erros.cep && <span className="cad-erro">{erros.cep}</span>}
-          {avisoCep && <span className="cad-aviso">{avisoCep}</span>}
+          {avisoCep && <span className="cad-aviso" aria-live="polite">{avisoCep}</span>}
         </div>
 
         <div className="cad-campo cad-logradouro">
-          <label>Logradouro</label>
+          <label htmlFor="cad-endereco-logradouro">Logradouro</label>
           <input
+            id="cad-endereco-logradouro"
+            autoComplete="address-line1"
             value={valor.logradouro}
             placeholder="Rua / Avenida"
             onChange={(e) => onChange({ logradouro: e.target.value })}
@@ -92,8 +96,9 @@ export function CamposEndereco({ valor, onChange, erros = {} }: Props) {
         </div>
 
         <div className="cad-campo cad-numero">
-          <label>Número</label>
+          <label htmlFor="cad-endereco-numero">Número</label>
           <input
+            id="cad-endereco-numero"
             ref={numeroRef}
             value={valor.numero}
             placeholder="123"
@@ -104,8 +109,10 @@ export function CamposEndereco({ valor, onChange, erros = {} }: Props) {
         </div>
 
         <div className="cad-campo cad-complemento">
-          <label>Complemento</label>
+          <label htmlFor="cad-endereco-complemento">Complemento</label>
           <input
+            id="cad-endereco-complemento"
+            autoComplete="address-line2"
             value={valor.complemento}
             placeholder="Sala, fundos, etc. (opcional)"
             onChange={(e) => onChange({ complemento: e.target.value })}
@@ -113,8 +120,9 @@ export function CamposEndereco({ valor, onChange, erros = {} }: Props) {
         </div>
 
         <div className="cad-campo cad-bairro">
-          <label>Bairro</label>
+          <label htmlFor="cad-endereco-bairro">Bairro</label>
           <input
+            id="cad-endereco-bairro"
             value={valor.bairro}
             onChange={(e) => onChange({ bairro: e.target.value })}
             aria-invalid={!!erros.bairro}
@@ -123,8 +131,10 @@ export function CamposEndereco({ valor, onChange, erros = {} }: Props) {
         </div>
 
         <div className="cad-campo cad-cidade">
-          <label>Cidade</label>
+          <label htmlFor="cad-endereco-cidade">Cidade</label>
           <input
+            id="cad-endereco-cidade"
+            autoComplete="address-level2"
             value={valor.cidade}
             onChange={(e) => onChange({ cidade: e.target.value })}
             aria-invalid={!!erros.cidade}
@@ -133,8 +143,10 @@ export function CamposEndereco({ valor, onChange, erros = {} }: Props) {
         </div>
 
         <div className="cad-campo cad-uf">
-          <label>UF</label>
+          <label htmlFor="cad-endereco-uf">UF</label>
           <select
+            id="cad-endereco-uf"
+            autoComplete="address-level1"
             value={valor.uf}
             onChange={(e) => onChange({ uf: e.target.value })}
             aria-invalid={!!erros.uf}

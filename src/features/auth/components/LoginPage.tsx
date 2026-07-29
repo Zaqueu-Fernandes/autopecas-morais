@@ -41,9 +41,11 @@ export function LoginPage() {
         <h1>Entrar</h1>
 
         <div className="auth-campo">
-          <label>E-mail</label>
+          <label htmlFor="login-email">E-mail</label>
           <input
+            id="login-email"
             type="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleEntrar()}
@@ -52,19 +54,21 @@ export function LoginPage() {
         </div>
 
         <div className="auth-campo">
-          <label>Senha</label>
+          <label htmlFor="login-senha">Senha</label>
           <input
+            id="login-senha"
             type="password"
+            autoComplete="current-password"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleEntrar()}
           />
         </div>
 
-        {erro && <span className="auth-erro">{erro}</span>}
+        {erro && <span className="auth-erro" aria-live="polite">{erro}</span>}
 
         <button type="button" className="auth-btn" onClick={handleEntrar} disabled={entrando}>
-          <LogIn size={16} /> {entrando ? 'Entrando…' : 'Entrar'}
+          <LogIn size={16} aria-hidden="true" /> {entrando ? 'Entrando…' : 'Entrar'}
         </button>
       </div>
       <Rodape />

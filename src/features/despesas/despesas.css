@@ -59,9 +59,9 @@
   outline: none;
   transition: border-color .12s;
 }
-.dsp-campo input:focus,
-.dsp-campo select:focus,
-.dsp-campo textarea:focus {
+.dsp-campo input:focus-visible,
+.dsp-campo select:focus-visible,
+.dsp-campo textarea:focus-visible {
   border-color: var(--dsp-borda-foco);
   box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
 }

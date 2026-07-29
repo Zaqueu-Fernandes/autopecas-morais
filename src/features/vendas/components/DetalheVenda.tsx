@@ -84,9 +84,15 @@ export function DetalheVenda({ vendaId, aoVoltar }: Props) {
         </div>
       </div>
 
-      <div className="vd-campo vd-cliente">
-        <label>Cliente (opcional — obrigatório para a prazo/fiado)</label>
-        <select value={venda.clienteId ?? ''} onChange={(e) => handleTrocarCliente(e.target.value)} disabled={bloqueado}>
+      <div className="vd-campo vd-cliente" aria-live="polite">
+        <label htmlFor="vd-detalhe-cliente">Cliente (opcional — obrigatório para a prazo/fiado)</label>
+        <select
+          id="vd-detalhe-cliente"
+          name="clienteId"
+          value={venda.clienteId ?? ''}
+          onChange={(e) => handleTrocarCliente(e.target.value)}
+          disabled={bloqueado}
+        >
           <option value="">— venda avulsa, sem cliente —</option>
           {clientes.map((c) => (
             <option key={c.id} value={c.id}>

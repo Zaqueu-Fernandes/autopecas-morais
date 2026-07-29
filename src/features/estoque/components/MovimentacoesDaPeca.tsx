@@ -164,7 +164,7 @@ export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
         <strong>Movimentações</strong>
         <span className="est-movs-acoes-topo">
           <button type="button" className="est-btn" onClick={() => setAcaoAberta('entrada')}>
-            <PackagePlus size={16} /> Entrada
+            <PackagePlus size={16} aria-hidden="true" /> Entrada
           </button>
           <button
             type="button"
@@ -173,10 +173,10 @@ export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
             disabled={!ehAdmin}
             title={ehAdmin ? undefined : 'Essa função requer perfil de administrador'}
           >
-            <SlidersHorizontal size={15} /> Ajustar
+            <SlidersHorizontal size={15} aria-hidden="true" /> Ajustar
           </button>
           <button type="button" className="est-btn-sec" onClick={() => setAcaoAberta('devolucaoFornecedor')}>
-            <PackageMinus size={15} /> Devolver ao fornecedor
+            <PackageMinus size={15} aria-hidden="true" /> Devolver ao fornecedor
           </button>
         </span>
       </div>

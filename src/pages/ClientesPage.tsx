@@ -104,13 +104,17 @@ export function ClientesPage() {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por nome, telefone ou documento…"
+          aria-label="Buscar cliente"
+          type="search"
+          autoComplete="off"
         />
       </div>
 
-      {carregando && <p>Carregando…</p>}
-      {erro && <p className="cad-erro">{erro}</p>}
+      {carregando && <p aria-live="polite">Carregando…</p>}
+      {erro && <p className="cad-erro" aria-live="polite">{erro}</p>}
 
       {!carregando && !erro && (
+        <div className="pg-tabela-wrap">
         <table className="pg-tabela">
           <thead>
             <tr>
@@ -126,7 +130,7 @@ export function ClientesPage() {
               return (
                 <Fragment key={c.id}>
                   <tr>
-                    <td>{c.nome}</td>
+                    <td className="pg-tabela-truncar">{c.nome}</td>
                     <td>{c.telefone || '—'}</td>
                     <td>{c.documento || '—'}</td>
                     <td className="pg-acoes-linha">
@@ -139,7 +143,11 @@ export function ClientesPage() {
                       >
                         <Pencil size={13} /> Editar
                       </button>
-                      <button type="button" onClick={() => setClienteExpandidoId(expandido ? null : c.id!)}>
+                      <button
+                        type="button"
+                        aria-expanded={expandido}
+                        onClick={() => setClienteExpandidoId(expandido ? null : c.id!)}
+                      >
                         <CarFront size={13} /> Veículos
                         {expandido ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                       </button>
@@ -162,6 +170,7 @@ export function ClientesPage() {
             )}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

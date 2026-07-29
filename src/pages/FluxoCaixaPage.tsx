@@ -19,6 +19,7 @@ import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { CartaoResumo } from '@/features/dashboard';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 function primeiroDiaDoMes(): string {
   const hoje = new Date();
@@ -78,8 +79,8 @@ export function FluxoCaixaPage() {
       m.tipo === 'pagar' ? 'Saída' : 'Entrada',
       rotuloCategoria(m.tipo, m.categoria, categorias),
       m.descricao,
-      `${m.tipo === 'pagar' ? '-' : '+'} R$ ${m.valor.toFixed(2)}`,
-      `R$ ${m.saldoAcumulado.toFixed(2)}`,
+      `${m.tipo === 'pagar' ? '-' : '+'} ${formatarMoeda(m.valor)}`,
+      formatarMoeda(m.saldoAcumulado),
     ]),
   };
 
@@ -93,7 +94,7 @@ export function FluxoCaixaPage() {
       </div>
 
       <div className="pg-filtros">
-        <select value={empresaId} onChange={(e) => setEmpresaId(e.target.value)}>
+        <select value={empresaId} onChange={(e) => setEmpresaId(e.target.value)} aria-label="Filtrar por empresa">
           {empresas.length === 0 && <option value="">Nenhuma empresa cadastrada</option>}
           {empresas.map((emp) => (
             <option key={emp.id} value={emp.id}>
@@ -111,35 +112,36 @@ export function FluxoCaixaPage() {
         </label>
       </div>
 
-      {carregando && <p>Carregando…</p>}
-      {erro && <p className="fin-erro">{erro}</p>}
+      {carregando && <p aria-live="polite">Carregando…</p>}
+      {erro && <p className="fin-erro" aria-live="polite">{erro}</p>}
 
       {!carregando && !erro && resultado && (
         <>
           <div className="dash-grid">
             <CartaoResumo
               titulo="Saldo anterior"
-              valor={`R$ ${resultado.saldoAnterior.toFixed(2)}`}
+              valor={formatarMoeda(resultado.saldoAnterior)}
               icone={<History size={15} />}
             />
             <CartaoResumo
               titulo="Entradas no período"
-              valor={`R$ ${resultado.totalEntradas.toFixed(2)}`}
+              valor={formatarMoeda(resultado.totalEntradas)}
               icone={<ArrowDownCircle size={15} />}
             />
             <CartaoResumo
               titulo="Saídas no período"
-              valor={`R$ ${resultado.totalSaidas.toFixed(2)}`}
+              valor={formatarMoeda(resultado.totalSaidas)}
               icone={<ArrowUpCircle size={15} />}
             />
             <CartaoResumo
               titulo="Saldo final"
-              valor={`R$ ${resultado.saldoFinal.toFixed(2)}`}
+              valor={formatarMoeda(resultado.saldoFinal)}
               tom={resultado.saldoFinal < 0 ? 'perigo' : 'neutro'}
               icone={resultado.saldoFinal < 0 ? <TrendingDown size={15} /> : <TrendingUp size={15} />}
             />
           </div>
 
+          <div className="pg-tabela-wrap">
           <table className="pg-tabela">
             <thead>
               <tr>
@@ -161,11 +163,11 @@ export function FluxoCaixaPage() {
                     </span>
                   </td>
                   <td>{rotuloCategoria(m.tipo, m.categoria, categorias)}</td>
-                  <td>{m.descricao}</td>
+                  <td className="pg-tabela-truncar">{m.descricao}</td>
                   <td>
-                    {m.tipo === 'pagar' ? '-' : '+'} R$ {m.valor.toFixed(2)}
+                    {m.tipo === 'pagar' ? '-' : '+'} {formatarMoeda(m.valor)}
                   </td>
-                  <td>R$ {m.saldoAcumulado.toFixed(2)}</td>
+                  <td>{formatarMoeda(m.saldoAcumulado)}</td>
                 </tr>
               ))}
               {resultado.movimentos.length === 0 && (
@@ -175,6 +177,7 @@ export function FluxoCaixaPage() {
               )}
             </tbody>
           </table>
+          </div>
         </>
       )}
     </div>

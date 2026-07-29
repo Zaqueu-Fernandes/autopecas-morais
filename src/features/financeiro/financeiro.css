@@ -36,6 +36,7 @@
   padding: 3px 8px;
   border-radius: 999px;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .fin-tipo {
@@ -86,9 +87,9 @@
   outline: none;
   transition: border-color .12s;
 }
-.fin-campo input:focus,
-.fin-campo select:focus,
-.fin-campo textarea:focus {
+.fin-campo input:focus-visible,
+.fin-campo select:focus-visible,
+.fin-campo textarea:focus-visible {
   border-color: var(--fin-borda-foco);
   box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
 }

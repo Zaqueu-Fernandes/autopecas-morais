@@ -12,6 +12,7 @@
  */
 
 import type { RegimeTributario } from '@/features/empresa';
+import { formatarMoeda, formatarPercentual } from '@/shared/utils/formatadores';
 
 interface Props {
   regime: RegimeTributario;
@@ -29,13 +30,16 @@ export function MonitorCustoAquisicao({ regime, custoAquisicaoAno, limiteAnualMe
     <div className={`dash-mei dash-mei-${tom}`}>
       <div className="dash-mei-cabecalho">
         <strong>Custo de aquisição de peças</strong>
-        <span>{percentual.toFixed(0)}% do limite anual</span>
+        <span>{formatarPercentual(percentual)} do limite anual</span>
       </div>
       <div className="dash-mei-barra">
-        <div className="dash-mei-barra-preenchida" style={{ width: `${Math.min(percentual, 100)}%` }} />
+        <div
+          className="dash-mei-barra-preenchida"
+          style={{ transform: `scaleX(${Math.min(percentual, 100) / 100})` }}
+        />
       </div>
       <p className="dash-mei-detalhe">
-        R$ {custoAquisicaoAno.toFixed(2)} em compras de peças de R$ {limiteAnualMei.toFixed(2)} do limite anual
+        {formatarMoeda(custoAquisicaoAno)} em compras de peças de {formatarMoeda(limiteAnualMei)} do limite anual
       </p>
       {tom === 'perigo' && (
         <p className="dash-mei-mensagem">

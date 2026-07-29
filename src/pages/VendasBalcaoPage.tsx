@@ -80,10 +80,11 @@ export function VendasBalcaoPage() {
         </div>
       </div>
 
-      {carregando && <p>Carregando…</p>}
-      {erro && <p className="vd-erro">{erro}</p>}
+      {carregando && <p aria-live="polite">Carregando…</p>}
+      {erro && <p className="vd-erro" aria-live="polite">{erro}</p>}
 
       {!carregando && !erro && (
+        <div className="pg-tabela-wrap">
         <table className="pg-tabela">
           <thead>
             <tr>
@@ -97,7 +98,7 @@ export function VendasBalcaoPage() {
             {vendas.map((v) => (
               <tr key={v.id}>
                 <td>#{v.numero}</td>
-                <td>{v.clienteNome ?? 'Avulsa'}</td>
+                <td className="pg-tabela-truncar">{v.clienteNome ?? 'Avulsa'}</td>
                 <td>
                   <span className={`vd-badge-status vd-badge-status-${v.status}`}>
                     {v.status === 'aberta' ? 'Aberta' : 'Finalizada'}
@@ -117,6 +118,7 @@ export function VendasBalcaoPage() {
             )}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

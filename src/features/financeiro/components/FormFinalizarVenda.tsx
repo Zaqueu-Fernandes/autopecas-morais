@@ -20,6 +20,7 @@ import {
 } from '../types';
 import { finalizarVenda } from '../services/venda.service';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 interface Props {
   vendaId: string;
@@ -35,6 +36,7 @@ const FORMAS = Object.keys(ROTULO_FORMA_PAGAMENTO) as FormaPagamento[];
 export function FormFinalizarVenda({ vendaId, clienteId, valorTotal, onFinalizada, onCancelar }: Props) {
   const [dados, setDados] = useState<DadosFaturamento>(dadosFaturamentoVazio());
   const [erros, setErros] = useState<ErrosValidacao>({});
+  const [erroSalvar, setErroSalvar] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
 
@@ -54,10 +56,13 @@ export function FormFinalizarVenda({ vendaId, clienteId, valorTotal, onFinalizad
     const e = validarFaturamento(dados);
     setErros(e);
     if (!semErros(e)) return;
+    setErroSalvar(null);
     setSalvando(true);
     try {
       await finalizarVenda({ vendaId, clienteId, valorTotal, dados });
       onFinalizada();
+    } catch (erro) {
+      setErroSalvar(erro instanceof Error ? erro.message : 'Não foi possível finalizar esta venda.');
     } finally {
       setSalvando(false);
     }
@@ -67,12 +72,13 @@ export function FormFinalizarVenda({ vendaId, clienteId, valorTotal, onFinalizad
     <div className="fin-form">
       <div className="fin-form-head">
         <h2>Finalizar venda</h2>
-        <span className="fin-tag">Total: R$ {valorTotal.toFixed(2)}</span>
+        <span className="fin-tag">Total: {formatarMoeda(valorTotal)}</span>
       </div>
 
       <div className="fin-campo">
-        <label>Empresa (CNPJ) *</label>
+        <label htmlFor="fv-empresa">Empresa (CNPJ) *</label>
         <select
+          id="fv-empresa"
           value={dados.empresaId}
           onChange={(e) => set({ empresaId: e.target.value })}
           aria-invalid={!!erros.empresaId}
@@ -84,7 +90,11 @@ export function FormFinalizarVenda({ vendaId, clienteId, valorTotal, onFinalizad
             </option>
           ))}
         </select>
-        {erros.empresaId && <span className="fin-erro">{erros.empresaId}</span>}
+        {erros.empresaId && (
+          <span className="fin-erro" aria-live="polite">
+            {erros.empresaId}
+          </span>
+        )}
         {empresas.length === 0 && (
           <span className="fin-aviso">Cadastre uma empresa na aba Empresas antes de finalizar.</span>
         )}
@@ -96,6 +106,7 @@ export function FormFinalizarVenda({ vendaId, clienteId, valorTotal, onFinalizad
             key={s}
             type="button"
             className={dados.situacao === s ? 'ativo' : ''}
+            aria-pressed={dados.situacao === s}
             disabled={s !== 'a_vista' && !clienteId}
             onClick={() => set({ situacao: s })}
           >
@@ -113,8 +124,9 @@ export function FormFinalizarVenda({ vendaId, clienteId, valorTotal, onFinalizad
 
       {dados.situacao === 'a_vista' && (
         <div className="fin-campo">
-          <label>Forma de pagamento *</label>
+          <label htmlFor="fv-forma">Forma de pagamento *</label>
           <select
+            id="fv-forma"
             value={dados.formaPagamento}
             onChange={(e) => set({ formaPagamento: e.target.value as FormaPagamento })}
             aria-invalid={!!erros.formaPagamento}
@@ -126,20 +138,29 @@ export function FormFinalizarVenda({ vendaId, clienteId, valorTotal, onFinalizad
               </option>
             ))}
           </select>
-          {erros.formaPagamento && <span className="fin-erro">{erros.formaPagamento}</span>}
+          {erros.formaPagamento && (
+            <span className="fin-erro" aria-live="polite">
+              {erros.formaPagamento}
+            </span>
+          )}
         </div>
       )}
 
       {dados.situacao === 'a_prazo' && (
         <div className="fin-campo">
-          <label>Vencimento *</label>
+          <label htmlFor="fv-vencimento">Vencimento *</label>
           <input
+            id="fv-vencimento"
             type="date"
             value={dados.vencimento}
             onChange={(e) => set({ vencimento: e.target.value })}
             aria-invalid={!!erros.vencimento}
           />
-          {erros.vencimento && <span className="fin-erro">{erros.vencimento}</span>}
+          {erros.vencimento && (
+            <span className="fin-erro" aria-live="polite">
+              {erros.vencimento}
+            </span>
+          )}
         </div>
       )}
 
@@ -148,6 +169,12 @@ export function FormFinalizarVenda({ vendaId, clienteId, valorTotal, onFinalizad
       )}
 
       <p className="fin-aviso">Depois de finalizar, a venda trava e não aceita mais itens.</p>
+
+      {erroSalvar && (
+        <p className="fin-erro" aria-live="polite">
+          {erroSalvar}
+        </p>
+      )}
 
       <div className="fin-acoes">
         {onCancelar && (

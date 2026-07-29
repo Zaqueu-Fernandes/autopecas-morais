@@ -77,7 +77,16 @@ function FormEntrada({ onSalvar, onCancelar }: PropsEntrada) {
   async function handleSalvar() {
     const e = validarEntrada(dados);
     setErros(e);
-    if (!semErros(e)) return;
+    if (!semErros(e)) {
+      const ordem: Array<[string, string]> = [
+        ['quantidade', 'est-entrada-quantidade'],
+        ['custoUnit', 'est-entrada-custo'],
+        ['empresaId', 'est-entrada-empresa'],
+      ];
+      const primeiro = ordem.find(([chave]) => e[chave]);
+      if (primeiro) document.getElementById(primeiro[1])?.focus();
+      return;
+    }
     setSalvando(true);
     try {
       await onSalvar(dados);
@@ -94,8 +103,11 @@ function FormEntrada({ onSalvar, onCancelar }: PropsEntrada) {
 
       <div className="est-grid">
         <div className="est-campo">
-          <label>Quantidade *</label>
+          <label htmlFor="est-entrada-quantidade">Quantidade *</label>
           <input
+            id="est-entrada-quantidade"
+            name="quantidade"
+            autoComplete="off"
             inputMode="numeric"
             value={dados.quantidade}
             onChange={(e) => set({ quantidade: e.target.value })}
@@ -106,8 +118,11 @@ function FormEntrada({ onSalvar, onCancelar }: PropsEntrada) {
         </div>
 
         <div className="est-campo">
-          <label>Custo unitário (R$) *</label>
+          <label htmlFor="est-entrada-custo">Custo unitário (R$) *</label>
           <input
+            id="est-entrada-custo"
+            name="custoUnit"
+            autoComplete="off"
             inputMode="decimal"
             value={dados.custoUnit}
             onChange={(e) => set({ custoUnit: e.target.value })}
@@ -118,8 +133,9 @@ function FormEntrada({ onSalvar, onCancelar }: PropsEntrada) {
         </div>
 
         <div className="est-campo est-col-2">
-          <label>Empresa (CNPJ) *</label>
+          <label htmlFor="est-entrada-empresa">Empresa (CNPJ) *</label>
           <select
+            id="est-entrada-empresa"
             value={dados.empresaId}
             onChange={(e) => set({ empresaId: e.target.value })}
             aria-invalid={!!erros.empresaId}
@@ -138,8 +154,12 @@ function FormEntrada({ onSalvar, onCancelar }: PropsEntrada) {
         </div>
 
         <div className="est-campo est-col-2">
-          <label>Fornecedor</label>
-          <select value={dados.fornecedorId} onChange={(e) => set({ fornecedorId: e.target.value })}>
+          <label htmlFor="est-entrada-fornecedor">Fornecedor</label>
+          <select
+            id="est-entrada-fornecedor"
+            value={dados.fornecedorId}
+            onChange={(e) => set({ fornecedorId: e.target.value })}
+          >
             <option value="">— não informado —</option>
             {fornecedores.map((f) => (
               <option key={f.id} value={f.id}>
@@ -151,8 +171,11 @@ function FormEntrada({ onSalvar, onCancelar }: PropsEntrada) {
       </div>
 
       <div className="est-campo">
-        <label>Observações</label>
+        <label htmlFor="est-entrada-observacoes">Observações</label>
         <textarea
+          id="est-entrada-observacoes"
+          name="observacoes"
+          autoComplete="off"
           rows={2}
           value={dados.observacoes}
           onChange={(e) => set({ observacoes: e.target.value })}
@@ -185,7 +208,15 @@ function FormAjuste({ onSalvar, onCancelar }: PropsAjuste) {
   async function handleSalvar() {
     const e = validarAjuste(dados);
     setErros(e);
-    if (!semErros(e)) return;
+    if (!semErros(e)) {
+      const ordem: Array<[string, string]> = [
+        ['quantidade', 'est-ajuste-quantidade'],
+        ['observacoes', 'est-ajuste-motivo'],
+      ];
+      const primeiro = ordem.find(([chave]) => e[chave]);
+      if (primeiro) document.getElementById(primeiro[1])?.focus();
+      return;
+    }
     setSalvando(true);
     try {
       await onSalvar(dados);
@@ -204,6 +235,7 @@ function FormAjuste({ onSalvar, onCancelar }: PropsAjuste) {
         <button
           type="button"
           className={dados.sentido === 'aumentar' ? 'ativo' : ''}
+          aria-pressed={dados.sentido === 'aumentar'}
           onClick={() => set({ sentido: 'aumentar' })}
         >
           Aumentar
@@ -211,6 +243,7 @@ function FormAjuste({ onSalvar, onCancelar }: PropsAjuste) {
         <button
           type="button"
           className={dados.sentido === 'diminuir' ? 'ativo' : ''}
+          aria-pressed={dados.sentido === 'diminuir'}
           onClick={() => set({ sentido: 'diminuir' })}
         >
           Diminuir
@@ -219,8 +252,11 @@ function FormAjuste({ onSalvar, onCancelar }: PropsAjuste) {
 
       <div className="est-grid">
         <div className="est-campo">
-          <label>Quantidade *</label>
+          <label htmlFor="est-ajuste-quantidade">Quantidade *</label>
           <input
+            id="est-ajuste-quantidade"
+            name="quantidade"
+            autoComplete="off"
             inputMode="numeric"
             value={dados.quantidade}
             onChange={(e) => set({ quantidade: e.target.value })}
@@ -232,8 +268,11 @@ function FormAjuste({ onSalvar, onCancelar }: PropsAjuste) {
       </div>
 
       <div className="est-campo">
-        <label>Motivo *</label>
+        <label htmlFor="est-ajuste-motivo">Motivo *</label>
         <textarea
+          id="est-ajuste-motivo"
+          name="observacoes"
+          autoComplete="off"
           rows={2}
           value={dados.observacoes}
           onChange={(e) => set({ observacoes: e.target.value })}
@@ -276,7 +315,17 @@ function FormDevolucaoFornecedor({ onSalvar, onCancelar }: PropsDevolucaoFornece
   async function handleSalvar() {
     const e = validarDevolucaoFornecedor(dados);
     setErros(e);
-    if (!semErros(e)) return;
+    if (!semErros(e)) {
+      // Motivo não é um único input — foca o primeiro botão do grupo quando é ele que falha.
+      const idPrimeiroMotivo = `est-dev-motivo-${MOTIVOS_DEVOLUCAO[0]}`;
+      const ordem: Array<[string, string]> = [
+        ['quantidade', 'est-dev-quantidade'],
+        ['motivo', idPrimeiroMotivo],
+      ];
+      const primeiro = ordem.find(([chave]) => e[chave]);
+      if (primeiro) document.getElementById(primeiro[1])?.focus();
+      return;
+    }
     setSalvando(true);
     try {
       await onSalvar(dados);
@@ -299,8 +348,10 @@ function FormDevolucaoFornecedor({ onSalvar, onCancelar }: PropsDevolucaoFornece
         {MOTIVOS_DEVOLUCAO.map((m) => (
           <button
             key={m}
+            id={`est-dev-motivo-${m}`}
             type="button"
             className={dados.motivo === m ? 'ativo' : ''}
+            aria-pressed={dados.motivo === m}
             onClick={() => set({ motivo: m })}
           >
             {ROTULO_MOTIVO_DEVOLUCAO_FORNECEDOR[m]}
@@ -311,8 +362,11 @@ function FormDevolucaoFornecedor({ onSalvar, onCancelar }: PropsDevolucaoFornece
 
       <div className="est-grid">
         <div className="est-campo">
-          <label>Quantidade *</label>
+          <label htmlFor="est-dev-quantidade">Quantidade *</label>
           <input
+            id="est-dev-quantidade"
+            name="quantidade"
+            autoComplete="off"
             inputMode="numeric"
             value={dados.quantidade}
             onChange={(e) => set({ quantidade: e.target.value })}
@@ -323,8 +377,12 @@ function FormDevolucaoFornecedor({ onSalvar, onCancelar }: PropsDevolucaoFornece
         </div>
 
         <div className="est-campo est-col-2">
-          <label>Fornecedor</label>
-          <select value={dados.fornecedorId} onChange={(e) => set({ fornecedorId: e.target.value })}>
+          <label htmlFor="est-dev-fornecedor">Fornecedor</label>
+          <select
+            id="est-dev-fornecedor"
+            value={dados.fornecedorId}
+            onChange={(e) => set({ fornecedorId: e.target.value })}
+          >
             <option value="">— não informado —</option>
             {fornecedores.map((f) => (
               <option key={f.id} value={f.id}>
@@ -336,8 +394,11 @@ function FormDevolucaoFornecedor({ onSalvar, onCancelar }: PropsDevolucaoFornece
       </div>
 
       <div className="est-campo">
-        <label>Observações</label>
+        <label htmlFor="est-dev-observacoes">Observações</label>
         <textarea
+          id="est-dev-observacoes"
+          name="observacoes"
+          autoComplete="off"
           rows={2}
           value={dados.observacoes}
           onChange={(e) => set({ observacoes: e.target.value })}

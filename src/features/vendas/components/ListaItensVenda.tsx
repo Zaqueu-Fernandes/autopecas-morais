@@ -20,6 +20,7 @@ import { FormItemVenda } from './FormItemVenda';
 import type { Peca } from '@/features/estoque';
 import { FormEstorno, type DadosEstorno } from '@/features/financeiro';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 interface Props {
   vendaId: string;
@@ -71,9 +72,18 @@ export function ListaItensVenda({
   }
 
   async function handleRemover(item: ItemVenda) {
-    const motivo = window.prompt('Motivo da remoção deste item:');
-    if (!motivo) return;
-    await removerItemVenda(item, motivo);
+    const ok = await confirmar({
+      titulo: 'Remover item',
+      tom: 'perigo',
+      mensagem: [
+        `“${item.descricao}” será removido desta venda.`,
+        'A peça volta pro estoque (ajuste de volta, sem mexer no custo médio).',
+        'O item não é apagado de verdade — continua no histórico, marcado como removido.',
+      ],
+      textoConfirmar: 'Remover',
+    });
+    if (!ok) return;
+    await removerItemVenda(item, 'Removido pelo usuário antes da finalização.');
     await carregar();
   }
 
@@ -85,7 +95,7 @@ export function ListaItensVenda({
       titulo: 'Confirmar devolução de item',
       tom: 'perigo',
       mensagem: [
-        `"${item.descricao}" — R$ ${valor.toFixed(2)}.`,
+        `“${item.descricao}” — ${formatarMoeda(valor)}.`,
         'A peça volta pro estoque (ajuste, sem mexer no custo médio) e o item fica marcado como devolvido no histórico da venda.',
         'Essa venda já foi finalizada: o valor do item é descontado ou reembolsado no Financeiro, conforme a forma de pagamento escolhida.',
       ],
@@ -112,9 +122,9 @@ export function ListaItensVenda({
     return (
       <FormEstorno
         titulo="Devolver item"
-        descricao={`${itemParaDevolver.descricao} — R$ ${(
-          itemParaDevolver.quantidade * itemParaDevolver.valorUnit
-        ).toFixed(2)}`}
+        descricao={`${itemParaDevolver.descricao} — ${formatarMoeda(
+          itemParaDevolver.quantidade * itemParaDevolver.valorUnit,
+        )}`}
         precisaFormaPagamento
         onConfirmar={handleDevolver}
         onCancelar={() => setItemParaDevolver(null)}
@@ -145,7 +155,7 @@ export function ListaItensVenda({
               <li key={item.id} className={item.removido ? 'vd-item-removido' : ''}>
                 <span className="vd-itens-descricao">{item.descricao}</span>
                 <span className="vd-itens-qtd">{item.quantidade}x</span>
-                <span className="vd-itens-valor">R$ {(item.quantidade * item.valorUnit).toFixed(2)}</span>
+                <span className="vd-itens-valor">{formatarMoeda(item.quantidade * item.valorUnit)}</span>
                 {item.removido ? (
                   <span className="vd-itens-motivo">
                     {item.motivoRemocao?.startsWith('Devolução') ? '' : 'Removido: '}
@@ -163,7 +173,7 @@ export function ListaItensVenda({
               </li>
             ))}
           </ul>
-          <div className="vd-itens-total">Total: R$ {total.toFixed(2)}</div>
+          <div className="vd-itens-total">Total: {formatarMoeda(total)}</div>
         </>
       )}
     </div>

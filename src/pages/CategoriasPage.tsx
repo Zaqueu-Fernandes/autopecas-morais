@@ -169,10 +169,11 @@ export function CategoriasPage() {
         </label>
       </div>
 
-      {carregando && <p>Carregando…</p>}
-      {erro && <p className="dsp-erro">{erro}</p>}
+      {carregando && <p aria-live="polite">Carregando…</p>}
+      {erro && <p className="dsp-erro" aria-live="polite">{erro}</p>}
 
       {!carregando && !erro && (
+        <div className="pg-tabela-wrap">
         <table className="pg-tabela">
           <thead>
             <tr>
@@ -183,7 +184,7 @@ export function CategoriasPage() {
           <tbody>
             {categorias.map((c) => (
               <tr key={c.id} className={!c.ativa ? 'dsp-linha-inativa' : ''}>
-                <td>
+                <td className="pg-tabela-truncar">
                   {c.nome}
                   {c.protegida && (
                     <span className="dsp-tag-media">
@@ -229,6 +230,7 @@ export function CategoriasPage() {
             )}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

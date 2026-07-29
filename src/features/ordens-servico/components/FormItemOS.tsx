@@ -19,6 +19,7 @@ import {
   type ErrosValidacao,
 } from '../types';
 import { type Peca, listarPecas } from '@/features/estoque';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 interface PropsPeca {
   tipo: 'peca';
@@ -61,7 +62,12 @@ function FormPeca({ onSalvar, onCancelar }: PropsPeca) {
       e.quantidade = `Só há ${pecaSelecionada.qtd} ${pecaSelecionada.unidade} em estoque.`;
     }
     setErros(e);
-    if (!semErros(e) || !pecaSelecionada) return;
+    if (!semErros(e) || !pecaSelecionada) {
+      // Leva o foco pro primeiro campo inválido, na ordem em que aparecem no formulário.
+      if (e.pecaId) document.getElementById('os-item-peca')?.focus();
+      else if (e.quantidade) document.getElementById('os-item-peca-quantidade')?.focus();
+      return;
+    }
 
     setSalvando(true);
     try {
@@ -81,12 +87,14 @@ function FormPeca({ onSalvar, onCancelar }: PropsPeca) {
 
       <div className="os-grid">
         <div className="os-campo os-col-2">
-          <label>Peça *</label>
+          <label htmlFor="os-item-peca">Peça *</label>
           <select
+            id="os-item-peca"
+            name="pecaId"
+            autoComplete="off"
             value={dados.pecaId}
             onChange={(e) => set({ pecaId: e.target.value })}
             aria-invalid={!!erros.pecaId}
-            autoFocus
           >
             <option value="">— selecione —</option>
             {pecas.map((p) => (
@@ -99,8 +107,11 @@ function FormPeca({ onSalvar, onCancelar }: PropsPeca) {
         </div>
 
         <div className="os-campo">
-          <label>Quantidade *</label>
+          <label htmlFor="os-item-peca-quantidade">Quantidade *</label>
           <input
+            id="os-item-peca-quantidade"
+            name="quantidade"
+            autoComplete="off"
             inputMode="numeric"
             value={dados.quantidade}
             onChange={(e) => set({ quantidade: e.target.value })}
@@ -111,8 +122,10 @@ function FormPeca({ onSalvar, onCancelar }: PropsPeca) {
 
         {pecaSelecionada && (
           <div className="os-campo">
-            <label>Preço unitário</label>
-            <p className="os-valor-info">R$ {Number(pecaSelecionada.precoVenda).toFixed(2)}</p>
+            <label id="os-item-peca-preco-label">Preço unitário</label>
+            <p className="os-valor-info" aria-labelledby="os-item-peca-preco-label">
+              {formatarMoeda(Number(pecaSelecionada.precoVenda))}
+            </p>
           </div>
         )}
       </div>
@@ -143,7 +156,12 @@ function FormServico({ onSalvar, onCancelar }: PropsServico) {
   async function handleSalvar() {
     const e = validarItemServico(dados);
     setErros(e);
-    if (!semErros(e)) return;
+    if (!semErros(e)) {
+      if (e.descricao) document.getElementById('os-item-servico-descricao')?.focus();
+      else if (e.quantidade) document.getElementById('os-item-servico-quantidade')?.focus();
+      else if (e.valorUnit) document.getElementById('os-item-servico-valor')?.focus();
+      return;
+    }
     setSalvando(true);
     try {
       await onSalvar(dados);
@@ -160,20 +178,25 @@ function FormServico({ onSalvar, onCancelar }: PropsServico) {
 
       <div className="os-grid">
         <div className="os-campo os-col-2">
-          <label>Descrição *</label>
+          <label htmlFor="os-item-servico-descricao">Descrição *</label>
           <input
+            id="os-item-servico-descricao"
+            name="descricao"
+            autoComplete="off"
             value={dados.descricao}
             onChange={(e) => set({ descricao: e.target.value })}
             placeholder="Ex.: troca de óleo e filtro"
             aria-invalid={!!erros.descricao}
-            autoFocus
           />
           {erros.descricao && <span className="os-erro">{erros.descricao}</span>}
         </div>
 
         <div className="os-campo">
-          <label>Quantidade *</label>
+          <label htmlFor="os-item-servico-quantidade">Quantidade *</label>
           <input
+            id="os-item-servico-quantidade"
+            name="quantidade"
+            autoComplete="off"
             inputMode="numeric"
             value={dados.quantidade}
             onChange={(e) => set({ quantidade: e.target.value })}
@@ -183,8 +206,11 @@ function FormServico({ onSalvar, onCancelar }: PropsServico) {
         </div>
 
         <div className="os-campo">
-          <label>Valor unitário (R$) *</label>
+          <label htmlFor="os-item-servico-valor">Valor unitário (R$) *</label>
           <input
+            id="os-item-servico-valor"
+            name="valorUnit"
+            autoComplete="off"
             inputMode="decimal"
             value={dados.valorUnit}
             onChange={(e) => set({ valorUnit: e.target.value })}

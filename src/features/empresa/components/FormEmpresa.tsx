@@ -35,10 +35,18 @@ export function FormEmpresa({ inicial, onSalvar, onCancelar }: Props) {
     setEmpresa((e) => ({ ...e, ...patch }));
   }
 
+  // Ordem visual dos campos — usada só pra decidir qual foco levar o usuário
+  // quando a validação falha.
+  const ORDEM_CAMPOS = ['nomeFantasia', 'cnpj', 'limiteAnualMei'];
+
   async function handleSalvar() {
     const e = validarEmpresa(empresa);
     setErros(e);
-    if (!semErros(e)) return;
+    if (!semErros(e)) {
+      const primeiraChave = ORDEM_CAMPOS.find((campo) => e[campo]);
+      if (primeiraChave) document.getElementById(`empresa-${primeiraChave}`)?.focus();
+      return;
+    }
     setSalvando(true);
     try {
       await onSalvar(empresa);
@@ -54,8 +62,9 @@ export function FormEmpresa({ inicial, onSalvar, onCancelar }: Props) {
       </div>
 
       <div className="emp-campo">
-        <label>Nome da empresa *</label>
+        <label htmlFor="empresa-nomeFantasia">Nome da empresa *</label>
         <input
+          id="empresa-nomeFantasia"
           value={empresa.nomeFantasia}
           onChange={(e) => set({ nomeFantasia: e.target.value })}
           aria-invalid={!!erros.nomeFantasia}
@@ -65,9 +74,11 @@ export function FormEmpresa({ inicial, onSalvar, onCancelar }: Props) {
       </div>
 
       <div className="emp-campo">
-        <label>CNPJ *</label>
+        <label htmlFor="empresa-cnpj">CNPJ *</label>
         <input
+          id="empresa-cnpj"
           inputMode="numeric"
+          spellCheck={false}
           value={empresa.cnpj}
           onChange={(e) => set({ cnpj: e.target.value })}
           placeholder="00.000.000/0001-00"
@@ -77,8 +88,8 @@ export function FormEmpresa({ inicial, onSalvar, onCancelar }: Props) {
       </div>
 
       <div className="emp-campo">
-        <label>Regime tributário</label>
-        <div className="emp-tipo">
+        <label id="empresa-regime-label">Regime tributário</label>
+        <div className="emp-tipo" role="group" aria-labelledby="empresa-regime-label">
           {REGIMES.map((r) => (
             <button
               key={r}
@@ -94,8 +105,9 @@ export function FormEmpresa({ inicial, onSalvar, onCancelar }: Props) {
 
       {empresa.regime === 'MEI' && (
         <div className="emp-campo">
-          <label>Limite anual de faturamento MEI (R$) *</label>
+          <label htmlFor="empresa-limiteAnualMei">Limite anual de faturamento MEI (R$) *</label>
           <input
+            id="empresa-limiteAnualMei"
             inputMode="decimal"
             value={empresa.limiteAnualMei}
             onChange={(e) => set({ limiteAnualMei: e.target.value })}

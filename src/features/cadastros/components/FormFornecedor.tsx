@@ -31,10 +31,23 @@ export function FormFornecedor({ inicial, onSalvar, onCancelar }: Props) {
     setForn((f) => ({ ...f, ...patch }));
   }
 
+  // Ordem visual dos campos — usada só pra decidir qual foco levar o usuário
+  // quando a validação falha.
+  const ORDEM_CAMPOS = ['nome', 'telefone', 'cep', 'logradouro', 'numero', 'bairro', 'cidade', 'uf'];
+
   async function handleSalvar() {
     const e = validarFornecedor(forn);
     setErros(e);
-    if (!semErros(e)) return;
+    if (!semErros(e)) {
+      const primeiraChave = ORDEM_CAMPOS.find((campo) => e[campo]);
+      if (primeiraChave) {
+        const id = primeiraChave === 'nome' || primeiraChave === 'telefone'
+          ? `fornecedor-${primeiraChave}`
+          : `cad-endereco-${primeiraChave}`;
+        document.getElementById(id)?.focus();
+      }
+      return;
+    }
     setSalvando(true);
     try {
       await onSalvar(forn);
@@ -51,8 +64,9 @@ export function FormFornecedor({ inicial, onSalvar, onCancelar }: Props) {
 
       <div className="cad-grid">
         <div className="cad-campo cad-col-2">
-          <label>Nome / Razão social *</label>
+          <label htmlFor="fornecedor-nome">Nome / Razão social *</label>
           <input
+            id="fornecedor-nome"
             value={forn.nome}
             onChange={(e) => set({ nome: e.target.value })}
             aria-invalid={!!erros.nome}
@@ -62,9 +76,11 @@ export function FormFornecedor({ inicial, onSalvar, onCancelar }: Props) {
         </div>
 
         <div className="cad-campo">
-          <label>CNPJ</label>
+          <label htmlFor="fornecedor-cnpj">CNPJ</label>
           <input
+            id="fornecedor-cnpj"
             inputMode="numeric"
+            spellCheck={false}
             value={forn.cnpj}
             placeholder="00.000.000/0001-00"
             onChange={(e) => set({ cnpj: e.target.value })}
@@ -72,9 +88,12 @@ export function FormFornecedor({ inicial, onSalvar, onCancelar }: Props) {
         </div>
 
         <div className="cad-campo">
-          <label>Telefone</label>
+          <label htmlFor="fornecedor-telefone">Telefone</label>
           <input
+            id="fornecedor-telefone"
+            type="tel"
             inputMode="tel"
+            autoComplete="tel"
             value={forn.telefone}
             placeholder="(88) 90000-0000"
             onChange={(e) => set({ telefone: e.target.value })}
@@ -84,9 +103,12 @@ export function FormFornecedor({ inicial, onSalvar, onCancelar }: Props) {
         </div>
 
         <div className="cad-campo cad-col-2">
-          <label>E-mail</label>
+          <label htmlFor="fornecedor-email">E-mail</label>
           <input
+            id="fornecedor-email"
+            type="email"
             inputMode="email"
+            autoComplete="email"
             value={forn.email}
             onChange={(e) => set({ email: e.target.value })}
           />
@@ -96,8 +118,9 @@ export function FormFornecedor({ inicial, onSalvar, onCancelar }: Props) {
       <CamposEndereco valor={forn} onChange={set} erros={erros} />
 
       <div className="cad-campo">
-        <label>Observações</label>
+        <label htmlFor="fornecedor-observacoes">Observações</label>
         <textarea
+          id="fornecedor-observacoes"
           rows={2}
           value={forn.observacoes}
           onChange={(e) => set({ observacoes: e.target.value })}

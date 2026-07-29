@@ -64,7 +64,7 @@
   outline: none;
   transition: border-color .12s;
 }
-.auth-campo input:focus {
+.auth-campo input:focus-visible {
   border-color: var(--auth-borda-foco);
   box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
 }
@@ -96,14 +96,22 @@
 .auth-btn:hover:not(:disabled) { background: #c22235; }
 .auth-btn:disabled { opacity: .65; cursor: default; }
 
-/* Indicador de usuário logado + sair, no cabeçalho do app */
+/* Indicador de usuário logado + sair, no cabeçalho do app.
+   min-width:0 + o nome truncando em ellipsis evita que um e-mail longo
+   estoure a largura do cabeçalho (crítico em telas estreitas). */
 .app-usuario {
   display: flex;
   align-items: center;
   gap: 10px;
   color: #b9bec7;
   font-size: 13px;
-  flex-shrink: 0;
+  min-width: 0;
+}
+.app-usuario-nome {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 .app-usuario-papel {
   font-size: 10px;
@@ -112,6 +120,7 @@
   background: rgba(255, 255, 255, .1);
   padding: 2px 7px;
   border-radius: 999px;
+  flex-shrink: 0;
 }
 .app-sair-btn {
   display: flex;

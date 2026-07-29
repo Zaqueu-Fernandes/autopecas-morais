@@ -71,8 +71,9 @@ export function FormEstorno({ titulo = 'Estornar lançamento', descricao, precis
       )}
 
       <div className="fin-campo">
-        <label>Motivo *</label>
+        <label htmlFor="es-motivo">Motivo *</label>
         <textarea
+          id="es-motivo"
           rows={2}
           value={dados.motivo}
           onChange={(e) => set({ motivo: e.target.value })}
@@ -80,13 +81,18 @@ export function FormEstorno({ titulo = 'Estornar lançamento', descricao, precis
           aria-invalid={!!erros.motivo}
           autoFocus
         />
-        {erros.motivo && <span className="fin-erro">{erros.motivo}</span>}
+        {erros.motivo && (
+          <span className="fin-erro" aria-live="polite">
+            {erros.motivo}
+          </span>
+        )}
       </div>
 
       {precisaFormaPagamento && (
         <div className="fin-campo">
-          <label>Como o dinheiro está sendo devolvido? *</label>
+          <label htmlFor="es-forma">Como o dinheiro está sendo devolvido? *</label>
           <select
+            id="es-forma"
             value={dados.formaPagamento}
             onChange={(e) => set({ formaPagamento: e.target.value as FormaPagamento })}
             aria-invalid={!!erros.formaPagamento}
@@ -98,11 +104,19 @@ export function FormEstorno({ titulo = 'Estornar lançamento', descricao, precis
               </option>
             ))}
           </select>
-          {erros.formaPagamento && <span className="fin-erro">{erros.formaPagamento}</span>}
+          {erros.formaPagamento && (
+            <span className="fin-erro" aria-live="polite">
+              {erros.formaPagamento}
+            </span>
+          )}
         </div>
       )}
 
-      {erroSalvar && <p className="fin-erro">{erroSalvar}</p>}
+      {erroSalvar && (
+        <p className="fin-erro" aria-live="polite">
+          {erroSalvar}
+        </p>
+      )}
 
       <div className="fin-acoes">
         {onCancelar && (

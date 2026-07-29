@@ -51,10 +51,28 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
     setDespesa((d) => ({ ...d, ...patch }));
   }
 
+  /** Foca o primeiro campo com erro, na ordem em que aparecem no formulário. */
+  function focarPrimeiroErro(e: ErrosValidacao) {
+    const ordem: Array<[string, string]> = [
+      ['empresaId', 'dsp-empresa'],
+      ['descricao', 'dsp-descricao'],
+      ['categoria', 'dsp-categoria'],
+      ['fornecedorId', 'dsp-fornecedor'],
+      ['valor', 'dsp-valor'],
+      ['diaVencimento', despesa.periodicidade === 'semanal' ? 'dsp-dia-semana' : 'dsp-dia-vencimento'],
+      ['mesVencimento', 'dsp-mes'],
+    ];
+    const primeiro = ordem.find(([chave]) => e[chave]);
+    if (primeiro) document.getElementById(primeiro[1])?.focus();
+  }
+
   async function handleSalvar() {
     const e = validarDespesaFixa(despesa);
     setErros(e);
-    if (!semErros(e)) return;
+    if (!semErros(e)) {
+      focarPrimeiroErro(e);
+      return;
+    }
     setSalvando(true);
     try {
       await onSalvar(despesa);
@@ -71,8 +89,9 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
 
       <div className="dsp-grid">
         <div className="dsp-campo">
-          <label>Empresa (CNPJ) *</label>
+          <label htmlFor="dsp-empresa">Empresa (CNPJ) *</label>
           <select
+            id="dsp-empresa"
             value={despesa.empresaId}
             onChange={(e) => set({ empresaId: e.target.value })}
             aria-invalid={!!erros.empresaId}
@@ -84,24 +103,36 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
               </option>
             ))}
           </select>
-          {erros.empresaId && <span className="dsp-erro">{erros.empresaId}</span>}
+          {erros.empresaId && (
+            <span className="dsp-erro" aria-live="polite">
+              {erros.empresaId}
+            </span>
+          )}
         </div>
 
         <div className="dsp-campo dsp-col-2">
-          <label>Descrição *</label>
+          <label htmlFor="dsp-descricao">Descrição *</label>
           <input
+            id="dsp-descricao"
+            name="descricao"
+            autoComplete="off"
             value={despesa.descricao}
             onChange={(e) => set({ descricao: e.target.value })}
             placeholder="Ex.: aluguel, internet, DAS do MEI…"
             aria-invalid={!!erros.descricao}
             autoFocus
           />
-          {erros.descricao && <span className="dsp-erro">{erros.descricao}</span>}
+          {erros.descricao && (
+            <span className="dsp-erro" aria-live="polite">
+              {erros.descricao}
+            </span>
+          )}
         </div>
 
         <div className="dsp-campo">
-          <label>Categoria *</label>
+          <label htmlFor="dsp-categoria">Categoria *</label>
           <select
+            id="dsp-categoria"
             value={despesa.categoria}
             onChange={(e) => set({ categoria: e.target.value })}
             aria-invalid={!!erros.categoria}
@@ -116,13 +147,18 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
                 </option>
               ))}
           </select>
-          {erros.categoria && <span className="dsp-erro">{erros.categoria}</span>}
+          {erros.categoria && (
+            <span className="dsp-erro" aria-live="polite">
+              {erros.categoria}
+            </span>
+          )}
         </div>
 
         {despesa.categoria === 'fornecedor' && (
           <div className="dsp-campo">
-            <label>Fornecedor *</label>
+            <label htmlFor="dsp-fornecedor">Fornecedor *</label>
             <select
+              id="dsp-fornecedor"
               value={despesa.fornecedorId}
               onChange={(e) => set({ fornecedorId: e.target.value })}
               aria-invalid={!!erros.fornecedorId}
@@ -134,7 +170,11 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
                 </option>
               ))}
             </select>
-            {erros.fornecedorId && <span className="dsp-erro">{erros.fornecedorId}</span>}
+            {erros.fornecedorId && (
+              <span className="dsp-erro" aria-live="polite">
+                {erros.fornecedorId}
+              </span>
+            )}
           </div>
         )}
 
@@ -156,15 +196,24 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
         </div>
 
         <div className="dsp-campo">
-          <label>{despesa.tipoValor === 'variavel' ? 'Valor médio (R$) *' : 'Valor (R$) *'}</label>
+          <label htmlFor="dsp-valor">
+            {despesa.tipoValor === 'variavel' ? 'Valor médio (R$) *' : 'Valor (R$) *'}
+          </label>
           <input
+            id="dsp-valor"
+            name="valor"
+            autoComplete="off"
             inputMode="decimal"
             value={despesa.valor}
             onChange={(e) => set({ valor: e.target.value })}
             placeholder="0,00"
             aria-invalid={!!erros.valor}
           />
-          {erros.valor && <span className="dsp-erro">{erros.valor}</span>}
+          {erros.valor && (
+            <span className="dsp-erro" aria-live="polite">
+              {erros.valor}
+            </span>
+          )}
           {despesa.tipoValor === 'variavel' && (
             <span className="dsp-dica">
               Usado como estimativa ao gerar a conta do mês — ajuste pro valor real em Financeiro antes de quitar.
@@ -191,8 +240,9 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
 
         {despesa.periodicidade === 'semanal' ? (
           <div className="dsp-campo">
-            <label>Dia da semana *</label>
+            <label htmlFor="dsp-dia-semana">Dia da semana *</label>
             <select
+              id="dsp-dia-semana"
               value={despesa.diaVencimento}
               onChange={(e) => set({ diaVencimento: e.target.value })}
               aria-invalid={!!erros.diaVencimento}
@@ -204,26 +254,36 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
                 </option>
               ))}
             </select>
-            {erros.diaVencimento && <span className="dsp-erro">{erros.diaVencimento}</span>}
+            {erros.diaVencimento && (
+              <span className="dsp-erro" aria-live="polite">
+                {erros.diaVencimento}
+              </span>
+            )}
           </div>
         ) : (
           <div className="dsp-campo">
-            <label>Dia do vencimento *</label>
+            <label htmlFor="dsp-dia-vencimento">Dia do vencimento *</label>
             <input
+              id="dsp-dia-vencimento"
               inputMode="numeric"
               value={despesa.diaVencimento}
               onChange={(e) => set({ diaVencimento: e.target.value })}
               placeholder="1 a 28"
               aria-invalid={!!erros.diaVencimento}
             />
-            {erros.diaVencimento && <span className="dsp-erro">{erros.diaVencimento}</span>}
+            {erros.diaVencimento && (
+              <span className="dsp-erro" aria-live="polite">
+                {erros.diaVencimento}
+              </span>
+            )}
           </div>
         )}
 
         {despesa.periodicidade === 'anual' && (
           <div className="dsp-campo">
-            <label>Mês *</label>
+            <label htmlFor="dsp-mes">Mês *</label>
             <select
+              id="dsp-mes"
               value={despesa.mesVencimento}
               onChange={(e) => set({ mesVencimento: e.target.value })}
               aria-invalid={!!erros.mesVencimento}
@@ -235,14 +295,23 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
                 </option>
               ))}
             </select>
-            {erros.mesVencimento && <span className="dsp-erro">{erros.mesVencimento}</span>}
+            {erros.mesVencimento && (
+              <span className="dsp-erro" aria-live="polite">
+                {erros.mesVencimento}
+              </span>
+            )}
           </div>
         )}
       </div>
 
       <div className="dsp-campo">
-        <label>Observações</label>
-        <textarea rows={2} value={despesa.observacoes} onChange={(e) => set({ observacoes: e.target.value })} />
+        <label htmlFor="dsp-observacoes">Observações</label>
+        <textarea
+          id="dsp-observacoes"
+          rows={2}
+          value={despesa.observacoes}
+          onChange={(e) => set({ observacoes: e.target.value })}
+        />
       </div>
 
       <div className="dsp-acoes">
