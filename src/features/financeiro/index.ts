@@ -27,6 +27,7 @@ export {
   semErros,
   dadosContaPagarVazio,
   validarContaPagar,
+  dadosQuitacaoVazio,
   validarQuitacao,
   dadosFaturamentoVazio,
   validarFaturamento,

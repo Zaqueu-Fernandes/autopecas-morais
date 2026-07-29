@@ -212,8 +212,12 @@ body {
   .app-usuario-nome { max-width: 38vw; }
 }
 
-/* Páginas de listagem (Clientes, Fornecedores…) */
-.pg { max-width: 900px; }
+/* Páginas de listagem (Clientes, Fornecedores…) — usa a largura disponível
+   da tela (até um teto generoso, pra não esticar infinito em monitor
+   ultrawide) em vez de um teto estreito fixo. Antes ficava com max-width:900px
+   sem centralizar, sobrando uma faixa vazia grande à direita em telas largas
+   e forçando rolagem horizontal da tabela mesmo com espaço de sobra na tela. */
+.pg { max-width: 1600px; width: 100%; margin: 0 auto; }
 .pg-head-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
 
 .pg-head {

@@ -53,9 +53,14 @@ export function calcularVencimentosDoMes(despesa: DespesaFixa, referencia: Date)
   return vencimentos;
 }
 
-/** Gera as contas do mês só pra despesas de uma empresa (CNPJ) específica. */
-export async function gerarContasDoMes(empresaId: string, referencia: Date = new Date()): Promise<ResultadoGeracao> {
-  const despesas = await listarDespesasFixas({ somenteAtivas: true, empresaId });
+/**
+ * Gera as contas do mês pra TODAS as despesas ativas (não tem mais recorte
+ * por empresa — despesa recorrente é global, ver types.ts). Cada conta nasce
+ * com empresaId null ("Empresa a Definir" na UI) — a empresa que realmente
+ * pagou só é definida no momento de Quitar (ver FormQuitacao).
+ */
+export async function gerarContasDoMes(referencia: Date = new Date()): Promise<ResultadoGeracao> {
+  const despesas = await listarDespesasFixas({ somenteAtivas: true });
   let criadas = 0;
   let jaExistiam = 0;
 
@@ -63,13 +68,14 @@ export async function gerarContasDoMes(empresaId: string, referencia: Date = new
     for (const vencimento of calcularVencimentosDoMes(despesa, referencia)) {
       try {
         await criarLancamento({
-          empresaId: despesa.empresaId,
+          empresaId: null,
           tipo: 'pagar',
           categoria: despesa.categoria,
           descricao: despesa.descricao,
           valor: Number(despesa.valor),
           pago: false,
           formaPagamento: null,
+          contaFinanceiraId: null,
           dataPagamento: null,
           vencimento,
           clienteId: null,

@@ -7,7 +7,7 @@
  * verdade voltando/saindo, e vira uma contrapartida — ver estorno.service.ts).
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   type DadosEstorno,
   type FormaPagamento,
@@ -17,12 +17,13 @@ import {
   ROTULO_FORMA_PAGAMENTO,
   type ErrosValidacao,
 } from '../types';
+import { type ContaFinanceira, listarContasFinanceiras, ROTULO_TIPO_CONTA } from '@/features/contas-financeiras';
 
 interface Props {
   /** Ex.: "Estornar lançamento" (padrão) ou "Devolver item" (devolução parcial). */
   titulo?: string;
   descricao: string;
-  /** Original já estava pago/recebido — vai gerar contrapartida, então pede forma de pagamento. */
+  /** Original já estava pago/recebido — vai gerar contrapartida, então pede forma de pagamento + conta. */
   precisaFormaPagamento: boolean;
   onConfirmar: (dados: DadosEstorno) => Promise<void> | void;
   onCancelar?: () => void;
@@ -35,6 +36,11 @@ export function FormEstorno({ titulo = 'Estornar lançamento', descricao, precis
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
+  const [contas, setContas] = useState<ContaFinanceira[]>([]);
+
+  useEffect(() => {
+    if (precisaFormaPagamento) listarContasFinanceiras().then(setContas).catch(() => setContas([]));
+  }, [precisaFormaPagamento]);
 
   function set(patch: Partial<DadosEstorno>) {
     setDados((d) => ({ ...d, ...patch }));
@@ -108,6 +114,33 @@ export function FormEstorno({ titulo = 'Estornar lançamento', descricao, precis
             <span className="fin-erro" aria-live="polite">
               {erros.formaPagamento}
             </span>
+          )}
+        </div>
+      )}
+
+      {precisaFormaPagamento && (
+        <div className="fin-campo">
+          <label htmlFor="es-conta">Conta *</label>
+          <select
+            id="es-conta"
+            value={dados.contaFinanceiraId}
+            onChange={(e) => set({ contaFinanceiraId: e.target.value })}
+            aria-invalid={!!erros.contaFinanceiraId}
+          >
+            <option value="">— selecione —</option>
+            {contas.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.instituicao} ({ROTULO_TIPO_CONTA[c.tipo]})
+              </option>
+            ))}
+          </select>
+          {erros.contaFinanceiraId && (
+            <span className="fin-erro" aria-live="polite">
+              {erros.contaFinanceiraId}
+            </span>
+          )}
+          {contas.length === 0 && (
+            <span className="fin-aviso">Cadastre uma conta financeira em Cadastros antes de continuar.</span>
           )}
         </div>
       )}

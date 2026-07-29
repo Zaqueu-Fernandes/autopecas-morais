@@ -40,6 +40,7 @@ export async function finalizarVenda(input: {
       ...base,
       pago: true,
       formaPagamento: dados.formaPagamento || null,
+      contaFinanceiraId: dados.contaFinanceiraId || null,
       dataPagamento: new Date().toISOString(),
       vencimento: null,
     });
@@ -48,6 +49,7 @@ export async function finalizarVenda(input: {
       ...base,
       pago: false,
       formaPagamento: null,
+      contaFinanceiraId: null,
       dataPagamento: null,
       vencimento: dados.vencimento,
     });
@@ -56,6 +58,7 @@ export async function finalizarVenda(input: {
       ...base,
       pago: false,
       formaPagamento: null,
+      contaFinanceiraId: null,
       dataPagamento: null,
       vencimento: null,
     });

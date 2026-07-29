@@ -164,6 +164,18 @@
 .fin-badge-pendente  { background: #fef3c7; color: #92400e; }
 .fin-badge-estornado { background: var(--cor-fundo-secundario); color: var(--cor-texto-secundario); }
 
+/* Lançamento pendente gerado de despesa recorrente global — ainda sem
+   empresa real definida (só acontece até o usuário clicar em Quitar). */
+.fin-badge-empresa-definir {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  white-space: nowrap;
+}
+
 /* Filtro de período (Fluxo de Caixa) */
 .fin-campo-inline {
   display: inline-flex;

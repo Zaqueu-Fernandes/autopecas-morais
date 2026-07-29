@@ -12,6 +12,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { DocumentoListaImpressao } from '../types';
+import { LOGO_BASE64_PNG, LOGO_PROPORCAO } from './logoBase64';
 
 const NOME_EMPRESA = 'Autopeças Morais';
 
@@ -30,13 +31,20 @@ function nomeArquivo(titulo: string): string {
 export function gerarPdfLista(doc: DocumentoListaImpressao): void {
   const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
+  // Logo no canto esquerdo do cabeçalho — altura fixa, largura calculada pela
+  // proporção da arte pra não distorcer.
+  const logoAltura = 14;
+  const logoLargura = logoAltura * LOGO_PROPORCAO;
+  pdf.addImage(LOGO_BASE64_PNG, 'PNG', 14, 8, logoLargura, logoAltura);
+
+  const textoX = 14 + logoLargura + 6;
   pdf.setFontSize(16);
-  pdf.text(NOME_EMPRESA, 14, 16);
+  pdf.text(NOME_EMPRESA, textoX, 14);
   pdf.setFontSize(11);
   pdf.setTextColor(90);
-  pdf.text(doc.subtitulo ? `${doc.titulo} — ${doc.subtitulo}` : doc.titulo, 14, 23);
+  pdf.text(doc.subtitulo ? `${doc.titulo} — ${doc.subtitulo}` : doc.titulo, textoX, 20);
   pdf.setFontSize(9);
-  pdf.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, 14, 28);
+  pdf.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, textoX, 25);
   pdf.setTextColor(0);
 
   autoTable(pdf, {

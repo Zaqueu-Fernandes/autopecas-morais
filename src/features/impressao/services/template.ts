@@ -8,6 +8,7 @@
  */
 
 import type { DocumentoImpressao } from '../types';
+import { LOGO_BASE64_PNG } from './logoBase64';
 
 const NOME_EMPRESA = 'Autopeças Morais';
 
@@ -135,6 +136,8 @@ export function gerarHtmlComprovanteA4(doc: DocumentoImpressao): string {
     color: #111;
   }
   .cab { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 16px; }
+  .cab .marca { display: flex; align-items: center; gap: 10px; }
+  .cab .logo { height: 32px; width: auto; display: block; }
   .cab h1 { font-size: 20px; margin: 0; }
   .cab .num-data { text-align: right; font-size: 12px; color: #444; }
   .cab .num-data strong { display: block; font-size: 14px; color: #111; }
@@ -155,7 +158,10 @@ export function gerarHtmlComprovanteA4(doc: DocumentoImpressao): string {
 </head>
 <body>
   <div class="cab">
-    <h1>${escapar(NOME_EMPRESA)}</h1>
+    <div class="marca">
+      <img class="logo" src="${LOGO_BASE64_PNG}" alt="" />
+      <h1>${escapar(NOME_EMPRESA)}</h1>
+    </div>
     <div class="num-data">
       <strong>${escapar(doc.titulo)} nº ${escapar(String(doc.numero))}</strong>
       ${dataFormatada}

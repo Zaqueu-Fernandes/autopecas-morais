@@ -29,6 +29,8 @@ interface Props {
   vendaClienteId?: string | null;
   bloqueado?: boolean;
   aoAtualizarTotal?: (total: number) => void;
+  /** Chamado toda vez que os itens (re)carregam, com a lista completa (ex.: pra impressão). */
+  aoAtualizarItens?: (itens: ItemVenda[]) => void;
 }
 
 export function ListaItensVenda({
@@ -37,6 +39,7 @@ export function ListaItensVenda({
   vendaClienteId,
   bloqueado = false,
   aoAtualizarTotal,
+  aoAtualizarItens,
 }: Props) {
   const { confirmar } = useConfirmacao();
   const [itens, setItens] = useState<ItemVenda[]>([]);
@@ -53,6 +56,7 @@ export function ListaItensVenda({
       setItens(lista);
       const total = lista.filter((i) => !i.removido).reduce((soma, i) => soma + i.quantidade * i.valorUnit, 0);
       aoAtualizarTotal?.(total);
+      aoAtualizarItens?.(lista);
     } catch {
       setErro('Não foi possível carregar os itens.');
     } finally {
@@ -88,7 +92,7 @@ export function ListaItensVenda({
   }
 
   async function handleDevolver(dados: DadosEstorno) {
-    if (!itemParaDevolver || !dados.formaPagamento) return;
+    if (!itemParaDevolver || !dados.formaPagamento || !dados.contaFinanceiraId) return;
     const item = itemParaDevolver;
     const valor = item.quantidade * item.valorUnit;
     const ok = await confirmar({
@@ -108,6 +112,7 @@ export function ListaItensVenda({
       { id: vendaId, numero: vendaNumero, clienteId: vendaClienteId ?? null },
       dados.motivo,
       dados.formaPagamento,
+      dados.contaFinanceiraId,
     );
     setItemParaDevolver(null);
     await carregar();

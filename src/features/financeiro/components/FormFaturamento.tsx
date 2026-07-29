@@ -21,6 +21,7 @@ import {
 } from '../types';
 import { faturarOS } from '../services/faturamento.service';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
+import { type ContaFinanceira, listarContasFinanceiras, ROTULO_TIPO_CONTA } from '@/features/contas-financeiras';
 import { formatarMoeda } from '@/shared/utils/formatadores';
 
 interface Props {
@@ -40,12 +41,14 @@ export function FormFaturamento({ osId, clienteId, valorTotal, onFaturado, onCan
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [contas, setContas] = useState<ContaFinanceira[]>([]);
 
   useEffect(() => {
     listarEmpresas().then((lista) => {
       setEmpresas(lista);
       if (lista.length === 1) set({ empresaId: lista[0].id });
     });
+    listarContasFinanceiras().then(setContas).catch(() => setContas([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -135,6 +138,33 @@ export function FormFaturamento({ osId, clienteId, valorTotal, onFaturado, onCan
             <span className="fin-erro" aria-live="polite">
               {erros.formaPagamento}
             </span>
+          )}
+        </div>
+      )}
+
+      {dados.situacao === 'a_vista' && (
+        <div className="fin-campo">
+          <label htmlFor="ft-conta">Conta *</label>
+          <select
+            id="ft-conta"
+            value={dados.contaFinanceiraId}
+            onChange={(e) => set({ contaFinanceiraId: e.target.value })}
+            aria-invalid={!!erros.contaFinanceiraId}
+          >
+            <option value="">— selecione —</option>
+            {contas.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.instituicao} ({ROTULO_TIPO_CONTA[c.tipo]})
+              </option>
+            ))}
+          </select>
+          {erros.contaFinanceiraId && (
+            <span className="fin-erro" aria-live="polite">
+              {erros.contaFinanceiraId}
+            </span>
+          )}
+          {contas.length === 0 && (
+            <span className="fin-aviso">Cadastre uma conta financeira em Cadastros antes de faturar à vista.</span>
           )}
         </div>
       )}

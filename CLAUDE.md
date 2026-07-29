@@ -55,35 +55,67 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   (chrome de marca, não muda com o toggle).
 - Identidade visual: fonte única `public/icones/img2d_brilhosa.png.png`
   (sim, extensão duplicada no nome — veio assim de um rename acidental
-  fora da sessão, não mexer) alimenta os TRÊS usos — ícone do PWA, logo
-  da tela de login (`.auth-logo`, LoginPage.tsx) e logo do cabeçalho
-  (`.app-logo`, App.tsx). Não tem arquivo-fonte separado por uso. Essa
-  arte é um recorte mais fechado do mesmo desenho 2D (sem a moldura/bezel
-  metálico nem a tag "CUIDANDO DA VIDA DO SEU CARRO" que a versão
-  anterior tinha) — 1090×1039, fundo escuro preenchendo o quadro inteiro,
-  SEM cantos arredondados próprios (diferente das artes anteriores, que
-  já vinham com bezel arredondado embutido). Já teve outras 2 versões
-  antes dessa (histórico, arquivos ainda no repo sem uso: `IconPage.png`/
-  `IconePWA.png`; depois `Iconeapp.png`, versão 3D fotorrealista, trocada
-  por pedido do usuário — "não ficou muito legal o ícone 3D"). Gerados
-  uma vez com `sharp` (script descartável, não faz parte do projeto): 1)
-  redimensiona/recorta pra quadrado 1024×1024 (`fit: 'cover'`, centrado —
-  essa arte não tem moldura pra alinhar por luminância como as
-  anteriores); 2) aplica máscara SVG de cantos arredondados ~18% do
-  tamanho (`dest-in`) — como a arte NÃO tem cantos próprios dessa vez, a
-  máscara faz o trabalho inteiro de criar a transparência arredondada; 3)
-  exporta `pwa-icon-512.png`, `pwa-icon-192.png` (manifest,
-  vite.config.ts, purpose 'any' e 'maskable' com o MESMO arquivo —
-  simplificação: não tem margem de segurança própria pra maskable, se
-  algum launcher Android cortar em círculo pode tocar no conteúdo perto
-  da borda) e `favicon-64.png` (index.html), com `png({ palette: true })`
-  (quantização de cores, tipo pngquant) pra manter leve (512px ficou com
-  ~73KB). `vite.config.ts` tem `workbox.globIgnores: ['icones/**']` —
-  sem isso, o precache do service worker varreria as artes-fonte
-  (inclusive as antigas, ainda no repo) junto com o app, inflando o cache
-  offline à toa. Se a arte mudar de novo, regenerar os 3 PNGs a partir da
-  nova arte-fonte com a mesma técnica (não editar os PNGs gerados na
-  mão).
+  fora da sessão, não mexer). Essa arte é um recorte mais fechado do
+  mesmo desenho 2D (sem a moldura/bezel metálico nem a tag "CUIDANDO DA
+  VIDA DO SEU CARRO" que a versão anterior tinha) — 1090×1039, fundo
+  escuro preenchendo o quadro inteiro, SEM cantos arredondados próprios
+  (diferente das artes anteriores, que já vinham com bezel arredondado
+  embutido). Já teve outras 2 versões antes dessa (histórico, arquivos
+  ainda no repo sem uso: `IconPage.png`/`IconePWA.png`; depois
+  `Iconeapp.png`, versão 3D fotorrealista, trocada por pedido do usuário —
+  "não ficou muito legal o ícone 3D"). ATENÇÃO: desde que a logo sem fundo
+  foi criada (ver abaixo), essa arte-fonte NÃO alimenta mais os 3 usos
+  igual antes — dois pipelines diferentes partem dela agora:
+  - **Ícone do PWA** (`pwa-icon-512.png`, `pwa-icon-192.png`,
+    `favicon-64.png`, todos em `public/`, todos com FUNDO ESCURO —
+    intencional, ícone instalado precisa de fundo sólido, principalmente
+    o purpose `maskable` do manifest: sem fundo, launcher Android pode
+    cortar de um jeito que "flutua"/corta mal). Gerados uma vez com
+    `sharp` (script descartável, não faz parte do projeto): 1)
+    redimensiona/recorta pra quadrado 1024×1024 (`fit: 'cover'`,
+    centrado — essa arte não tem moldura pra alinhar por luminância
+    como as anteriores); 2) aplica máscara SVG de cantos arredondados
+    ~18% do tamanho (`dest-in`) — como a arte NÃO tem cantos próprios,
+    a máscara faz o trabalho inteiro de criar a transparência
+    arredondada; 3) exporta os 3 arquivos (manifest, vite.config.ts,
+    purpose 'any' e 'maskable' com o MESMO arquivo — simplificação: não
+    tem margem de segurança própria pra maskable, se algum launcher
+    cortar em círculo pode tocar no conteúdo perto da borda), com
+    `png({ palette: true })` (quantização de cores, tipo pngquant) pra
+    manter leve (512px ficou com ~73KB). Continua sem mudança nenhuma.
+  - **Logo sem fundo** (`public/logo-transparente.png`, 420×400,
+    ~36KB), usada em `.auth-logo` (LoginPage.tsx) e `.app-logo`
+    (App.tsx, cabeçalho) — pedido do usuário (o quadrado escuro em
+    volta da logo, em cima do card branco da tela de login, ficava
+    feio). Gerada uma vez com `sharp` (script descartável) a partir da
+    MESMA arte-fonte, removendo o fundo escuro por chave de luminância
+    (pixels de fundo têm luminância ~19-39; os elementos desenhados —
+    carro prata, chave/texto vermelho — ficam ~65+; threshold 40-58 com
+    descontaminação de borda, assumindo blend linear contra o fundo
+    amostrado, pra não sobrar franja escura nos contornos). Sobra um
+    artefato pequeno (um brilho/glow claro que fazia parte da arte
+    original no canto superior-esquerdo, que só "sumia" antes por
+    blender com o fundo escuro ao redor — sem fundo ele aparece como uma
+    manchinha clara) mas é imperceptível no tamanho real de exibição
+    (60-64px); não vale o risco de mascarar manualmente perto do arco
+    cinza do desenho pra tirar. Essa mesma logo sem fundo é reaproveitada
+    (embutida em base64, ver `src/features/impressao/services/
+    logoBase64.ts`) no cabeçalho dos relatórios PDF (`pdf.service.ts`) e
+    da impressão em A4/Carta — comprovante (`template.ts`) e lista
+    (`templateLista.ts`); térmica 80mm não leva logo (bobina estreita,
+    prioriza espaço pro conteúdo). Base64 em vez de referenciar o arquivo
+    por URL porque o jsPDF precisa do dado da imagem de forma síncrona
+    (`addImage`) e os templates de impressão precisam funcionar offline
+    (PWA).
+  - Se a arte-fonte mudar de novo, regenerar os DOIS pipelines
+    separadamente com a mesma técnica cada um (não editar os PNGs
+    gerados na mão, nem a base64 do logoBase64.ts).
+  - `vite.config.ts` tem `workbox.globIgnores: ['icones/**']` — sem
+    isso, o precache do service worker varreria as artes-fonte
+    (inclusive as antigas, ainda no repo) junto com o app, inflando o
+    cache offline à toa. `logo-transparente.png` fica em `public/`
+    (fora de `icones/`), igual os ícones do PWA — entra no precache
+    normalmente, pra aparecer mesmo offline.
 
 ## Regras de código (IMPORTANTES)
 
@@ -252,6 +284,25 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 - REGRA DE OURO: retirada_lucro NUNCA entra no cálculo de lucro (é o
   destino do lucro, não um custo) — ainda não há cálculo de lucro/dashboard,
   só a regra documentada pra quando existir.
+- Conta financeira (feature @/features/contas-financeiras, tabela
+  contas_financeiras, tela em Cadastros > Contas Financeiras) — cadastro
+  simples do usuário: `tipo` ('banco' | 'carteira' | 'cartao' |
+  'investimento') + `instituicao` (nome do banco, ou label livre tipo
+  "Caixa da loja"). SEM empresa_id de propósito (não foi pedido vínculo por
+  CNPJ — uma conta serve qualquer empresa da mesma oficina). Todo lançamento
+  que efetivamente MOVIMENTA dinheiro (fica pago=true) exige uma conta,
+  obrigatório, sempre junto de `forma_pagamento` (que já existia — agora são
+  pedidos em par nos 4 pontos que coletam forma de pagamento): Quitar
+  (FormQuitacao), Faturar OS à vista (FormFaturamento), Finalizar venda à
+  vista (FormFinalizarVenda), e Estorno/Devolução quando já havia dinheiro
+  envolvido (FormEstorno, cobre tanto estornarLancamento quanto
+  devolverItem/devolverItemVenda). `financeiro.conta_financeira_id`
+  (nullable — só null enquanto pendente, igual forma_pagamento). "Nova conta
+  a pagar" (FormContaPagar) e despesa recorrente não pedem conta na criação
+  — só existe conta de verdade quando o dinheiro sai/entra, não quando a
+  obrigação é registrada. PENDÊNCIA FUTURA: "saldo por conta" no Fluxo de
+  Caixa (ver "Ordem de construção" no fim deste arquivo) — a coluna já
+  existe e é obrigatória, só falta a tela agregar/filtrar por ela.
 - Estorno e exclusão de lançamento (src/features/financeiro/services/
   estorno.service.ts + excluirLancamento em financeiro.service.ts): nunca
   se apaga um lançamento já quitado ou vinculado a OS/venda — isso some com
@@ -312,6 +363,23 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   contas do mês", não é automático/agendado). Índice único
   (despesa_fixa_id, vencimento) em financeiro impede duplicar a mesma
   despesa no mesmo mês — gerar de novo só ignora as que já existem.
+- Despesa recorrente é GLOBAL, SEM empresa (`despesas_fixas.empresa_id` foi
+  removida — decisão do usuário, que opera múltiplas empresas no mesmo
+  controle: travar o molde recorrente numa empresa específica presumia que
+  quem paga é sempre a mesma, o que nem sempre é verdade — o pagador real
+  pode variar mês a mês). "Gerar contas do mês" (gerarContasDoMes, sem mais
+  parâmetro de empresa) roda pra TODAS as despesas ativas de uma vez e cria
+  cada lançamento com `empresa_id = null`. Enquanto esse lançamento estiver
+  PENDENTE, a lista do Financeiro mostra a badge laranja "Empresa a Definir"
+  no lugar do nome da empresa (FinanceiroPage.tsx, classe
+  `.fin-badge-empresa-definir`). Só no momento de clicar "Quitar" é que a
+  empresa pagadora de verdade é exigida — FormQuitacao recebe
+  `precisaEmpresa={lancamento.empresaId === null}` e, se true, mostra um
+  select de Empresa obrigatório ANTES da forma de pagamento/conta;
+  `quitarLancamento` grava o `empresa_id` junto com pago=true. Todo OUTRO
+  jeito de lançar (conta a pagar manual, faturar OS, finalizar venda)
+  continua exigindo empresa na CRIAÇÃO como sempre — `financeiro.empresa_id
+  = null` só acontece nesse caso específico de despesa recorrente pendente.
 - Página/menu chama-se "Despesas Recorrentes" (era "Despesas Fixas") —
   nomes internos (DespesaFixa, despesas_fixas, FormDespesaFixa,
   DespesasFixasPage) continuam iguais de propósito, só o texto visível
@@ -484,12 +552,12 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 - Obrigatoriedade: nome+telefone sempre; endereço completo só quando PJ ou
   quando exigirNota=true.
 - Na navegação (App.tsx), "Cadastros" é uma aba PAI (src/pages/
-  CadastrosPage.tsx) que agrupa Empresas/Clientes/Fornecedores/Categorias
-  numa sub-navegação interna (pg-subnav, mesma pílula visual da nav
-  principal mas em contexto claro) — existe só pra não lotar o menu
-  principal de abas; cada sub-página continua sendo o componente de sempre
-  (EmpresasPage, ClientesPage, FornecedoresPage, CategoriasPage), sem
-  mudança de lógica interna nelas.
+  CadastrosPage.tsx) que agrupa Empresas/Clientes/Fornecedores/Categorias/
+  Contas Financeiras numa sub-navegação interna (pg-subnav, mesma pílula
+  visual da nav principal mas em contexto claro) — existe só pra não lotar
+  o menu principal de abas; cada sub-página continua sendo o componente de
+  sempre (EmpresasPage, ClientesPage, FornecedoresPage, CategoriasPage,
+  ContasFinanceirasPage), sem mudança de lógica interna nelas.
 
 ### Autenticação e perfis (feature já pronta em src/features/auth)
 
@@ -595,9 +663,11 @@ Até lá, o sistema gera COMPROVANTE INTERNO ("sem valor fiscal").
 6. ✅ Dashboard + monitor de faturamento MEI
 7. Pendências conhecidas antes de "fases futuras":
    - ✅ Impressão (Fase 1: comprovante térmica 80mm + A4/Carta, preferência
-     global) — pronta, ligada na OS. Falta ligar o botão na Venda de
-     balcão (a camada já suporta). Listas (Clientes, Estoque, Financeiro
-     etc.) têm Imprimir + Gerar PDF próprios (BotoesImpressaoLista).
+     global) — pronta, ligada na OS e na Venda de balcão. Listas (Clientes,
+     Estoque, Financeiro etc.) têm Imprimir + Gerar PDF próprios
+     (BotoesImpressaoLista), com a logo (sem fundo, ver seção Identidade
+     visual) no cabeçalho do PDF e da impressão A4/Carta — térmica 80mm
+     não leva logo, de propósito (bobina estreita).
    - ✅ Estorno de OS/venda faturada, exclusão de lançamento pendente, e
      devolução de item (peça física volta ao estoque, ou serviço) de uma
      OS/venda já faturada — tudo implementado (ver "Estorno e exclusão de
@@ -610,5 +680,19 @@ Até lá, o sistema gera COMPROVANTE INTERNO ("sem valor fiscal").
 8. Fases futuras (fora do MVP):
    - ✅ Importação XML NF-e (entrada de estoque) — feature já pronta em
      src/features/importacao-nfe.
+   - ✅ Contas Financeiras (banco/carteira/cartão/investimento) — feature já
+     pronta em src/features/contas-financeiras, obrigatória em todo
+     lançamento pago/recebido (ver seção Financeiro).
+   - Saldo por conta financeira no Fluxo de Caixa — a coluna
+     `financeiro.conta_financeira_id` já existe e é preenchida em todo
+     lançamento quitado, só falta a tela (FluxoCaixaPage) agregar/filtrar
+     por ela (hoje agrega só por empresa).
+   - Sincronizar filtros de tela (busca, status, período, empresa
+     selecionada) com a URL — Financeiro, Fluxo de Caixa, OS, Estoque,
+     Cadastros. Hoje é só `useState` local; ficou de fora de uma rodada de
+     revisão de Web Interface Guidelines por ser mudança na navegação
+     principal do app, não um bug pontual.
+   - Virtualização de listas grandes (Estoque, Financeiro, OS, Vendas) —
+     mesma revisão acima, adiada por exigir escolher uma lib nova.
    - Impressão ESC/POS.
    - Emissão fiscal (NFC-e/NFS-e via PlugNotas/Focus/eNotas).

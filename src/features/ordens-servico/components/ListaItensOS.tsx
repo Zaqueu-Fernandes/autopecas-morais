@@ -106,7 +106,7 @@ export function ListaItensOS({
   }
 
   async function handleDevolver(dados: DadosEstorno) {
-    if (!itemParaDevolver || !osClienteId || !dados.formaPagamento) return;
+    if (!itemParaDevolver || !osClienteId || !dados.formaPagamento || !dados.contaFinanceiraId) return;
     const item = itemParaDevolver;
     const valor = item.quantidade * item.valorUnit;
     const ok = await confirmar({
@@ -128,6 +128,7 @@ export function ListaItensOS({
       { id: osId, numero: osNumero, clienteId: osClienteId },
       dados.motivo,
       dados.formaPagamento,
+      dados.contaFinanceiraId,
     );
     setItemParaDevolver(null);
     await carregar();

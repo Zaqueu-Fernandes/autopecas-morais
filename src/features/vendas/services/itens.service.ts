@@ -108,6 +108,7 @@ export async function devolverItemVenda(
   venda: { id: string; numero?: number; clienteId: string | null },
   motivo: string,
   formaPagamento: FormaPagamento,
+  contaFinanceiraId: string,
 ): Promise<void> {
   const lancamento = await buscarLancamentoDeVenda(venda.id);
   if (!lancamento) {
@@ -137,6 +138,7 @@ export async function devolverItemVenda(
       valor: valorItem,
       pago: true,
       formaPagamento,
+      contaFinanceiraId,
       dataPagamento: new Date().toISOString(),
       vencimento: null,
       clienteId: venda.clienteId,
@@ -154,6 +156,7 @@ export async function devolverItemVenda(
       await estornarLancamento(lancamento.id!, {
         motivo: `Devolução esvaziou a venda — ${motivo}`,
         formaPagamento: '',
+        contaFinanceiraId: '',
       });
     } else {
       await atualizarValorLancamento(lancamento.id!, restante);

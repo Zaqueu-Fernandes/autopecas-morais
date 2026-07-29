@@ -3,9 +3,10 @@
  * PÁGINA — DESPESAS RECORRENTES
  * ============================================================================
  * Cadastra as despesas recorrentes (aluguel, internet, DAS...) e gera as
- * contas do mês (lançamentos em Financeiro) com um clique. Cada despesa
- * pertence a uma empresa (CNPJ) — o filtro/seleção de empresa decide tanto o
- * que aparece na lista quanto pra qual empresa "Gerar contas" vai rodar.
+ * contas do mês (lançamentos em Financeiro) com um clique. Despesa recorrente
+ * é GLOBAL, sem empresa própria (ver despesas/types.ts) — a conta gerada
+ * nasce "Empresa a Definir" e só recebe a empresa real no momento de Quitar
+ * (Financeiro), porque quem paga de fato pode variar mês a mês.
  */
 
 import { useEffect, useState } from 'react';
@@ -24,7 +25,6 @@ import {
   DIAS_SEMANA,
   MESES_ANO,
 } from '@/features/despesas';
-import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
@@ -42,9 +42,7 @@ function descricaoVencimento(d: DespesaFixa): string {
 export function DespesasFixasPage() {
   const { confirmar, avisar } = useConfirmacao();
   const [despesas, setDespesas] = useState<DespesaFixa[]>([]);
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [empresaId, setEmpresaId] = useState('');
   const [mostrarInativas, setMostrarInativas] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -56,10 +54,6 @@ export function DespesasFixasPage() {
   const [resultado, setResultado] = useState<ResultadoGeracao | null>(null);
 
   useEffect(() => {
-    listarEmpresas().then((lista) => {
-      setEmpresas(lista);
-      if (lista.length > 0) setEmpresaId((atual) => atual || lista[0].id!);
-    });
     // inclui inativas: uma despesa antiga pode referenciar uma categoria já desativada
     listarCategorias({ somenteAtivas: false }).then(setCategorias);
   }, []);
@@ -72,9 +66,7 @@ export function DespesasFixasPage() {
     setCarregando(true);
     setErro(null);
     try {
-      setDespesas(
-        await listarDespesasFixas({ empresaId: empresaId || undefined, somenteAtivas: !mostrarInativas }),
-      );
+      setDespesas(await listarDespesasFixas({ somenteAtivas: !mostrarInativas }));
     } catch {
       setErro('Não foi possível carregar as despesas recorrentes.');
     } finally {
@@ -85,7 +77,7 @@ export function DespesasFixasPage() {
   useEffect(() => {
     carregar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [empresaId, mostrarInativas]);
+  }, [mostrarInativas]);
 
   async function handleSalvar(d: DespesaFixa) {
     await salvarDespesaFixa(d);
@@ -141,11 +133,10 @@ export function DespesasFixasPage() {
   }
 
   async function handleGerar() {
-    if (!empresaId) return;
     setGerando(true);
     setResultado(null);
     try {
-      setResultado(await gerarContasDoMes(empresaId));
+      setResultado(await gerarContasDoMes());
     } finally {
       setGerando(false);
     }
@@ -155,7 +146,6 @@ export function DespesasFixasPage() {
     return (
       <FormDespesaFixa
         inicial={despesaEmEdicao ?? undefined}
-        empresaIdPadrao={empresaId}
         onSalvar={handleSalvar}
         onCancelar={() => {
           setMostrarForm(false);
@@ -169,7 +159,6 @@ export function DespesasFixasPage() {
 
   const documentoImpressao: DocumentoListaImpressao = {
     titulo: 'Despesas Recorrentes',
-    subtitulo: empresas.find((e) => e.id === empresaId)?.nomeFantasia,
     colunas: ['Descrição', 'Categoria', 'Valor', 'Periodicidade', 'Vencimento'],
     linhas: despesas.map((d) => [
       d.descricao,
@@ -200,15 +189,7 @@ export function DespesasFixasPage() {
       </div>
 
       <div className="pg-filtros">
-        <select value={empresaId} onChange={(e) => setEmpresaId(e.target.value)} aria-label="Filtrar por empresa">
-          {empresas.length === 0 && <option value="">Nenhuma empresa cadastrada</option>}
-          {empresas.map((emp) => (
-            <option key={emp.id} value={emp.id}>
-              {emp.nomeFantasia}
-            </option>
-          ))}
-        </select>
-        <button type="button" className="dsp-btn-sec" onClick={handleGerar} disabled={gerando || !empresaId}>
+        <button type="button" className="dsp-btn-sec" onClick={handleGerar} disabled={gerando}>
           <RefreshCw size={14} className={gerando ? 'dsp-icone-girando' : ''} />
           {gerando ? 'Gerando…' : `Gerar contas de ${mesReferencia}`}
         </button>
@@ -226,6 +207,7 @@ export function DespesasFixasPage() {
         <p className="dsp-resultado">
           {resultado.criadas} conta(s) gerada(s)
           {resultado.jaExistiam > 0 && `, ${resultado.jaExistiam} já existia(m) este mês`}.
+          {resultado.criadas > 0 && ' Elas aparecem em Financeiro como "Empresa a Definir" até você Quitar cada uma.'}
         </p>
       )}
 

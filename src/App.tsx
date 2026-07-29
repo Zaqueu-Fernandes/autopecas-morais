@@ -60,11 +60,11 @@ function App() {
       <InstalarPwaBanner />
       <header className="app-header">
         <img
-          src="/pwa-icon-512.png"
+          src="/logo-transparente.png"
           alt="Autopeças Morais — Cuidando da vida do seu carro"
           className="app-logo"
-          width={512}
-          height={512}
+          width={420}
+          height={400}
         />
         <nav className="app-nav" aria-label="Navegação principal">
           {ABAS.map((a) => {

@@ -9,6 +9,13 @@
  * 'retirada_lucro' são chaves protegidas com comportamento especial no
  * código (ver validarDespesaFixa e a REGRA DE OURO em financeiro.sql) — são
  * estáveis mesmo que o usuário renomeie o rótulo exibido dessas categorias.
+ *
+ * SEM empresa aqui de propósito: despesa recorrente é só um MOLDE (aluguel,
+ * internet…) — quem paga de fato pode variar mês a mês entre as empresas do
+ * usuário, então travar isso no molde não fazia sentido. A conta gerada em
+ * Financeiro (ver gerarContas.service.ts) nasce sem empresa definida
+ * ("Empresa a Definir") e só recebe a empresa real no momento de Quitar
+ * (ver FormQuitacao/financeiro.service.ts).
  */
 export type CategoriaDespesaFixa = string;
 
@@ -51,8 +58,6 @@ export const MESES_ANO = [
 
 export interface DespesaFixa {
   id?: string;
-  /** A qual empresa (CNPJ) esta despesa pertence — as contas geradas herdam essa empresa. */
-  empresaId: string;
   descricao: string;
   categoria: CategoriaDespesaFixa;
   tipoValor: TipoValorDespesa;
@@ -66,7 +71,6 @@ export interface DespesaFixa {
 }
 
 export const despesaFixaVazia = (): DespesaFixa => ({
-  empresaId: '',
   descricao: '',
   categoria: 'despesa_geral',
   tipoValor: 'fixo',
@@ -84,7 +88,6 @@ export const semErros = (e: ErrosValidacao) => Object.keys(e).length === 0;
 
 export function validarDespesaFixa(d: DespesaFixa): ErrosValidacao {
   const erros: ErrosValidacao = {};
-  if (!d.empresaId) erros.empresaId = 'Selecione a empresa.';
   if (!d.categoria) erros.categoria = 'Selecione a categoria.';
   if (!d.descricao.trim()) erros.descricao = 'Descreva a despesa.';
   const valor = Number(d.valor);

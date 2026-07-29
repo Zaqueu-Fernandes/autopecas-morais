@@ -21,29 +21,23 @@ import {
   type ErrosValidacao,
 } from '../types';
 import { type Fornecedor, listarFornecedores } from '@/features/cadastros';
-import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
 
 interface Props {
   inicial?: DespesaFixa;
-  empresaIdPadrao?: string;
   onSalvar: (d: DespesaFixa) => Promise<void> | void;
   onCancelar?: () => void;
 }
 
-export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar }: Props) {
-  const [despesa, setDespesa] = useState<DespesaFixa>(
-    inicial ?? { ...despesaFixaVazia(), empresaId: empresaIdPadrao ?? '' },
-  );
+export function FormDespesaFixa({ inicial, onSalvar, onCancelar }: Props) {
+  const [despesa, setDespesa] = useState<DespesaFixa>(inicial ?? despesaFixaVazia());
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [salvando, setSalvando] = useState(false);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   useEffect(() => {
     listarFornecedores().then(setFornecedores).catch(() => setFornecedores([]));
-    listarEmpresas().then(setEmpresas).catch(() => setEmpresas([]));
     listarCategorias().then(setCategorias).catch(() => setCategorias([]));
   }, []);
 
@@ -54,7 +48,6 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
   /** Foca o primeiro campo com erro, na ordem em que aparecem no formulário. */
   function focarPrimeiroErro(e: ErrosValidacao) {
     const ordem: Array<[string, string]> = [
-      ['empresaId', 'dsp-empresa'],
       ['descricao', 'dsp-descricao'],
       ['categoria', 'dsp-categoria'],
       ['fornecedorId', 'dsp-fornecedor'],
@@ -88,28 +81,6 @@ export function FormDespesaFixa({ inicial, empresaIdPadrao, onSalvar, onCancelar
       </div>
 
       <div className="dsp-grid">
-        <div className="dsp-campo">
-          <label htmlFor="dsp-empresa">Empresa (CNPJ) *</label>
-          <select
-            id="dsp-empresa"
-            value={despesa.empresaId}
-            onChange={(e) => set({ empresaId: e.target.value })}
-            aria-invalid={!!erros.empresaId}
-          >
-            <option value="">— selecione —</option>
-            {empresas.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.nomeFantasia}
-              </option>
-            ))}
-          </select>
-          {erros.empresaId && (
-            <span className="dsp-erro" aria-live="polite">
-              {erros.empresaId}
-            </span>
-          )}
-        </div>
-
         <div className="dsp-campo dsp-col-2">
           <label htmlFor="dsp-descricao">Descrição *</label>
           <input

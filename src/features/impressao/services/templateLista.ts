@@ -14,6 +14,7 @@
  */
 
 import type { DocumentoListaImpressao } from '../types';
+import { LOGO_BASE64_PNG } from './logoBase64';
 
 const NOME_EMPRESA = 'Autopeças Morais';
 
@@ -100,6 +101,8 @@ export function gerarHtmlListaA4(doc: DocumentoListaImpressao): string {
     color: #111;
   }
   .cab { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 14px; }
+  .cab .marca { display: flex; align-items: center; gap: 10px; }
+  .cab .logo { height: 28px; width: auto; display: block; }
   .cab h1 { font-size: 18px; margin: 0 0 2px; }
   .cab .subtitulo { font-size: 12px; color: #444; margin: 0; }
   .cab .gerado { font-size: 11px; color: #666; text-align: right; }
@@ -112,9 +115,12 @@ export function gerarHtmlListaA4(doc: DocumentoListaImpressao): string {
 </head>
 <body>
   <div class="cab">
-    <div>
-      <h1>${escapar(NOME_EMPRESA)}</h1>
-      <p class="subtitulo">${escapar(doc.titulo)}${doc.subtitulo ? ` — ${escapar(doc.subtitulo)}` : ''}</p>
+    <div class="marca">
+      <img class="logo" src="${LOGO_BASE64_PNG}" alt="" />
+      <div>
+        <h1>${escapar(NOME_EMPRESA)}</h1>
+        <p class="subtitulo">${escapar(doc.titulo)}${doc.subtitulo ? ` — ${escapar(doc.subtitulo)}` : ''}</p>
+      </div>
     </div>
     <div class="gerado">Gerado em ${geradoEm}</div>
   </div>

@@ -18,6 +18,7 @@ interface LinhaFinanceiro {
   valor: number;
   pago: boolean;
   forma_pagamento: FormaPagamento | null;
+  conta_financeira_id: string | null;
   data_pagamento: string | null;
   vencimento: string | null;
   cliente_id: string | null;
@@ -44,6 +45,7 @@ function linhaParaLancamento(l: LinhaFinanceiro): LancamentoFinanceiro {
     valor: Number(l.valor),
     pago: l.pago,
     formaPagamento: l.forma_pagamento,
+    contaFinanceiraId: l.conta_financeira_id,
     dataPagamento: l.data_pagamento,
     vencimento: l.vencimento,
     clienteId: l.cliente_id,
@@ -86,6 +88,7 @@ export async function criarLancamento(l: LancamentoFinanceiro): Promise<Lancamen
       valor: l.valor,
       pago: l.pago,
       forma_pagamento: l.formaPagamento,
+      conta_financeira_id: l.contaFinanceiraId,
       data_pagamento: l.dataPagamento,
       vencimento: l.vencimento,
       cliente_id: l.clienteId,
@@ -119,15 +122,29 @@ export async function atualizarValorLancamento(id: string, valor: number): Promi
   return linhaParaLancamento(data as LinhaFinanceiro);
 }
 
-/** Marca um lançamento como quitado (pago ou recebido, conforme o tipo). */
-export async function quitarLancamento(id: string, formaPagamento: FormaPagamento): Promise<LancamentoFinanceiro> {
+/**
+ * Marca um lançamento como quitado (pago ou recebido, conforme o tipo).
+ * `empresaId` só precisa ser passado quando o lançamento ainda não tinha uma
+ * (veio de despesa recorrente global, ver DespesaFixa) — nos demais casos o
+ * lançamento já nasceu com empresa definida e este parâmetro é ignorado.
+ */
+export async function quitarLancamento(
+  id: string,
+  formaPagamento: FormaPagamento,
+  contaFinanceiraId: string,
+  empresaId?: string,
+): Promise<LancamentoFinanceiro> {
+  const patch: Record<string, unknown> = {
+    pago: true,
+    forma_pagamento: formaPagamento,
+    conta_financeira_id: contaFinanceiraId,
+    data_pagamento: new Date().toISOString(),
+  };
+  if (empresaId) patch.empresa_id = empresaId;
+
   const { data, error } = await supabase
     .from('financeiro')
-    .update({
-      pago: true,
-      forma_pagamento: formaPagamento,
-      data_pagamento: new Date().toISOString(),
-    })
+    .update(patch)
     .eq('id', id)
     .select()
     .single();

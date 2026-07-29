@@ -8,11 +8,12 @@
 
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Receipt } from 'lucide-react';
-import type { VendaBalcaoResumo } from '../types';
+import type { VendaBalcaoResumo, ItemVenda } from '../types';
 import { buscarVendaPorId, definirClienteVenda } from '../services/vendas.service';
 import { ListaItensVenda } from './ListaItensVenda';
 import { FormFinalizarVenda } from '@/features/financeiro';
 import { type Cliente, listarClientes } from '@/features/cadastros';
+import { BotaoImprimir, type DocumentoImpressao } from '@/features/impressao';
 
 interface Props {
   vendaId: string;
@@ -25,6 +26,7 @@ export function DetalheVenda({ vendaId, aoVoltar }: Props) {
   const [erro, setErro] = useState<string | null>(null);
   const [mostrarFinalizacao, setMostrarFinalizacao] = useState(false);
   const [totalVenda, setTotalVenda] = useState(0);
+  const [itensVenda, setItensVenda] = useState<ItemVenda[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
 
   async function carregar() {
@@ -62,6 +64,19 @@ export function DetalheVenda({ vendaId, aoVoltar }: Props) {
 
   const bloqueado = venda.status === 'finalizada';
 
+  const documentoImpressao: DocumentoImpressao = {
+    tipo: 'venda',
+    titulo: 'Comprovante de Venda',
+    numero: venda.numero ?? '',
+    data: new Date(),
+    cliente: venda.clienteNome ? { nome: venda.clienteNome } : undefined,
+    itens: itensVenda
+      .filter((i) => !i.removido)
+      .map((i) => ({ descricao: i.descricao, quantidade: i.quantidade, valorUnit: i.valorUnit })),
+    total: totalVenda,
+    fiscal: false,
+  };
+
   return (
     <div className="vd-detalhe">
       <button type="button" className="vd-voltar" onClick={aoVoltar}>
@@ -81,6 +96,7 @@ export function DetalheVenda({ vendaId, aoVoltar }: Props) {
               <Receipt size={16} /> Finalizar venda
             </button>
           )}
+          <BotaoImprimir documento={documentoImpressao} className="vd-btn-sec" />
         </div>
       </div>
 
@@ -117,6 +133,7 @@ export function DetalheVenda({ vendaId, aoVoltar }: Props) {
           vendaClienteId={venda.clienteId}
           bloqueado={bloqueado}
           aoAtualizarTotal={setTotalVenda}
+          aoAtualizarItens={setItensVenda}
         />
       )}
     </div>

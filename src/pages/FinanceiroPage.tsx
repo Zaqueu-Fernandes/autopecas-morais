@@ -31,6 +31,7 @@ import {
 } from '@/features/financeiro';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
+import { type ContaFinanceira, listarContasFinanceiras, ROTULO_TIPO_CONTA } from '@/features/contas-financeiras';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { buscarResumoDashboard } from '@/features/dashboard';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
@@ -69,6 +70,7 @@ export function FinanceiroPage() {
   const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [contas, setContas] = useState<ContaFinanceira[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>('todos');
@@ -84,11 +86,16 @@ export function FinanceiroPage() {
     return empresas.find((e) => e.id === id)?.nomeFantasia ?? '—';
   }
 
+  function nomeConta(id: string | null): string {
+    const c = contas.find((c) => c.id === id);
+    return c ? `${c.instituicao} (${ROTULO_TIPO_CONTA[c.tipo]})` : '—';
+  }
+
   async function carregar() {
     setCarregando(true);
     setErro(null);
     try {
-      const [lista, listaEmpresas, listaCategorias] = await Promise.all([
+      const [lista, listaEmpresas, listaCategorias, listaContas] = await Promise.all([
         listarFinanceiro({
           tipo: filtroTipo === 'todos' ? undefined : filtroTipo,
           pago: filtroStatus === 'todos' ? undefined : filtroStatus === 'quitados',
@@ -96,10 +103,12 @@ export function FinanceiroPage() {
         }),
         listarEmpresas(),
         listarCategorias({ somenteAtivas: false }),
+        listarContasFinanceiras({ somenteAtivas: false }),
       ]);
       setLancamentos(lista);
       setEmpresas(listaEmpresas);
       setCategorias(listaCategorias);
+      setContas(listaContas);
     } catch {
       setErro('Não foi possível carregar o financeiro.');
     } finally {
@@ -135,6 +144,7 @@ export function FinanceiroPage() {
       valor: Number(d.valor),
       pago: false,
       formaPagamento: null,
+      contaFinanceiraId: null,
       dataPagamento: null,
       vencimento: d.vencimento,
       clienteId: null,
@@ -149,12 +159,13 @@ export function FinanceiroPage() {
     await carregar();
   }
 
-  async function handleQuitar(formaPagamento: FormaPagamento) {
+  async function handleQuitar(formaPagamento: FormaPagamento, contaFinanceiraId: string, empresaId?: string) {
     if (!lancamentoParaQuitar) return;
+    const empresaEfetiva = lancamentoParaQuitar.empresaId ?? empresaId;
 
     if (lancamentoParaQuitar.tipo === 'pagar') {
       const hoje = new Date().toISOString().slice(0, 10);
-      const fluxo = await buscarFluxoCaixa(primeiroDiaDoMes(), hoje, lancamentoParaQuitar.empresaId ?? undefined);
+      const fluxo = await buscarFluxoCaixa(primeiroDiaDoMes(), hoje, empresaEfetiva ?? undefined);
       const projetado = fluxo.saldoFinal - lancamentoParaQuitar.valor;
       if (fluxo.saldoFinal >= 0 && projetado < 0) {
         const ok = await confirmar({
@@ -167,7 +178,7 @@ export function FinanceiroPage() {
       }
     }
 
-    await quitarLancamento(lancamentoParaQuitar.id!, formaPagamento);
+    await quitarLancamento(lancamentoParaQuitar.id!, formaPagamento, contaFinanceiraId, empresaId);
     setLancamentoParaQuitar(null);
     await carregar();
   }
@@ -240,6 +251,7 @@ export function FinanceiroPage() {
     return (
       <FormQuitacao
         titulo={lancamentoParaQuitar.tipo === 'pagar' ? 'Registrar pagamento' : 'Registrar recebimento'}
+        precisaEmpresa={lancamentoParaQuitar.empresaId === null}
         onConfirmar={handleQuitar}
         onCancelar={() => setLancamentoParaQuitar(null)}
       />
@@ -271,9 +283,10 @@ export function FinanceiroPage() {
   const documentoImpressao: DocumentoListaImpressao = {
     titulo: 'Financeiro',
     subtitulo: filtroEmpresa ? empresas.find((e) => e.id === filtroEmpresa)?.nomeFantasia : 'Todas as empresas',
-    colunas: ['Empresa', 'Tipo', 'Categoria', 'Descrição', 'Valor', 'Vencimento', 'Status'],
+    colunas: ['Empresa', 'Conta', 'Tipo', 'Categoria', 'Descrição', 'Valor', 'Vencimento', 'Status'],
     linhas: lancamentos.map((l) => [
-      nomeEmpresa(l.empresaId),
+      l.empresaId === null ? 'Empresa a Definir' : nomeEmpresa(l.empresaId),
+      nomeConta(l.contaFinanceiraId),
       l.tipo === 'pagar' ? 'Pagar' : 'Receber',
       rotuloCategoria(l, categorias),
       l.descricao,
@@ -337,6 +350,7 @@ export function FinanceiroPage() {
           <thead>
             <tr>
               <th>Empresa</th>
+              <th>Conta</th>
               <th>Tipo</th>
               <th>Categoria</th>
               <th>Descrição</th>
@@ -349,7 +363,14 @@ export function FinanceiroPage() {
           <tbody>
             {lancamentos.map((l) => (
               <tr key={l.id}>
-                <td>{nomeEmpresa(l.empresaId)}</td>
+                <td>
+                  {l.empresaId === null ? (
+                    <span className="fin-badge-empresa-definir">Empresa a Definir</span>
+                  ) : (
+                    nomeEmpresa(l.empresaId)
+                  )}
+                </td>
+                <td>{nomeConta(l.contaFinanceiraId)}</td>
                 <td>
                   <span className={`fin-badge-tipo fin-badge-${l.tipo}`}>
                     {l.tipo === 'pagar' ? 'Pagar' : 'Receber'}
@@ -397,7 +418,7 @@ export function FinanceiroPage() {
             ))}
             {lancamentos.length === 0 && (
               <tr>
-                <td colSpan={8}>Nenhum lançamento encontrado.</td>
+                <td colSpan={9}>Nenhum lançamento encontrado.</td>
               </tr>
             )}
           </tbody>

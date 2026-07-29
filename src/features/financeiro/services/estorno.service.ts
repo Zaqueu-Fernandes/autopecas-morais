@@ -36,6 +36,7 @@ export async function estornarLancamento(id: string, dados: DadosEstorno): Promi
 
   if (original.pago) {
     if (!dados.formaPagamento) throw new Error('Selecione como o dinheiro está sendo devolvido.');
+    if (!dados.contaFinanceiraId) throw new Error('Selecione a conta.');
     const contrapartida: LancamentoFinanceiro = {
       empresaId: original.empresaId,
       tipo: tipoInvertido(original.tipo),
@@ -44,6 +45,7 @@ export async function estornarLancamento(id: string, dados: DadosEstorno): Promi
       valor: original.valor,
       pago: true,
       formaPagamento: dados.formaPagamento,
+      contaFinanceiraId: dados.contaFinanceiraId,
       dataPagamento: new Date().toISOString(),
       vencimento: null,
       clienteId: original.clienteId,

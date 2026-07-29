@@ -141,6 +141,7 @@ export async function devolverItem(
   os: { id: string; numero?: number; clienteId: string },
   motivo: string,
   formaPagamento: FormaPagamento,
+  contaFinanceiraId: string,
 ): Promise<void> {
   const lancamento = await buscarLancamentoDeOS(os.id);
   if (!lancamento) {
@@ -172,6 +173,7 @@ export async function devolverItem(
       valor: valorItem,
       pago: true,
       formaPagamento,
+      contaFinanceiraId,
       dataPagamento: new Date().toISOString(),
       vencimento: null,
       clienteId: os.clienteId,
@@ -186,7 +188,11 @@ export async function devolverItem(
   } else {
     const restante = lancamento.valor - valorItem;
     if (restante <= 0) {
-      await estornarLancamento(lancamento.id!, { motivo: `Devolução esvaziou a OS — ${motivo}`, formaPagamento: '' });
+      await estornarLancamento(lancamento.id!, {
+        motivo: `Devolução esvaziou a OS — ${motivo}`,
+        formaPagamento: '',
+        contaFinanceiraId: '',
+      });
     } else {
       await atualizarValorLancamento(lancamento.id!, restante);
     }
