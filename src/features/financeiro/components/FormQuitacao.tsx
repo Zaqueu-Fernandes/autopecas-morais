@@ -21,13 +21,15 @@ interface Props {
   titulo: string;
   /** true = este lançamento ainda não tem empresa (veio de despesa recorrente global) — exige escolher agora. */
   precisaEmpresa?: boolean;
+  /** A empresa que o lançamento já tem, quando `precisaEmpresa` é false — usada só pra filtrar a lista de contas. */
+  empresaId?: string;
   onConfirmar: (formaPagamento: FormaPagamento, contaFinanceiraId: string, empresaId?: string) => Promise<void> | void;
   onCancelar?: () => void;
 }
 
 const FORMAS = Object.keys(ROTULO_FORMA_PAGAMENTO) as FormaPagamento[];
 
-export function FormQuitacao({ titulo, precisaEmpresa = false, onConfirmar, onCancelar }: Props) {
+export function FormQuitacao({ titulo, precisaEmpresa = false, empresaId, onConfirmar, onCancelar }: Props) {
   const [dados, setDados] = useState<DadosQuitacao>(dadosQuitacaoVazio());
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
@@ -40,7 +42,6 @@ export function FormQuitacao({ titulo, precisaEmpresa = false, onConfirmar, onCa
   }
 
   useEffect(() => {
-    listarContasFinanceiras().then(setContas).catch(() => setContas([]));
     if (precisaEmpresa) {
       listarEmpresas().then((lista) => {
         setEmpresas(lista);
@@ -49,6 +50,22 @@ export function FormQuitacao({ titulo, precisaEmpresa = false, onConfirmar, onCa
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [precisaEmpresa]);
+
+  // Empresa que efetivamente importa pra filtrar a lista de contas: a que o
+  // lançamento já tinha, ou a que acabou de ser escolhida acima.
+  const empresaEfetiva = precisaEmpresa ? dados.empresaId : empresaId;
+
+  // Recarrega as contas toda vez que a empresa efetiva muda — só mostra as
+  // dela + as compartilhadas (sem empresa definida).
+  useEffect(() => {
+    listarContasFinanceiras({ empresaId: empresaEfetiva || undefined })
+      .then((lista) => {
+        setContas(lista);
+        setDados((d) => (lista.some((c) => c.id === d.contaFinanceiraId) ? d : { ...d, contaFinanceiraId: '' }));
+      })
+      .catch(() => setContas([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [empresaEfetiva]);
 
   async function handleConfirmar() {
     const e = validarQuitacao(dados, precisaEmpresa);

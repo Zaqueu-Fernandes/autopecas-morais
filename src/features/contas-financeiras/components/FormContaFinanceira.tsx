@@ -8,7 +8,7 @@
  * feature pequena).
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   type ContaFinanceira,
   type TipoContaFinanceira,
@@ -18,6 +18,7 @@ import {
   ROTULO_TIPO_CONTA,
   type ErrosValidacao,
 } from '../types';
+import { type Empresa, listarEmpresas } from '@/features/empresa';
 
 interface Props {
   inicial?: ContaFinanceira;
@@ -32,6 +33,11 @@ export function FormContaFinanceira({ inicial, onSalvar, onCancelar }: Props) {
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+
+  useEffect(() => {
+    listarEmpresas().then(setEmpresas).catch(() => setEmpresas([]));
+  }, []);
 
   function set(patch: Partial<ContaFinanceira>) {
     setConta((c) => ({ ...c, ...patch }));
@@ -102,6 +108,28 @@ export function FormContaFinanceira({ inicial, onSalvar, onCancelar }: Props) {
               {erros.instituicao}
             </span>
           )}
+        </div>
+
+        <div className="dsp-campo dsp-col-2">
+          <label htmlFor="conta-empresa">Empresa</label>
+          <select
+            id="conta-empresa"
+            name="empresaId"
+            autoComplete="off"
+            value={conta.empresaId ?? ''}
+            onChange={(e) => set({ empresaId: e.target.value || null })}
+          >
+            <option value="">— compartilhada (qualquer empresa) —</option>
+            {empresas.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.nomeFantasia}
+              </option>
+            ))}
+          </select>
+          <span className="dsp-dica">
+            Deixe em branco se essa conta for usada por mais de uma empresa (ex.: dinheiro em espécie da
+            loja). Vinculada a uma empresa, ela só aparece pra escolher nos lançamentos daquela empresa.
+          </span>
         </div>
       </div>
 

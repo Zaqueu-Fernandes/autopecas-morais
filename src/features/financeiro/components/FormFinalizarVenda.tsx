@@ -47,9 +47,21 @@ export function FormFinalizarVenda({ vendaId, clienteId, valorTotal, onFinalizad
       setEmpresas(lista);
       if (lista.length === 1) set({ empresaId: lista[0].id });
     });
-    listarContasFinanceiras().then(setContas).catch(() => setContas([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Recarrega as contas toda vez que a empresa muda — só mostra as dela +
+  // as compartilhadas (sem empresa definida). Limpa a conta já escolhida se
+  // ela não fizer mais parte da lista nova.
+  useEffect(() => {
+    listarContasFinanceiras({ empresaId: dados.empresaId || undefined })
+      .then((lista) => {
+        setContas(lista);
+        setDados((d) => (lista.some((c) => c.id === d.contaFinanceiraId) ? d : { ...d, contaFinanceiraId: '' }));
+      })
+      .catch(() => setContas([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dados.empresaId]);
 
   function set(patch: Partial<DadosFaturamento>) {
     setDados((d) => ({ ...d, ...patch }));

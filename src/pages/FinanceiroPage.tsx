@@ -252,6 +252,7 @@ export function FinanceiroPage() {
       <FormQuitacao
         titulo={lancamentoParaQuitar.tipo === 'pagar' ? 'Registrar pagamento' : 'Registrar recebimento'}
         precisaEmpresa={lancamentoParaQuitar.empresaId === null}
+        empresaId={lancamentoParaQuitar.empresaId ?? undefined}
         onConfirmar={handleQuitar}
         onCancelar={() => setLancamentoParaQuitar(null)}
       />
@@ -274,6 +275,7 @@ export function FinanceiroPage() {
       <FormEstorno
         descricao={`${lancamentoParaEstornar.descricao} — ${formatarMoeda(lancamentoParaEstornar.valor)}`}
         precisaFormaPagamento={lancamentoParaEstornar.pago}
+        empresaId={lancamentoParaEstornar.empresaId}
         onConfirmar={handleEstornar}
         onCancelar={() => setLancamentoParaEstornar(null)}
       />

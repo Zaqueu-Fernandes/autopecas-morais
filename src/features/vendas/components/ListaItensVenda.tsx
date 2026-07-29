@@ -18,7 +18,7 @@ import {
 } from '../services/itens.service';
 import { FormItemVenda } from './FormItemVenda';
 import type { Peca } from '@/features/estoque';
-import { FormEstorno, type DadosEstorno } from '@/features/financeiro';
+import { FormEstorno, type DadosEstorno, buscarLancamentoDeVenda } from '@/features/financeiro';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 import { formatarMoeda } from '@/shared/utils/formatadores';
 
@@ -47,6 +47,12 @@ export function ListaItensVenda({
   const [erro, setErro] = useState<string | null>(null);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [itemParaDevolver, setItemParaDevolver] = useState<ItemVenda | null>(null);
+  const [empresaIdVenda, setEmpresaIdVenda] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!bloqueado) return;
+    buscarLancamentoDeVenda(vendaId).then((l) => setEmpresaIdVenda(l?.empresaId ?? null));
+  }, [bloqueado, vendaId]);
 
   async function carregar() {
     setCarregando(true);
@@ -131,6 +137,7 @@ export function ListaItensVenda({
           itemParaDevolver.quantidade * itemParaDevolver.valorUnit,
         )}`}
         precisaFormaPagamento
+        empresaId={empresaIdVenda}
         onConfirmar={handleDevolver}
         onCancelar={() => setItemParaDevolver(null)}
       />

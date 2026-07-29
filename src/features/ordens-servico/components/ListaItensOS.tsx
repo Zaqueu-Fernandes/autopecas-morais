@@ -19,7 +19,7 @@ import {
 } from '../services/itens.service';
 import { FormItemOS } from './FormItemOS';
 import type { Peca } from '@/features/estoque';
-import { FormEstorno, type DadosEstorno } from '@/features/financeiro';
+import { FormEstorno, type DadosEstorno, buscarLancamentoDeOS } from '@/features/financeiro';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 import { formatarMoeda } from '@/shared/utils/formatadores';
 
@@ -49,6 +49,12 @@ export function ListaItensOS({
   const [erro, setErro] = useState<string | null>(null);
   const [acaoAberta, setAcaoAberta] = useState<'peca' | 'servico' | null>(null);
   const [itemParaDevolver, setItemParaDevolver] = useState<ItemOS | null>(null);
+  const [empresaIdOS, setEmpresaIdOS] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!bloqueado) return;
+    buscarLancamentoDeOS(osId).then((l) => setEmpresaIdOS(l?.empresaId ?? null));
+  }, [bloqueado, osId]);
 
   async function carregar() {
     setCarregando(true);
@@ -150,6 +156,7 @@ export function ListaItensOS({
           itemParaDevolver.quantidade * itemParaDevolver.valorUnit,
         )}`}
         precisaFormaPagamento
+        empresaId={empresaIdOS}
         onConfirmar={handleDevolver}
         onCancelar={() => setItemParaDevolver(null)}
       />

@@ -2,14 +2,20 @@
  * ============================================================================
  * TIPOS E VALIDAÇÃO — CONTAS FINANCEIRAS
  * ============================================================================
- * Espelha a tabela contas_financeiras (ver despesas_globais_conta_financeira.sql).
- * Cadastro simples do usuário (Cadastros > Contas Financeiras) — cada conta
- * representa ONDE o dinheiro entra/sai de verdade: uma conta bancária, a
- * carteira física (dinheiro em espécie), uma maquineta de cartão, ou uma
- * aplicação. Todo lançamento quitado (pago ou recebido) exige uma conta —
- * ver DadosQuitacao/DadosFaturamento/DadosEstorno em @/features/financeiro.
- * Sem empresa_id de propósito — não foi pedido vínculo por CNPJ aqui, uma
- * conta pode ser usada por qualquer empresa da mesma oficina.
+ * Espelha a tabela contas_financeiras (ver despesas_globais_conta_financeira.sql
+ * e contas_financeiras_empresa.sql). Cadastro simples do usuário (Cadastros >
+ * Contas Financeiras) — cada conta representa ONDE o dinheiro entra/sai de
+ * verdade: uma conta bancária, a carteira física (dinheiro em espécie), uma
+ * maquineta de cartão, ou uma aplicação. Todo lançamento quitado (pago ou
+ * recebido) exige uma conta — ver DadosQuitacao/DadosFaturamento/DadosEstorno
+ * em @/features/financeiro.
+ *
+ * `empresaId` é OPCIONAL: uma conta vinculada a uma empresa só aparece pra
+ * escolher nos lançamentos daquela empresa (o select de Conta nos forms de
+ * pagamento filtra dinamicamente conforme a Empresa escolhida — ver
+ * listarContasFinanceiras). Uma conta SEM empresa é COMPARTILHADA — aparece
+ * pra escolher em qualquer empresa (útil pra "Carteira", dinheiro em espécie
+ * da loja física, que não é de um CNPJ só).
  */
 
 export type TipoContaFinanceira = 'banco' | 'carteira' | 'cartao' | 'investimento';
@@ -26,12 +32,15 @@ export interface ContaFinanceira {
   tipo: TipoContaFinanceira;
   /** Nome do banco/instituição, ou uma label livre (ex.: "Caixa da loja"). */
   instituicao: string;
+  /** null = conta compartilhada, aparece pra qualquer empresa (ver nota acima). */
+  empresaId: string | null;
   ativo: boolean;
 }
 
 export const contaFinanceiraVazia = (): ContaFinanceira => ({
   tipo: 'banco',
   instituicao: '',
+  empresaId: null,
   ativo: true,
 });
 

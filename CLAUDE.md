@@ -288,9 +288,21 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   contas_financeiras, tela em Cadastros > Contas Financeiras) — cadastro
   simples do usuário: `tipo` ('banco' | 'carteira' | 'cartao' |
   'investimento') + `instituicao` (nome do banco, ou label livre tipo
-  "Caixa da loja"). SEM empresa_id de propósito (não foi pedido vínculo por
-  CNPJ — uma conta serve qualquer empresa da mesma oficina). Todo lançamento
-  que efetivamente MOVIMENTA dinheiro (fica pago=true) exige uma conta,
+  "Caixa da loja") + `empresa_id` (nullable — ver
+  contas_financeiras_empresa.sql). Uma conta vinculada a uma empresa só
+  aparece pra escolher nos lançamentos DAQUELA empresa; sem empresa
+  definida, é COMPARTILHADA e aparece pra qualquer uma (útil pra
+  "Carteira", dinheiro em espécie da loja física, que não é de um CNPJ só).
+  `listarContasFinanceiras({ empresaId })` filtra `empresa_id = X OU IS
+  NULL`. Os 4 formulários que pedem conta (ver abaixo) reagem à Empresa já
+  escolhida no mesmo fluxo — o select de Conta recarrega (e limpa a
+  seleção anterior se ela não pertencer mais à lista nova) toda vez que a
+  empresa muda: em FormFaturamento/FormFinalizarVenda a empresa é
+  escolhida no próprio form; em FormQuitacao/FormEstorno a empresa já
+  vem do lançamento original (props `empresaId`/`precisaEmpresa`) — não
+  há select de empresa nesses dois quando ela já existe, só filtro
+  silencioso. Todo lançamento que efetivamente MOVIMENTA dinheiro (fica
+  pago=true) exige uma conta,
   obrigatório, sempre junto de `forma_pagamento` (que já existia — agora são
   pedidos em par nos 4 pontos que coletam forma de pagamento): Quitar
   (FormQuitacao), Faturar OS à vista (FormFaturamento), Finalizar venda à

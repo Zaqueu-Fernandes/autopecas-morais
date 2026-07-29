@@ -13,20 +13,28 @@ interface LinhaContaFinanceira {
   id: string;
   tipo: TipoContaFinanceira;
   instituicao: string;
+  empresa_id: string | null;
   ativo: boolean;
 }
 
 function linhaParaConta(l: LinhaContaFinanceira): ContaFinanceira {
-  return { id: l.id, tipo: l.tipo, instituicao: l.instituicao, ativo: l.ativo };
+  return { id: l.id, tipo: l.tipo, instituicao: l.instituicao, empresaId: l.empresa_id, ativo: l.ativo };
 }
 
-/** Lista contas financeiras. Por padrão só as ativas, ordenadas por instituição. */
+/**
+ * Lista contas financeiras. Por padrão só as ativas, ordenadas por instituição.
+ * `empresaId` filtra pra contas DAQUELA empresa + contas compartilhadas (sem
+ * empresa definida) — é o filtro usado nos selects de Conta dos formulários
+ * de pagamento/recebimento, que reagem à Empresa escolhida no mesmo form.
+ * Sem `empresaId`, lista todas (usado pelo próprio cadastro em Cadastros).
+ */
 export async function listarContasFinanceiras(
-  opts: { somenteAtivas?: boolean } = {},
+  opts: { somenteAtivas?: boolean; empresaId?: string } = {},
 ): Promise<ContaFinanceira[]> {
-  const { somenteAtivas = true } = opts;
+  const { somenteAtivas = true, empresaId } = opts;
   let query = supabase.from('contas_financeiras').select('*').order('instituicao');
   if (somenteAtivas) query = query.eq('ativo', true);
+  if (empresaId) query = query.or(`empresa_id.eq.${empresaId},empresa_id.is.null`);
 
   const { data, error } = await query;
   if (error) throw error;
@@ -36,7 +44,7 @@ export async function listarContasFinanceiras(
 export async function criarContaFinanceira(c: ContaFinanceira): Promise<ContaFinanceira> {
   const { data, error } = await supabase
     .from('contas_financeiras')
-    .insert({ tipo: c.tipo, instituicao: c.instituicao, ativo: c.ativo })
+    .insert({ tipo: c.tipo, instituicao: c.instituicao, empresa_id: c.empresaId, ativo: c.ativo })
     .select()
     .single();
   if (error) throw error;
@@ -47,7 +55,7 @@ export async function atualizarContaFinanceira(c: ContaFinanceira): Promise<Cont
   if (!c.id) throw new Error('Conta financeira sem id não pode ser atualizada.');
   const { data, error } = await supabase
     .from('contas_financeiras')
-    .update({ tipo: c.tipo, instituicao: c.instituicao, ativo: c.ativo })
+    .update({ tipo: c.tipo, instituicao: c.instituicao, empresa_id: c.empresaId, ativo: c.ativo })
     .eq('id', c.id)
     .select()
     .single();

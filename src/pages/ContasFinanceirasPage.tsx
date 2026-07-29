@@ -19,12 +19,14 @@ import {
   excluirContaFinanceira,
   ehViolacaoDeReferencia,
 } from '@/features/contas-financeiras';
+import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 
 export function ContasFinanceirasPage() {
   const { confirmar, avisar } = useConfirmacao();
   const [contas, setContas] = useState<ContaFinanceira[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [mostrarInativas, setMostrarInativas] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -32,11 +34,20 @@ export function ContasFinanceirasPage() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [contaEmEdicao, setContaEmEdicao] = useState<ContaFinanceira | null>(null);
 
+  function nomeEmpresa(id: string | null): string {
+    return id ? (empresas.find((e) => e.id === id)?.nomeFantasia ?? '—') : 'Compartilhada';
+  }
+
   async function carregar() {
     setCarregando(true);
     setErro(null);
     try {
-      setContas(await listarContasFinanceiras({ somenteAtivas: !mostrarInativas }));
+      const [listaContas, listaEmpresas] = await Promise.all([
+        listarContasFinanceiras({ somenteAtivas: !mostrarInativas }),
+        listarEmpresas(),
+      ]);
+      setContas(listaContas);
+      setEmpresas(listaEmpresas);
     } catch {
       setErro('Não foi possível carregar as contas financeiras.');
     } finally {
@@ -117,8 +128,13 @@ export function ContasFinanceirasPage() {
 
   const documentoImpressao: DocumentoListaImpressao = {
     titulo: 'Contas Financeiras',
-    colunas: ['Instituição', 'Tipo', 'Status'],
-    linhas: contas.map((c) => [c.instituicao, ROTULO_TIPO_CONTA[c.tipo], c.ativo ? 'Ativa' : 'Inativa']),
+    colunas: ['Instituição', 'Tipo', 'Empresa', 'Status'],
+    linhas: contas.map((c) => [
+      c.instituicao,
+      ROTULO_TIPO_CONTA[c.tipo],
+      nomeEmpresa(c.empresaId),
+      c.ativo ? 'Ativa' : 'Inativa',
+    ]),
   };
 
   return (
@@ -161,6 +177,7 @@ export function ContasFinanceirasPage() {
               <tr>
                 <th>Instituição</th>
                 <th>Tipo</th>
+                <th>Empresa</th>
                 <th></th>
               </tr>
             </thead>
@@ -172,6 +189,7 @@ export function ContasFinanceirasPage() {
                     {!c.ativo && <span className="dsp-tag-inativa">Inativa</span>}
                   </td>
                   <td>{ROTULO_TIPO_CONTA[c.tipo]}</td>
+                  <td>{nomeEmpresa(c.empresaId)}</td>
                   <td className="pg-acoes-linha">
                     <button
                       type="button"
@@ -199,7 +217,7 @@ export function ContasFinanceirasPage() {
               ))}
               {contas.length === 0 && (
                 <tr>
-                  <td colSpan={3}>Nenhuma conta financeira cadastrada.</td>
+                  <td colSpan={4}>Nenhuma conta financeira cadastrada.</td>
                 </tr>
               )}
             </tbody>

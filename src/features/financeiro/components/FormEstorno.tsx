@@ -25,13 +25,15 @@ interface Props {
   descricao: string;
   /** Original já estava pago/recebido — vai gerar contrapartida, então pede forma de pagamento + conta. */
   precisaFormaPagamento: boolean;
+  /** Empresa do lançamento original — filtra a lista de contas (dela + compartilhadas). */
+  empresaId?: string | null;
   onConfirmar: (dados: DadosEstorno) => Promise<void> | void;
   onCancelar?: () => void;
 }
 
 const FORMAS = Object.keys(ROTULO_FORMA_PAGAMENTO) as FormaPagamento[];
 
-export function FormEstorno({ titulo = 'Estornar lançamento', descricao, precisaFormaPagamento, onConfirmar, onCancelar }: Props) {
+export function FormEstorno({ titulo = 'Estornar lançamento', descricao, precisaFormaPagamento, empresaId, onConfirmar, onCancelar }: Props) {
   const [dados, setDados] = useState<DadosEstorno>(dadosEstornoVazio());
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
@@ -39,8 +41,11 @@ export function FormEstorno({ titulo = 'Estornar lançamento', descricao, precis
   const [contas, setContas] = useState<ContaFinanceira[]>([]);
 
   useEffect(() => {
-    if (precisaFormaPagamento) listarContasFinanceiras().then(setContas).catch(() => setContas([]));
-  }, [precisaFormaPagamento]);
+    if (precisaFormaPagamento) {
+      listarContasFinanceiras({ empresaId: empresaId || undefined }).then(setContas).catch(() => setContas([]));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [precisaFormaPagamento, empresaId]);
 
   function set(patch: Partial<DadosEstorno>) {
     setDados((d) => ({ ...d, ...patch }));
