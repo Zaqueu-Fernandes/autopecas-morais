@@ -14,3 +14,8 @@ dist-ssr
 .DS_Store
 
 .vercel
+
+# Skills (npx skills) instaladas localmente — ferramenta do agente, não código do projeto
+.agents/
+.claude/
+skills-lock.json
