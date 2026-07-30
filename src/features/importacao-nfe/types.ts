@@ -34,6 +34,15 @@ export interface MapeamentoItem {
   pecaId: string | 'nova';
   quantidade: string;
   custoUnit: string;
+  /**
+   * Só usados quando pecaId='nova'. `margem` é só uma CALCULADORA (igual
+   * FormPeca) — sugere `precoVenda` a partir do custo, mas não é salva em
+   * lugar nenhum; `precoVenda` continua editável manualmente por cima do
+   * valor sugerido. Peça existente MANTÉM o preço de venda que já tinha (a
+   * importação nunca sobrescreve isso, só o custo via a entrada).
+   */
+  margem: string;
+  precoVenda: string;
   incluir: boolean;
 }
 

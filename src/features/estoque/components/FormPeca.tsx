@@ -30,7 +30,11 @@ interface Props {
 }
 
 function calcularMargemAtual(custo: number, venda: number): string {
-  if (custo <= 0 || Number.isNaN(venda)) return '';
+  // venda<=0 normalmente significa "preço ainda não definido" (ex.: peça
+  // criada sem preço de venda), não "vendida de graça" — nesses casos não
+  // faz sentido mostrar -100% (parece erro); melhor deixar em branco, igual
+  // quando não há custo ainda, e deixar o usuário definir a margem/preço.
+  if (custo <= 0 || venda <= 0 || Number.isNaN(venda)) return '';
   return (((venda - custo) / custo) * 100).toFixed(1);
 }
 
@@ -244,6 +248,11 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
           {custoBase <= 0 && (
             <span className="est-aviso" id="est-peca-margem-ajuda">
               {ehNova ? 'Informe o custo unitário pra calcular a partir da margem.' : 'Esta peça ainda não tem custo registrado.'}
+            </span>
+          )}
+          {custoBase > 0 && !margem.trim() && Number(peca.precoVenda || 0) <= 0 && (
+            <span className="est-aviso">
+              Esta peça ainda não tem preço de venda — digite a margem desejada aqui, ou o preço direto ao lado.
             </span>
           )}
         </div>

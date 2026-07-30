@@ -87,6 +87,8 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
             pecaId: match?.id ?? 'nova',
             quantidade: String(item.quantidade || 1),
             custoUnit: String(item.valorUnitario || 0),
+            margem: '',
+            precoVenda: '',
             incluir: true,
           };
         }),
@@ -101,6 +103,24 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
 
   function atualizarItem(indice: number, patch: Partial<MapeamentoItem>) {
     setMapeamento((lista) => lista.map((m, i) => (i === indice ? { ...m, ...patch } : m)));
+  }
+
+  /** Sugere precoVenda a partir do custo + margem — mesma calculadora do FormPeca (Nova peça). */
+  function calcularPrecoVenda(custoStr: string, margemStr: string): string | null {
+    const custo = Number(custoStr);
+    const margem = Number(margemStr);
+    if (!margemStr.trim() || Number.isNaN(margem) || !(custo > 0)) return null;
+    return (custo * (1 + margem / 100)).toFixed(2).replace('.', ',');
+  }
+
+  function handleMargemChange(indice: number, margemStr: string, custoStr: string) {
+    const sugestao = calcularPrecoVenda(custoStr, margemStr);
+    atualizarItem(indice, { margem: margemStr, ...(sugestao !== null ? { precoVenda: sugestao } : {}) });
+  }
+
+  function handleCustoChange(indice: number, custoStr: string, margemAtual: string) {
+    const sugestao = calcularPrecoVenda(custoStr, margemAtual);
+    atualizarItem(indice, { custoUnit: custoStr, ...(sugestao !== null ? { precoVenda: sugestao } : {}) });
   }
 
   async function handleCadastrarFornecedor() {
@@ -155,6 +175,7 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
             codigo: item.codigoProduto,
             nome: item.descricao,
             unidade: item.unidade,
+            precoVenda: map.precoVenda,
           });
           pecaId = nova.id!;
           pecasCriadas++;
@@ -282,6 +303,8 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
                   <th>Peça no estoque</th>
                   <th>Quantidade</th>
                   <th>Custo unit. (R$)</th>
+                  <th>Margem (%)</th>
+                  <th>Preço de venda (R$)</th>
                 </tr>
               </thead>
               <tbody>
@@ -337,8 +360,42 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
                           value={map.custoUnit}
                           disabled={!map.incluir}
                           aria-label="Custo unitário"
-                          onChange={(e) => atualizarItem(i, { custoUnit: e.target.value })}
+                          onChange={(e) => handleCustoChange(i, e.target.value, map.margem)}
                         />
+                      </td>
+                      <td>
+                        {map.pecaId === 'nova' ? (
+                          <input
+                            inputMode="decimal"
+                            name={`margem-${i}`}
+                            autoComplete="off"
+                            value={map.margem}
+                            disabled={!map.incluir || !(Number(map.custoUnit) > 0)}
+                            placeholder="Ex.: 40"
+                            aria-label="Margem de lucro"
+                            onChange={(e) => handleMargemChange(i, e.target.value, map.custoUnit)}
+                          />
+                        ) : (
+                          <span className="nfe-item-codigo">—</span>
+                        )}
+                      </td>
+                      <td>
+                        {map.pecaId === 'nova' ? (
+                          <input
+                            inputMode="decimal"
+                            name={`preco-venda-${i}`}
+                            autoComplete="off"
+                            value={map.precoVenda}
+                            disabled={!map.incluir}
+                            placeholder="0,00"
+                            aria-label="Preço de venda"
+                            onChange={(e) => atualizarItem(i, { precoVenda: e.target.value })}
+                          />
+                        ) : (
+                          <span className="nfe-item-codigo">
+                            já tem preço — edite em Estoque se precisar mudar
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );
