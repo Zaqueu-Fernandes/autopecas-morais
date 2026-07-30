@@ -49,9 +49,9 @@
   color: #D62839;
 }
 /* Tons semânticos: fundo/borda ficam com tint sutil da cor; texto e ícone
-   usam as variáveis --cor-texto-*/--cor-icone-* (contraste próprio por
-   tema — ver App.css) em vez de cor fixa, senão o card fica ilegível no
-   escuro (texto escuro sobre fundo escuro). */
+   usam variáveis dedicadas (cor-texto-* e cor-icone-*, com contraste
+   próprio por tema — ver App.css) em vez de cor fixa, senão o card fica
+   ilegível no escuro (texto escuro sobre fundo escuro). */
 .dash-cartao-aviso   { border-color: var(--cor-borda-aviso); background: var(--cor-fundo-aviso); }
 .dash-cartao-aviso .dash-cartao-valor   { color: var(--cor-texto-aviso); }
 .dash-cartao-aviso .dash-cartao-icone   { background: var(--cor-icone-fundo-aviso); color: var(--cor-icone-texto-aviso); }
