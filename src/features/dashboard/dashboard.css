@@ -113,40 +113,12 @@
 .dash-monitor-empresa .dash-mei + .dash-mei { margin-top: 12px; }
 
 /* Seções da página (Monitor MEI / Resumo financeiro) — dá hierarquia visual
-   clara em vez de tudo empilhado sem separação nem título. */
+   clara em vez de tudo empilhado sem separação nem título. O filtro de
+   empresa usa .pg-filtros, o mesmo padrão (select à esquerda) de todas as
+   outras abas do app. */
 .dash-secao { margin-bottom: 28px; }
-.dash-secao-cabecalho {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
 .dash-secao-titulo { font-size: 14px; font-weight: 600; color: var(--cor-texto); margin: 0 0 12px; }
-.dash-secao-cabecalho .dash-secao-titulo { margin: 0; }
-.dash-secao-empresa {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--cor-texto-secundario);
-}
-.dash-secao-empresa select {
-  border: 1px solid var(--cor-borda);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 14px;
-  background: var(--cor-fundo-cartao);
-  color: var(--cor-texto);
-  cursor: pointer;
-  transition: border-color .15s ease;
-}
-.dash-secao-empresa select:focus-visible { outline: none; border-color: #D62839; box-shadow: 0 0 0 3px rgba(214, 40, 57, .12); }
 
 @media (max-width: 520px) {
   .dash-grid { grid-template-columns: 1fr 1fr; }
-  .dash-secao-cabecalho { align-items: stretch; }
-  .dash-secao-empresa { justify-content: space-between; }
-  .dash-secao-empresa select { flex: 1; }
 }

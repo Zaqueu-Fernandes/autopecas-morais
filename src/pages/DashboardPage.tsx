@@ -83,21 +83,19 @@ export function DashboardPage() {
       </div>
 
       <div className="dash-secao">
-        <div className="dash-secao-cabecalho">
-          <h2 className="dash-secao-titulo">Resumo financeiro</h2>
-          <label className="dash-secao-empresa">
-            Empresa
-            <select
-              value={empresaSelecionadaId}
-              onChange={(e) => setEmpresaSelecionadaId(e.target.value)}
-            >
-              {empresas.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.nomeFantasia}
-                </option>
-              ))}
-            </select>
-          </label>
+        <h2 className="dash-secao-titulo">Resumo financeiro</h2>
+        <div className="pg-filtros">
+          <select
+            value={empresaSelecionadaId}
+            onChange={(e) => setEmpresaSelecionadaId(e.target.value)}
+            aria-label="Filtrar por empresa"
+          >
+            {empresas.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.nomeFantasia}
+              </option>
+            ))}
+          </select>
         </div>
 
         {resumo && (
