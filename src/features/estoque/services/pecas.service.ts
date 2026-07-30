@@ -12,6 +12,7 @@
 import { supabase } from '@/lib/supabase';
 import type { Peca } from '../types';
 import { registrarEntrada } from './movimentacao.service';
+import { paraNumero } from '@/shared/utils/formatadores';
 
 interface LinhaPeca {
   id: string;
@@ -51,7 +52,7 @@ function pecaParaLinha(p: Peca) {
     descricao: p.descricao || null,
     unidade: p.unidade || 'un',
     categoria: p.categoria || null,
-    preco_venda: p.precoVenda.trim() ? Number(p.precoVenda) : 0,
+    preco_venda: p.precoVenda.trim() ? paraNumero(p.precoVenda) : 0,
     ativo: p.ativo,
     observacoes: p.observacoes || null,
   };
@@ -99,12 +100,12 @@ export async function atualizarPeca(peca: Peca): Promise<Peca> {
 async function criarPecaComEstoqueInicial(peca: Peca): Promise<Peca> {
   const nova = await criarPeca(peca);
 
-  const qtdInicial = Number(peca.qtdInicial);
+  const qtdInicial = paraNumero(peca.qtdInicial ?? '');
   if (!peca.qtdInicial?.trim() || Number.isNaN(qtdInicial) || qtdInicial <= 0) {
     return nova;
   }
 
-  const custoInicial = Number(peca.custoInicial || 0);
+  const custoInicial = peca.custoInicial?.trim() ? paraNumero(peca.custoInicial) : 0;
   await registrarEntrada({
     pecaId: nova.id!,
     quantidade: qtdInicial,

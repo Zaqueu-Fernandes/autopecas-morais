@@ -122,6 +122,53 @@
 .nfe-concluido h2 { margin: 0; color: var(--cor-texto); font-size: 18px; }
 .nfe-concluido p { color: var(--cor-texto-secundario); font-size: 13px; margin: 0; }
 
+/* Tela de "Lançando Itens no Estoque" (Confirmar importação) — reaproveita
+   o mesmo layout centralizado do nfe-concluido, cor neutra (não é sucesso
+   ainda) e ícone girando em vez de check. */
+.nfe-concluido .nfe-icone-girando { color: #D62839; animation: nfe-girar .8s linear infinite; }
+@keyframes nfe-girar { to { transform: rotate(360deg); } }
+
+.nfe-progresso-trilha {
+  width: 100%;
+  max-width: 280px;
+  height: 8px;
+  background: var(--cor-fundo-secundario);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.nfe-progresso-preenchida {
+  height: 100%;
+  background: #D62839;
+  border-radius: 999px;
+  transition: width .2s ease;
+}
+
+/* Barra "aplicar margem em todas" — acima da tabela de itens. */
+.nfe-margem-global {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  color: var(--cor-texto-secundario);
+}
+.nfe-margem-global label { font-size: 13px; color: var(--cor-texto); white-space: nowrap; }
+.nfe-margem-global input {
+  width: 90px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 6px;
+  padding: 7px 8px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--cor-fundo-cartao);
+  color: var(--cor-texto);
+}
+
 @media (max-width: 640px) {
   .nfe-tabela { font-size: 12px; min-width: 560px; }
   .nfe-fornecedor { flex-wrap: wrap; }

@@ -9,14 +9,14 @@
  */
 
 import { useState } from 'react';
-import { FileUp, Building2, CheckCircle2, RotateCcw, ArrowLeft } from 'lucide-react';
+import { FileUp, Building2, CheckCircle2, RotateCcw, ArrowLeft, Loader2, Percent } from 'lucide-react';
 import type { DadosNFeExtraida, MapeamentoItem, ResultadoImportacaoNFe } from '../types';
 import { parseNFe } from '../services/parseNFe';
 import { verificarNFeJaImportada, registrarNFeImportada } from '../services/nfeImportadas.service';
 import { type Fornecedor, buscarFornecedorPorCnpj, criarFornecedor } from '@/features/cadastros';
 import { type Peca, listarPecas, criarPeca, pecaVazia, registrarEntrada } from '@/features/estoque';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
-import { formatarMoeda } from '@/shared/utils/formatadores';
+import { formatarMoeda, paraNumero } from '@/shared/utils/formatadores';
 
 type Etapa = 'selecionar' | 'revisar' | 'concluido';
 
@@ -37,8 +37,10 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
   const [mapeamento, setMapeamento] = useState<MapeamentoItem[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [empresaId, setEmpresaId] = useState('');
+  const [margemGlobal, setMargemGlobal] = useState('');
 
   const [importando, setImportando] = useState(false);
+  const [progresso, setProgresso] = useState({ atual: 0, total: 0 });
   const [resultado, setResultado] = useState<ResultadoImportacaoNFe | null>(null);
 
   function encontrarPecaPorCodigo(codigo: string, listaPecas: Peca[]): Peca | undefined {
@@ -107,8 +109,8 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
 
   /** Sugere precoVenda a partir do custo + margem — mesma calculadora do FormPeca (Nova peça). */
   function calcularPrecoVenda(custoStr: string, margemStr: string): string | null {
-    const custo = Number(custoStr);
-    const margem = Number(margemStr);
+    const custo = paraNumero(custoStr);
+    const margem = paraNumero(margemStr);
     if (!margemStr.trim() || Number.isNaN(margem) || !(custo > 0)) return null;
     return (custo * (1 + margem / 100)).toFixed(2).replace('.', ',');
   }
@@ -121,6 +123,23 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
   function handleCustoChange(indice: number, custoStr: string, margemAtual: string) {
     const sugestao = calcularPrecoVenda(custoStr, margemAtual);
     atualizarItem(indice, { custoUnit: custoStr, ...(sugestao !== null ? { precoVenda: sugestao } : {}) });
+  }
+
+  /**
+   * Aplica a mesma margem em TODAS as peças novas de uma vez (calcula o
+   * preço de venda de cada uma a partir do próprio custo). Cada campo
+   * continua editável individualmente depois — isso só preenche um valor
+   * inicial, não trava nada.
+   */
+  function aplicarMargemGlobal() {
+    if (!margemGlobal.trim()) return;
+    setMapeamento((lista) =>
+      lista.map((m) => {
+        if (m.pecaId !== 'nova') return m;
+        const sugestao = calcularPrecoVenda(m.custoUnit, margemGlobal);
+        return sugestao !== null ? { ...m, margem: margemGlobal, precoVenda: sugestao } : m;
+      }),
+    );
   }
 
   async function handleCadastrarFornecedor() {
@@ -153,7 +172,9 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
       setErro('Selecione a empresa (CNPJ) que recebeu esta nota antes de confirmar.');
       return;
     }
+    const itensIncluidos = mapeamento.filter((m) => m.incluir).length;
     setImportando(true);
+    setProgresso({ atual: 0, total: itensIncluidos });
     setErro(null);
     try {
       let pecasCriadas = 0;
@@ -164,9 +185,12 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
         const map = mapeamento[i];
         if (!map.incluir) continue;
 
-        const quantidade = Number(map.quantidade);
-        const custoUnit = Number(map.custoUnit);
-        if (!quantidade || quantidade <= 0) continue;
+        const quantidade = paraNumero(map.quantidade);
+        const custoUnit = paraNumero(map.custoUnit);
+        if (!quantidade || quantidade <= 0) {
+          setProgresso((p) => ({ ...p, atual: p.atual + 1 }));
+          continue;
+        }
 
         let pecaId = map.pecaId;
         if (pecaId === 'nova') {
@@ -184,12 +208,13 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
         await registrarEntrada({
           pecaId,
           quantidade,
-          custoUnit,
+          custoUnit: Number.isNaN(custoUnit) ? 0 : custoUnit,
           fornecedorId: fornecedor?.id,
           empresaId,
           observacoes: `NF-e nº ${dados.numero || '—'} (${dados.fornecedorNome})`,
         });
         entradasRegistradas++;
+        setProgresso((p) => ({ ...p, atual: p.atual + 1 }));
       }
 
       await registrarNFeImportada({
@@ -215,6 +240,8 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
     setFornecedor(null);
     setMapeamento([]);
     setEmpresaId('');
+    setMargemGlobal('');
+    setProgresso({ atual: 0, total: 0 });
     setResultado(null);
     setErro(null);
   }
@@ -237,6 +264,24 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
           <button type="button" className="est-btn" onClick={aoConcluir}>
             Voltar ao estoque
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (etapa === 'revisar' && dados && importando) {
+    const pct = progresso.total > 0 ? Math.round((progresso.atual / progresso.total) * 100) : 0;
+    return (
+      <div className="nfe-form">
+        <div className="nfe-concluido">
+          <Loader2 size={40} className="nfe-icone-girando" />
+          <h2>Lançando Itens no Estoque</h2>
+          <p>
+            {progresso.atual} de {progresso.total} item(ns) processado(s)…
+          </p>
+          <div className="nfe-progresso-trilha">
+            <div className="nfe-progresso-preenchida" style={{ width: `${pct}%` }} />
+          </div>
         </div>
       </div>
     );
@@ -289,6 +334,29 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
           <p className="est-erro" aria-live="polite">
             {erro}
           </p>
+        )}
+
+        {dados.itens.length > 0 && mapeamento.some((m) => m.pecaId === 'nova') && (
+          <div className="nfe-margem-global">
+            <Percent size={16} />
+            <label htmlFor="nfe-margem-global">Aplicar margem (%) em todas as peças novas</label>
+            <input
+              id="nfe-margem-global"
+              inputMode="decimal"
+              autoComplete="off"
+              value={margemGlobal}
+              onChange={(e) => setMargemGlobal(e.target.value)}
+              placeholder="Ex.: 40"
+            />
+            <button
+              type="button"
+              className="est-btn-sec"
+              onClick={aplicarMargemGlobal}
+              disabled={!margemGlobal.trim()}
+            >
+              Aplicar a todas
+            </button>
+          </div>
         )}
 
         {dados.itens.length === 0 ? (
@@ -370,7 +438,7 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
                             name={`margem-${i}`}
                             autoComplete="off"
                             value={map.margem}
-                            disabled={!map.incluir || !(Number(map.custoUnit) > 0)}
+                            disabled={!map.incluir || !(paraNumero(map.custoUnit) > 0)}
                             placeholder="Ex.: 40"
                             aria-label="Margem de lucro"
                             onChange={(e) => handleMargemChange(i, e.target.value, map.custoUnit)}
@@ -409,8 +477,8 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
           <button type="button" className="est-btn-sec" onClick={aoCancelar}>
             Cancelar
           </button>
-          <button type="button" className="est-btn" onClick={handleConfirmarImportacao} disabled={importando}>
-            {importando ? 'Importando…' : 'Confirmar importação'}
+          <button type="button" className="est-btn" onClick={handleConfirmarImportacao}>
+            Confirmar importação
           </button>
         </div>
       </div>
