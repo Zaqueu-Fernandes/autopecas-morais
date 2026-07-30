@@ -7,6 +7,7 @@ import {
   ArrowLeftRight,
   ReceiptText,
   Package,
+  ClipboardList,
   FolderCog,
   ShieldCheck,
   LogOut,
@@ -21,6 +22,7 @@ import '@/features/empresa/empresa.css';
 import '@/features/dashboard/dashboard.css';
 import '@/features/importacao-nfe/importacao-nfe.css';
 import '@/features/permissoes/permissoes.css';
+import '@/features/pedido-fornecedor/pedido-fornecedor.css';
 import { CadastrosPage } from '@/pages/CadastrosPage';
 import { EstoquePage } from '@/pages/EstoquePage';
 import { OrdensServicoPage } from '@/pages/OrdensServicoPage';
@@ -30,6 +32,7 @@ import { VendasBalcaoPage } from '@/pages/VendasBalcaoPage';
 import { DespesasFixasPage } from '@/pages/DespesasFixasPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { PermissoesPage } from '@/pages/PermissoesPage';
+import { PedidoFornecedorPage } from '@/pages/PedidoFornecedorPage';
 import { InstalarPwaBanner } from '@/shared/components/InstalarPwaBanner';
 import { AlternarTema } from '@/shared/components/AlternarTema';
 import { AlternarFormatoImpressao } from '@/features/impressao';
@@ -44,6 +47,7 @@ const ABAS = [
   { id: 'fluxo-caixa', label: 'Fluxo de Caixa', Icone: ArrowLeftRight, Componente: FluxoCaixaPage },
   { id: 'despesas', label: 'Despesas Recorrentes', Icone: ReceiptText, Componente: DespesasFixasPage },
   { id: 'estoque', label: 'Estoque', Icone: Package, Componente: EstoquePage },
+  { id: 'pedido-fornecedor', label: 'Fazer Pedido', Icone: ClipboardList, Componente: PedidoFornecedorPage },
   { id: 'cadastros', label: 'Cadastros', Icone: FolderCog, Componente: CadastrosPage },
   { id: 'permissoes', label: 'Permissões', Icone: ShieldCheck, Componente: PermissoesPage, adminOnly: true },
 ] as const;

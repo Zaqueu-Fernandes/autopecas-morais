@@ -130,3 +130,40 @@ export async function definirAtivoPeca(id: string, ativo: boolean): Promise<void
   const { error } = await supabase.from('pecas').update({ ativo }).eq('id', id);
   if (error) throw error;
 }
+
+export interface PecaEstoqueBaixo {
+  id: string;
+  nome: string;
+  codigo: string | null;
+  unidade: string;
+  qtd: number;
+  estoqueMinimo: number;
+}
+
+/**
+ * Peças ativas com saldo no mínimo configurado ou abaixo dele. SEM parâmetro
+ * de empresa — estoque é compartilhado entre empresas (não tem empresa_id em
+ * `pecas`, ver CLAUDE.md). Só entram peças com estoque_minimo > 0 (0 =
+ * monitoramento desligado pra aquela peça). Usado no card do Dashboard e
+ * pra pré-popular o fluxo de Fazer Pedido ao Fornecedor.
+ */
+export async function buscarPecasEstoqueBaixo(): Promise<PecaEstoqueBaixo[]> {
+  const { data, error } = await supabase
+    .from('pecas')
+    .select('id, nome, codigo, unidade, qtd, estoque_minimo')
+    .eq('ativo', true)
+    .gt('estoque_minimo', 0)
+    .order('qtd', { ascending: true });
+  if (error) throw error;
+
+  return (data ?? [])
+    .filter((p) => p.qtd <= p.estoque_minimo)
+    .map((p) => ({
+      id: p.id,
+      nome: p.nome,
+      codigo: p.codigo,
+      unidade: p.unidade,
+      qtd: p.qtd,
+      estoqueMinimo: p.estoque_minimo,
+    }));
+}
