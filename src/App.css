@@ -368,6 +368,20 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .pg-tabela th { color: var(--cor-texto-secundario); font-size: 12px; font-weight: 600; }
+/* Cabeçalho de coluna ordenável (ex.: "Estoque" no Estoque) — botão sem
+   estilo de botão, herda a tipografia do th ao redor. */
+.pg-th-ordenavel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.pg-th-ordenavel:hover { color: var(--cor-texto); }
 .pg-tabela tbody tr { transition: background-color .12s ease; }
 .pg-tabela tbody tr:hover { background: var(--cor-fundo-hover); }
 .pg-acoes-linha { display: flex; gap: 4px; white-space: nowrap; }
@@ -384,5 +398,6 @@ body {
   border-radius: 6px;
   transition: background-color .12s ease;
 }
-.pg-acoes-linha button:hover { background: #fee2e2; }
+.pg-acoes-linha button:hover:not(:disabled) { background: #fee2e2; }
+.pg-acoes-linha button:disabled { opacity: .5; cursor: default; }
 .pg-linha-expandida { background: var(--cor-fundo-hover); padding: 14px 16px; }

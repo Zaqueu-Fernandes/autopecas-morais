@@ -37,6 +37,21 @@ export interface Fornecedor extends Endereco {
   observacoes: string;
 }
 
+/**
+ * "Pra quem" uma despesa/receita é paga quando a categoria NÃO é
+ * 'fornecedor' (ex.: Empresa de Energia Elétrica numa categoria
+ * 'despesa_geral', ou a pessoa física numa 'retirada_lucro'). Campo
+ * opcional nos lançamentos — ver FormContaPagar/FormDespesaFixa.
+ */
+export interface Credor extends Endereco {
+  id?: string;
+  nome: string;
+  documento: string; // CPF ou CNPJ, opcional — credor pode ser pessoa física
+  telefone: string;
+  email: string;
+  observacoes: string;
+}
+
 /** Registro em branco pra iniciar o formulário de cliente. */
 export const clienteVazio = (): Cliente => ({
   nome: '',
@@ -57,6 +72,21 @@ export const clienteVazio = (): Cliente => ({
 export const fornecedorVazio = (): Fornecedor => ({
   nome: '',
   cnpj: '',
+  telefone: '',
+  email: '',
+  cep: '',
+  logradouro: '',
+  numero: '',
+  complemento: '',
+  bairro: '',
+  cidade: '',
+  uf: '',
+  observacoes: '',
+});
+
+export const credorVazio = (): Credor => ({
+  nome: '',
+  documento: '',
   telefone: '',
   email: '',
   cep: '',
@@ -108,6 +138,12 @@ export function validarFornecedor(f: Fornecedor): ErrosValidacao {
   if (!f.nome.trim()) erros.nome = 'Informe o nome.';
   if (!f.telefone.trim() && !f.cnpj.trim())
     erros.telefone = 'Informe ao menos telefone ou CNPJ.';
+  return erros;
+}
+
+export function validarCredor(c: Credor): ErrosValidacao {
+  const erros: ErrosValidacao = {};
+  if (!c.nome.trim()) erros.nome = 'Informe o nome.';
   return erros;
 }
 

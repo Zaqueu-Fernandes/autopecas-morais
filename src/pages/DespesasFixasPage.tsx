@@ -27,6 +27,7 @@ import {
 } from '@/features/despesas';
 import { type Categoria, listarCategorias } from '@/features/categorias';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
+import { useAuth } from '@/features/auth';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 import { formatarMoeda } from '@/shared/utils/formatadores';
 
@@ -41,6 +42,8 @@ function descricaoVencimento(d: DespesaFixa): string {
 
 export function DespesasFixasPage() {
   const { confirmar, avisar } = useConfirmacao();
+  const { temPermissao } = useAuth();
+  const podeDesativar = temPermissao('desativar_despesa_recorrente');
   const [despesas, setDespesas] = useState<DespesaFixa[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [mostrarInativas, setMostrarInativas] = useState(false);
@@ -252,7 +255,12 @@ export function DespesasFixasPage() {
                     <Pencil size={13} /> Editar
                   </button>
                   {d.ativo ? (
-                    <button type="button" onClick={() => handleDesativar(d)}>
+                    <button
+                      type="button"
+                      onClick={() => podeDesativar && handleDesativar(d)}
+                      disabled={!podeDesativar}
+                      title={podeDesativar ? undefined : 'Essa função requer permissão de desativação'}
+                    >
                       <Ban size={13} /> Desativar
                     </button>
                   ) : (

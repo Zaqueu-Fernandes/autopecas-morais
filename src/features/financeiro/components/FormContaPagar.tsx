@@ -14,7 +14,7 @@ import {
   semErros,
   type ErrosValidacao,
 } from '../types';
-import { type Fornecedor, listarFornecedores } from '@/features/cadastros';
+import { type Fornecedor, type Credor, listarFornecedores, listarCredores } from '@/features/cadastros';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
 
@@ -29,11 +29,13 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+  const [credores, setCredores] = useState<Credor[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   useEffect(() => {
     listarFornecedores().then(setFornecedores).catch(() => setFornecedores([]));
+    listarCredores().then(setCredores).catch(() => setCredores([]));
     listarCategorias().then(setCategorias).catch(() => setCategorias([]));
     listarEmpresas().then((lista) => {
       setEmpresas(lista);
@@ -136,6 +138,24 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
                 {erros.fornecedorId}
               </span>
             )}
+          </div>
+        )}
+
+        {dados.categoria && dados.categoria !== 'fornecedor' && (
+          <div className="fin-campo">
+            <label htmlFor="cp-credor">Credor</label>
+            <select
+              id="cp-credor"
+              value={dados.credorId}
+              onChange={(e) => set({ credorId: e.target.value })}
+            >
+              <option value="">— nenhum —</option>
+              {credores.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nome}
+                </option>
+              ))}
+            </select>
           </div>
         )}
 

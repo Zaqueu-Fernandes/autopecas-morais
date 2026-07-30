@@ -20,7 +20,7 @@ import {
   MESES_ANO,
   type ErrosValidacao,
 } from '../types';
-import { type Fornecedor, listarFornecedores } from '@/features/cadastros';
+import { type Fornecedor, type Credor, listarFornecedores, listarCredores } from '@/features/cadastros';
 import { type Categoria, listarCategorias } from '@/features/categorias';
 
 interface Props {
@@ -34,10 +34,12 @@ export function FormDespesaFixa({ inicial, onSalvar, onCancelar }: Props) {
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [salvando, setSalvando] = useState(false);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+  const [credores, setCredores] = useState<Credor[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   useEffect(() => {
     listarFornecedores().then(setFornecedores).catch(() => setFornecedores([]));
+    listarCredores().then(setCredores).catch(() => setCredores([]));
     listarCategorias().then(setCategorias).catch(() => setCategorias([]));
   }, []);
 
@@ -146,6 +148,24 @@ export function FormDespesaFixa({ inicial, onSalvar, onCancelar }: Props) {
                 {erros.fornecedorId}
               </span>
             )}
+          </div>
+        )}
+
+        {despesa.categoria && despesa.categoria !== 'fornecedor' && (
+          <div className="dsp-campo">
+            <label htmlFor="dsp-credor">Credor</label>
+            <select
+              id="dsp-credor"
+              value={despesa.credorId}
+              onChange={(e) => set({ credorId: e.target.value })}
+            >
+              <option value="">— nenhum —</option>
+              {credores.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nome}
+                </option>
+              ))}
+            </select>
           </div>
         )}
 

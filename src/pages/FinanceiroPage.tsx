@@ -34,6 +34,7 @@ import { type Categoria, listarCategorias } from '@/features/categorias';
 import { type ContaFinanceira, listarContasFinanceiras, ROTULO_TIPO_CONTA } from '@/features/contas-financeiras';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { buscarResumoDashboard } from '@/features/dashboard';
+import { useAuth } from '@/features/auth';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 import { formatarMoeda } from '@/shared/utils/formatadores';
 
@@ -67,6 +68,8 @@ function primeiroDiaDoMes(): string {
 
 export function FinanceiroPage() {
   const { confirmar, avisar } = useConfirmacao();
+  const { temPermissao } = useAuth();
+  const podeEstornar = temPermissao('estornar_financeiro');
   const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -149,6 +152,7 @@ export function FinanceiroPage() {
       vencimento: d.vencimento,
       clienteId: null,
       fornecedorId: d.fornecedorId || null,
+      credorId: d.credorId || null,
       osId: null,
       vendaId: null,
       despesaFixaId: null,
@@ -289,7 +293,7 @@ export function FinanceiroPage() {
     linhas: lancamentos.map((l) => [
       l.empresaId === null ? 'Empresa a Definir' : nomeEmpresa(l.empresaId),
       nomeConta(l.contaFinanceiraId),
-      l.tipo === 'pagar' ? 'Pagar' : 'Receber',
+      l.tipo === 'pagar' ? 'Despesa' : 'Receita',
       rotuloCategoria(l, categorias),
       l.descricao,
       formatarMoeda(l.valor),
@@ -328,9 +332,9 @@ export function FinanceiroPage() {
           onChange={(e) => setFiltroTipo(e.target.value as FiltroTipo)}
           aria-label="Filtrar por tipo"
         >
-          <option value="todos">Pagar e receber</option>
-          <option value="pagar">Só a pagar</option>
-          <option value="receber">Só a receber</option>
+          <option value="todos">Despesas e receitas</option>
+          <option value="pagar">Só despesas</option>
+          <option value="receber">Só receitas</option>
         </select>
         <select
           value={filtroStatus}
@@ -375,7 +379,7 @@ export function FinanceiroPage() {
                 <td>{nomeConta(l.contaFinanceiraId)}</td>
                 <td>
                   <span className={`fin-badge-tipo fin-badge-${l.tipo}`}>
-                    {l.tipo === 'pagar' ? 'Pagar' : 'Receber'}
+                    {l.tipo === 'pagar' ? 'Despesa' : 'Receita'}
                   </span>
                 </td>
                 <td>
@@ -411,7 +415,12 @@ export function FinanceiroPage() {
                     </button>
                   )}
                   {!l.estornado && (l.pago || l.osId || l.vendaId) && (
-                    <button type="button" onClick={() => setLancamentoParaEstornar(l)}>
+                    <button
+                      type="button"
+                      onClick={() => podeEstornar && setLancamentoParaEstornar(l)}
+                      disabled={!podeEstornar}
+                      title={podeEstornar ? undefined : 'Essa função requer permissão de estorno'}
+                    >
                       <Undo2 size={13} /> Estornar
                     </button>
                   )}

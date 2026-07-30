@@ -20,6 +20,7 @@ import {
 import { FormItemOS } from './FormItemOS';
 import type { Peca } from '@/features/estoque';
 import { FormEstorno, type DadosEstorno, buscarLancamentoDeOS } from '@/features/financeiro';
+import { useAuth } from '@/features/auth';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 import { formatarMoeda } from '@/shared/utils/formatadores';
 
@@ -44,6 +45,8 @@ export function ListaItensOS({
   aoAtualizarItens,
 }: Props) {
   const { confirmar } = useConfirmacao();
+  const { temPermissao } = useAuth();
+  const podeDevolver = temPermissao('devolver_os_item');
   const [itens, setItens] = useState<ItemOS[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -208,8 +211,9 @@ export function ListaItensOS({
                   <button
                     type="button"
                     className="os-itens-remover"
-                    onClick={() => setItemParaDevolver(item)}
-                    disabled={!osClienteId}
+                    onClick={() => podeDevolver && setItemParaDevolver(item)}
+                    disabled={!osClienteId || !podeDevolver}
+                    title={podeDevolver ? undefined : 'Essa função requer permissão de devolução'}
                   >
                     <Undo2 size={14} /> Devolver
                   </button>

@@ -1,0 +1,25 @@
+/* ==========================================================================
+   PERMISSÕES — estilos base. Prefixo .perm- pra não colidir com outras
+   features.
+   ========================================================================== */
+
+.perm-intro {
+  color: var(--cor-texto-secundario);
+  font-size: 13px;
+  max-width: 720px;
+  margin: 0 0 16px;
+}
+
+.perm-erro { color: var(--cor-texto-perigo); font-size: 13px; }
+
+.perm-tabela th,
+.perm-tabela td { white-space: nowrap; }
+
+.perm-celula-check { text-align: center; }
+.perm-celula-check input[type='checkbox'] {
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+  accent-color: #D62839;
+}
+.perm-celula-check input[type='checkbox']:disabled { cursor: default; opacity: .6; }

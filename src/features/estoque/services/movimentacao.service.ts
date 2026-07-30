@@ -78,17 +78,23 @@ export async function registrarEntrada(input: {
 /**
  * Registra ajuste manual (correção de contagem, perda, quebra...). `quantidade`
  * já deve vir com o sinal certo (positivo aumenta, negativo diminui o saldo).
+ *
+ * `origem` default `'ajuste_manual'` — é a origem travada a admin/permissão
+ * `ajustar_estoque` na RLS (ver permissoes_usuario.sql). Chamadores que usam
+ * este helper pra OUTRA finalidade (remoção/devolução de item de OS/venda)
+ * passam sua própria origem, pra não ficar acoplado à trava de "Ajustar".
  */
 export async function registrarAjuste(input: {
   pecaId: string;
   quantidade: number;
   observacoes: string;
+  origem?: string;
 }): Promise<void> {
   const { error } = await supabase.from('movimentacao_estoque').insert({
     peca_id: input.pecaId,
     tipo: 'ajuste',
     quantidade: input.quantidade,
-    origem: 'ajuste_manual',
+    origem: input.origem ?? 'ajuste_manual',
     observacoes: input.observacoes,
   });
   if (error) throw error;

@@ -74,7 +74,7 @@
   gap: 6px;
   background: var(--cor-fundo-cartao);
   color: var(--emp-btn);
-  border: 1.5px solid var(--emp-btn);
+  border: 2px solid var(--emp-btn);
   border-radius: 8px;
   padding: 9px 17px;
   font-size: 14px;
@@ -83,9 +83,8 @@
   transition: background-color .2s ease, color .2s ease, box-shadow .2s ease, transform .05s ease;
 }
 .emp-btn:hover:not(:disabled) {
-  background: var(--emp-btn);
-  color: var(--emp-btn-texto);
-  box-shadow: 0 4px 12px rgba(214, 40, 57, .28);
+  background: var(--cor-fundo-perigo);
+  box-shadow: 0 4px 12px rgba(214, 40, 57, .20);
 }
 .emp-btn:active:not(:disabled) { transform: scale(.96); }
 .emp-btn:disabled { opacity: .6; cursor: default; }

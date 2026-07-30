@@ -80,6 +80,7 @@ export async function gerarContasDoMes(referencia: Date = new Date()): Promise<R
           vencimento,
           clienteId: null,
           fornecedorId: despesa.fornecedorId || null,
+          credorId: despesa.credorId || null,
           osId: null,
           vendaId: null,
           despesaFixaId: despesa.id ?? null,

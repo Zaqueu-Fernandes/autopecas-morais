@@ -84,7 +84,7 @@
   gap: 6px;
   background: var(--cor-fundo-cartao);
   color: var(--dsp-btn);
-  border: 1.5px solid var(--dsp-btn);
+  border: 2px solid var(--dsp-btn);
   border-radius: 8px;
   padding: 9px 17px;
   font-size: 14px;
@@ -93,9 +93,8 @@
   transition: background-color .2s ease, color .2s ease, box-shadow .2s ease, transform .05s ease;
 }
 .dsp-btn:hover:not(:disabled) {
-  background: var(--dsp-btn);
-  color: var(--dsp-btn-texto);
-  box-shadow: 0 4px 12px rgba(214, 40, 57, .28);
+  background: var(--cor-fundo-perigo);
+  box-shadow: 0 4px 12px rgba(214, 40, 57, .20);
 }
 .dsp-btn:active:not(:disabled) { transform: scale(.96); }
 .dsp-btn:disabled { opacity: .6; cursor: default; }

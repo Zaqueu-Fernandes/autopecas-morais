@@ -72,6 +72,14 @@ export interface LancamentoFinanceiro {
   vencimento: string | null; // yyyy-mm-dd
   clienteId: string | null;
   fornecedorId: string | null;
+  /**
+   * "Pra quem" a despesa/receita é paga quando a categoria NÃO é 'fornecedor'
+   * (@/features/cadastros — Credor). Opcional: só o lançamento manual
+   * (Nova conta a pagar) de fato coleta isso do usuário — os demais pontos
+   * que criam LancamentoFinanceiro (faturar OS, finalizar venda, estorno,
+   * devolução) não têm um credor pra atribuir, então nem preenchem o campo.
+   */
+  credorId?: string | null;
   osId: string | null;
   vendaId: string | null;
   despesaFixaId: string | null;
@@ -103,6 +111,8 @@ export interface DadosContaPagar {
   descricao: string;
   valor: string;
   fornecedorId: string;
+  /** Só relevante quando categoria !== 'fornecedor' — ver Credor em @/features/cadastros. Opcional. */
+  credorId: string;
   vencimento: string;
   observacoes: string;
 }
@@ -113,6 +123,7 @@ export const dadosContaPagarVazio = (): DadosContaPagar => ({
   descricao: '',
   valor: '',
   fornecedorId: '',
+  credorId: '',
   vencimento: '',
   observacoes: '',
 });

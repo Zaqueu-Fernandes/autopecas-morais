@@ -23,6 +23,7 @@ interface LinhaFinanceiro {
   vencimento: string | null;
   cliente_id: string | null;
   fornecedor_id: string | null;
+  credor_id: string | null;
   os_id: string | null;
   venda_id: string | null;
   despesa_fixa_id: string | null;
@@ -50,6 +51,7 @@ function linhaParaLancamento(l: LinhaFinanceiro): LancamentoFinanceiro {
     vencimento: l.vencimento,
     clienteId: l.cliente_id,
     fornecedorId: l.fornecedor_id,
+    credorId: l.credor_id,
     osId: l.os_id,
     vendaId: l.venda_id,
     despesaFixaId: l.despesa_fixa_id,
@@ -93,6 +95,7 @@ export async function criarLancamento(l: LancamentoFinanceiro): Promise<Lancamen
       vencimento: l.vencimento,
       cliente_id: l.clienteId,
       fornecedor_id: l.fornecedorId,
+      credor_id: l.credorId ?? null,
       os_id: l.osId,
       venda_id: l.vendaId,
       despesa_fixa_id: l.despesaFixaId,

@@ -66,6 +66,8 @@ export interface DespesaFixa {
   diaVencimento: string; // significado depende de periodicidade — ver Periodicidade acima
   mesVencimento: string; // só usado quando periodicidade='anual' (1-12)
   fornecedorId: string;
+  /** Só relevante quando categoria !== 'fornecedor' — ver Credor em @/features/cadastros. Opcional. */
+  credorId: string;
   ativo: boolean;
   observacoes: string;
 }
@@ -79,6 +81,7 @@ export const despesaFixaVazia = (): DespesaFixa => ({
   diaVencimento: '',
   mesVencimento: '',
   fornecedorId: '',
+  credorId: '',
   ativo: true,
   observacoes: '',
 });

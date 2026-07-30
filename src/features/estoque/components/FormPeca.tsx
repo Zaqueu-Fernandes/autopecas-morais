@@ -89,6 +89,7 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
       ['custoInicial', 'est-peca-custo-inicial'],
       ['empresaIdInicial', 'est-peca-empresa-inicial'],
       ['precoVenda', 'est-peca-preco-venda'],
+      ['estoqueMinimo', 'est-peca-estoque-minimo'],
     ];
     const primeiro = ordem.find(([chave]) => e[chave]);
     if (primeiro) document.getElementById(primeiro[1])?.focus();
@@ -268,6 +269,23 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
             aria-invalid={!!erros.precoVenda}
           />
           {erros.precoVenda && <span className="est-erro">{erros.precoVenda}</span>}
+        </div>
+
+        <div className="est-campo">
+          <label htmlFor="est-peca-estoque-minimo">Estoque mínimo</label>
+          <input
+            id="est-peca-estoque-minimo"
+            inputMode="numeric"
+            value={peca.estoqueMinimo}
+            onChange={(e) => set({ estoqueMinimo: e.target.value })}
+            placeholder="0"
+            aria-invalid={!!erros.estoqueMinimo}
+            aria-describedby="est-peca-estoque-minimo-ajuda"
+          />
+          <span className="est-aviso" id="est-peca-estoque-minimo-ajuda">
+            Abaixo desse valor, a peça aparece no alerta do Dashboard. Deixe 0 pra não monitorar.
+          </span>
+          {erros.estoqueMinimo && <span className="est-erro">{erros.estoqueMinimo}</span>}
         </div>
 
       </div>

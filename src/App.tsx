@@ -8,6 +8,7 @@ import {
   ReceiptText,
   Package,
   FolderCog,
+  ShieldCheck,
   LogOut,
 } from 'lucide-react';
 import '@/features/cadastros/cadastros.css';
@@ -19,6 +20,7 @@ import '@/features/despesas/despesas.css';
 import '@/features/empresa/empresa.css';
 import '@/features/dashboard/dashboard.css';
 import '@/features/importacao-nfe/importacao-nfe.css';
+import '@/features/permissoes/permissoes.css';
 import { CadastrosPage } from '@/pages/CadastrosPage';
 import { EstoquePage } from '@/pages/EstoquePage';
 import { OrdensServicoPage } from '@/pages/OrdensServicoPage';
@@ -27,6 +29,7 @@ import { FluxoCaixaPage } from '@/pages/FluxoCaixaPage';
 import { VendasBalcaoPage } from '@/pages/VendasBalcaoPage';
 import { DespesasFixasPage } from '@/pages/DespesasFixasPage';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { PermissoesPage } from '@/pages/PermissoesPage';
 import { InstalarPwaBanner } from '@/shared/components/InstalarPwaBanner';
 import { AlternarTema } from '@/shared/components/AlternarTema';
 import { AlternarFormatoImpressao } from '@/features/impressao';
@@ -42,14 +45,16 @@ const ABAS = [
   { id: 'despesas', label: 'Despesas Recorrentes', Icone: ReceiptText, Componente: DespesasFixasPage },
   { id: 'estoque', label: 'Estoque', Icone: Package, Componente: EstoquePage },
   { id: 'cadastros', label: 'Cadastros', Icone: FolderCog, Componente: CadastrosPage },
+  { id: 'permissoes', label: 'Permissões', Icone: ShieldCheck, Componente: PermissoesPage, adminOnly: true },
 ] as const;
 
 type IdAba = (typeof ABAS)[number]['id'];
 
 function App() {
   const [abaAtiva, setAbaAtiva] = useState<IdAba>('dashboard');
-  const AbaAtual = ABAS.find((a) => a.id === abaAtiva)!.Componente;
-  const { sessao, perfil, carregando, sair } = useAuth();
+  const { sessao, perfil, carregando, ehAdmin, sair } = useAuth();
+  const abasVisiveis = ABAS.filter((a) => !('adminOnly' in a && a.adminOnly) || ehAdmin);
+  const AbaAtual = (abasVisiveis.find((a) => a.id === abaAtiva) ?? abasVisiveis[0]).Componente;
 
   if (carregando) return null;
   if (!sessao) return <LoginPage />;
@@ -67,7 +72,7 @@ function App() {
           height={400}
         />
         <nav className="app-nav" aria-label="Navegação principal">
-          {ABAS.map((a) => {
+          {abasVisiveis.map((a) => {
             const Icone = a.Icone;
             return (
               <button

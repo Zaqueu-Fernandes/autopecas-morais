@@ -7,7 +7,20 @@
  */
 
 import { Fragment, useEffect, useState } from 'react';
-import { Search, PackagePlus, Pencil, History, ChevronDown, ChevronUp, FileUp, Ban, RotateCcw } from 'lucide-react';
+import {
+  Search,
+  PackagePlus,
+  Pencil,
+  History,
+  ChevronDown,
+  ChevronUp,
+  FileUp,
+  Ban,
+  RotateCcw,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+} from 'lucide-react';
 import {
   type Peca,
   FormPeca,
@@ -33,6 +46,7 @@ export function EstoquePage() {
   const [mostrarImportarNFe, setMostrarImportarNFe] = useState(false);
   const [pecaEmEdicao, setPecaEmEdicao] = useState<Peca | null>(null);
   const [pecaExpandidaId, setPecaExpandidaId] = useState<string | null>(null);
+  const [ordemEstoque, setOrdemEstoque] = useState<'asc' | 'desc' | null>(null);
 
   async function carregar() {
     setCarregando(true);
@@ -82,6 +96,13 @@ export function EstoquePage() {
   const filtradas = pecas.filter(
     (p) => !alvo || p.nome.toLowerCase().includes(alvo) || p.codigo.toLowerCase().includes(alvo),
   );
+  const listaOrdenada = ordemEstoque
+    ? [...filtradas].sort((a, b) => (ordemEstoque === 'asc' ? a.qtd - b.qtd : b.qtd - a.qtd))
+    : filtradas;
+
+  function alternarOrdemEstoque() {
+    setOrdemEstoque((o) => (o === 'asc' ? 'desc' : o === 'desc' ? null : 'asc'));
+  }
 
   const documentoImpressao: DocumentoListaImpressao = {
     titulo: 'Estoque',
@@ -175,13 +196,24 @@ export function EstoquePage() {
             <tr>
               <th>Nome</th>
               <th>Código</th>
-              <th>Estoque</th>
+              <th>
+                <button type="button" className="pg-th-ordenavel" onClick={alternarOrdemEstoque}>
+                  Estoque
+                  {ordemEstoque === 'asc' && <ArrowUp size={12} />}
+                  {ordemEstoque === 'desc' && <ArrowDown size={12} />}
+                  {ordemEstoque === null && <ArrowUpDown size={12} />}
+                </button>
+              </th>
               <th>Preço venda</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {filtradas.map((p) => (
+            {listaOrdenada.map((p) => {
+              const estoqueMinimo = Number(p.estoqueMinimo);
+              const monitorada = estoqueMinimo > 0;
+              const estoqueBaixo = monitorada && p.qtd <= estoqueMinimo;
+              return (
               <Fragment key={p.id}>
                 <tr className={!p.ativo ? 'dsp-linha-inativa' : ''}>
                   <td className="pg-tabela-truncar">
@@ -190,6 +222,13 @@ export function EstoquePage() {
                   </td>
                   <td>{p.codigo || '—'}</td>
                   <td>
+                    {monitorada && (
+                      <span
+                        className={`est-semaforo ${estoqueBaixo ? 'est-semaforo-baixo' : 'est-semaforo-ok'}`}
+                        title={`Estoque mínimo: ${estoqueMinimo}`}
+                        aria-hidden="true"
+                      />
+                    )}
                     {p.qtd} {p.unidade}
                   </td>
                   <td>{formatarMoeda(Number(p.precoVenda))}</td>
@@ -230,7 +269,8 @@ export function EstoquePage() {
                   </tr>
                 )}
               </Fragment>
-            ))}
+              );
+            })}
             {filtradas.length === 0 && (
               <tr>
                 <td colSpan={5}>Nenhuma peça encontrada.</td>

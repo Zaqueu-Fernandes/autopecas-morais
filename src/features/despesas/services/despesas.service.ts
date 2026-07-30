@@ -19,6 +19,7 @@ interface LinhaDespesaFixa {
   dia_vencimento: number;
   mes_vencimento: number | null;
   fornecedor_id: string | null;
+  credor_id: string | null;
   ativo: boolean;
   observacoes: string | null;
 }
@@ -34,6 +35,7 @@ function linhaParaDespesa(l: LinhaDespesaFixa): DespesaFixa {
     diaVencimento: String(l.dia_vencimento),
     mesVencimento: l.mes_vencimento != null ? String(l.mes_vencimento) : '',
     fornecedorId: l.fornecedor_id ?? '',
+    credorId: l.credor_id ?? '',
     ativo: l.ativo,
     observacoes: l.observacoes ?? '',
   };
@@ -49,6 +51,7 @@ function despesaParaLinha(d: DespesaFixa) {
     dia_vencimento: Number(d.diaVencimento),
     mes_vencimento: d.periodicidade === 'anual' ? Number(d.mesVencimento) : null,
     fornecedor_id: d.fornecedorId || null,
+    credor_id: d.credorId || null,
     ativo: d.ativo,
     observacoes: d.observacoes || null,
   };

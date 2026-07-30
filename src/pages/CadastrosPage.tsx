@@ -8,10 +8,11 @@
  */
 
 import { useState } from 'react';
-import { Building2, Users, Truck, Tags, Landmark } from 'lucide-react';
+import { Building2, Users, Truck, UserRound, Tags, Landmark } from 'lucide-react';
 import { EmpresasPage } from './EmpresasPage';
 import { ClientesPage } from './ClientesPage';
 import { FornecedoresPage } from './FornecedoresPage';
+import { CredoresPage } from './CredoresPage';
 import { CategoriasPage } from './CategoriasPage';
 import { ContasFinanceirasPage } from './ContasFinanceirasPage';
 
@@ -19,6 +20,7 @@ const SUBABAS = [
   { id: 'empresas', label: 'Empresas', Icone: Building2, Componente: EmpresasPage },
   { id: 'clientes', label: 'Clientes', Icone: Users, Componente: ClientesPage },
   { id: 'fornecedores', label: 'Fornecedores', Icone: Truck, Componente: FornecedoresPage },
+  { id: 'credores', label: 'Credores', Icone: UserRound, Componente: CredoresPage },
   { id: 'categorias', label: 'Categorias', Icone: Tags, Componente: CategoriasPage },
   { id: 'contas-financeiras', label: 'Contas Financeiras', Icone: Landmark, Componente: ContasFinanceirasPage },
 ] as const;

@@ -15,6 +15,13 @@ export interface Peca {
   unidade: string;
   categoria: string;
   precoVenda: string; // texto no formulário; vira number ao salvar
+  /**
+   * Abaixo desse valor (e maior que zero), a peça aparece no semáforo da
+   * tela de Estoque e no alerta "Itens com estoque mínimo" do Dashboard.
+   * '0' = monitoramento desligado pra essa peça. Texto no formulário, igual
+   * precoVenda.
+   */
+  estoqueMinimo: string;
   ativo: boolean;
   observacoes: string;
   /** Cache mantido pelo banco — somente leitura na aplicação. */
@@ -40,6 +47,7 @@ export const pecaVazia = (): Peca => ({
   unidade: 'un',
   categoria: '',
   precoVenda: '',
+  estoqueMinimo: '0',
   ativo: true,
   observacoes: '',
   precoCusto: 0,
@@ -56,6 +64,8 @@ export function validarPeca(p: Peca): ErrosValidacao {
   if (!p.nome.trim()) erros.nome = 'Informe o nome.';
   if (p.precoVenda.trim() && Number.isNaN(Number(p.precoVenda)))
     erros.precoVenda = 'Preço de venda inválido.';
+  if (p.estoqueMinimo.trim() && (Number.isNaN(Number(p.estoqueMinimo)) || Number(p.estoqueMinimo) < 0))
+    erros.estoqueMinimo = 'Estoque mínimo inválido.';
 
   if (!p.id && p.qtdInicial?.trim()) {
     const qtdInicial = Number(p.qtdInicial);

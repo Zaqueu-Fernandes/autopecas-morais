@@ -23,6 +23,7 @@ interface LinhaPeca {
   categoria: string | null;
   preco_custo: number;
   preco_venda: number;
+  estoque_minimo: number;
   qtd: number;
   ativo: boolean;
   observacoes: string | null;
@@ -37,6 +38,7 @@ function linhaParaPeca(l: LinhaPeca): Peca {
     unidade: l.unidade,
     categoria: l.categoria ?? '',
     precoVenda: String(l.preco_venda),
+    estoqueMinimo: String(l.estoque_minimo),
     ativo: l.ativo,
     observacoes: l.observacoes ?? '',
     precoCusto: Number(l.preco_custo),
@@ -53,6 +55,7 @@ function pecaParaLinha(p: Peca) {
     unidade: p.unidade || 'un',
     categoria: p.categoria || null,
     preco_venda: p.precoVenda.trim() ? paraNumero(p.precoVenda) : 0,
+    estoque_minimo: p.estoqueMinimo.trim() ? paraNumero(p.estoqueMinimo) : 0,
     ativo: p.ativo,
     observacoes: p.observacoes || null,
   };

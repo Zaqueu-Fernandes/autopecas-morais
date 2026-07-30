@@ -12,9 +12,11 @@ import { Wallet, Receipt, Scale, CalendarRange, HandCoins, FileClock, AlertTrian
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import {
   type ResumoDashboard,
+  type PecaEstoqueBaixo,
   CartaoResumo,
   MonitorMeiEmpresa,
   buscarResumoDashboard,
+  buscarPecasEstoqueBaixo,
 } from '@/features/dashboard';
 import { formatarMoeda } from '@/shared/utils/formatadores';
 
@@ -22,6 +24,7 @@ export function DashboardPage() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [empresaSelecionadaId, setEmpresaSelecionadaId] = useState('');
   const [resumo, setResumo] = useState<ResumoDashboard | null>(null);
+  const [pecasBaixo, setPecasBaixo] = useState<PecaEstoqueBaixo[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -41,6 +44,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     carregarEmpresas();
+    buscarPecasEstoqueBaixo().then(setPecasBaixo).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -72,6 +76,26 @@ export function DashboardPage() {
       <div className="pg-head">
         <h1>Dashboard</h1>
       </div>
+
+      {pecasBaixo.length > 0 && (
+        <div className="dash-secao">
+          <h2 className="dash-secao-titulo">Itens com estoque mínimo</h2>
+          <div className="dash-cartao dash-cartao-perigo dash-estoque-baixo">
+            <div className="dash-cartao-cabecalho">
+              <span className="dash-cartao-titulo">Recomendação: comprar mais</span>
+              <span className="dash-cartao-icone"><AlertTriangle size={15} /></span>
+            </div>
+            <ul className="dash-estoque-baixo-lista">
+              {pecasBaixo.map((p) => (
+                <li key={p.id}>
+                  <span className="dash-estoque-baixo-nome">{p.nome}</span>
+                  <span className="dash-estoque-baixo-qtd">{p.qtd} / mínimo {p.estoqueMinimo}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
       <div className="dash-secao">
         <h2 className="dash-secao-titulo">Limite anual do MEI</h2>

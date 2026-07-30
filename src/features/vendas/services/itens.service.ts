@@ -88,6 +88,7 @@ export async function removerItemVenda(item: ItemVenda, motivo: string): Promise
     pecaId: item.pecaId,
     quantidade: item.quantidade,
     observacoes: `Estorno: item removido da venda (${motivo})`,
+    origem: 'remocao_item',
   });
 
   const { error } = await supabase
@@ -119,6 +120,7 @@ export async function devolverItemVenda(
     pecaId: item.pecaId,
     quantidade: item.quantidade,
     observacoes: `Devolução de item da venda #${venda.numero ?? '—'} (${motivo})`,
+    origem: 'devolucao_item_venda',
   });
 
   const { error } = await supabase

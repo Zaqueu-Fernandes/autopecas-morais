@@ -119,6 +119,23 @@
 .dash-secao { margin-bottom: 28px; }
 .dash-secao-titulo { font-size: 14px; font-weight: 600; color: var(--cor-texto); margin: 0 0 12px; }
 
+/* Prévia de peças no estoque mínimo, no Dashboard — card largo com uma
+   lista, não um grid de KPI (o conteúdo é a lista de peças em si). */
+.dash-estoque-baixo { max-width: 640px; }
+.dash-estoque-baixo-lista { list-style: none; margin: 0; padding: 0; }
+.dash-estoque-baixo-lista li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1px solid var(--cor-borda-perigo);
+  font-size: 13px;
+}
+.dash-estoque-baixo-lista li:first-child { border-top: 0; padding-top: 2px; }
+.dash-estoque-baixo-nome { color: var(--cor-texto); font-weight: 500; }
+.dash-estoque-baixo-qtd { color: var(--cor-texto-perigo); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
 @media (max-width: 520px) {
   .dash-grid { grid-template-columns: 1fr 1fr; }
 }

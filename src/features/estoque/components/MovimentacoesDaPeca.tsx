@@ -53,7 +53,9 @@ function descricaoMovimento(m: Movimentacao): string {
 }
 
 export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
-  const { ehAdmin } = useAuth();
+  const { temPermissao } = useAuth();
+  const podeAjustar = temPermissao('ajustar_estoque');
+  const podeDevolverFornecedor = temPermissao('devolver_fornecedor');
   const { confirmar } = useConfirmacao();
   const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -169,13 +171,19 @@ export function MovimentacoesDaPeca({ pecaId, aoRegistrar }: Props) {
           <button
             type="button"
             className="est-btn-sec"
-            onClick={() => ehAdmin && setAcaoAberta('ajuste')}
-            disabled={!ehAdmin}
-            title={ehAdmin ? undefined : 'Essa função requer perfil de administrador'}
+            onClick={() => podeAjustar && setAcaoAberta('ajuste')}
+            disabled={!podeAjustar}
+            title={podeAjustar ? undefined : 'Essa função requer permissão de ajuste de estoque'}
           >
             <SlidersHorizontal size={15} aria-hidden="true" /> Ajustar
           </button>
-          <button type="button" className="est-btn-sec" onClick={() => setAcaoAberta('devolucaoFornecedor')}>
+          <button
+            type="button"
+            className="est-btn-sec"
+            onClick={() => podeDevolverFornecedor && setAcaoAberta('devolucaoFornecedor')}
+            disabled={!podeDevolverFornecedor}
+            title={podeDevolverFornecedor ? undefined : 'Essa função requer permissão de devolução ao fornecedor'}
+          >
             <PackageMinus size={15} aria-hidden="true" /> Devolver ao fornecedor
           </button>
         </span>

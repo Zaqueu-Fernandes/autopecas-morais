@@ -96,6 +96,7 @@ export function FluxoCaixaPage() {
       <div className="pg-filtros">
         <select value={empresaId} onChange={(e) => setEmpresaId(e.target.value)} aria-label="Filtrar por empresa">
           {empresas.length === 0 && <option value="">Nenhuma empresa cadastrada</option>}
+          {empresas.length > 0 && <option value="">Todas as empresas</option>}
           {empresas.map((emp) => (
             <option key={emp.id} value={emp.id}>
               {emp.nomeFantasia}

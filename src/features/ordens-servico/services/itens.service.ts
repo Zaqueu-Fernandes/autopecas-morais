@@ -113,6 +113,7 @@ export async function removerItem(item: ItemOS, motivo: string): Promise<void> {
       pecaId: item.pecaId,
       quantidade: item.quantidade,
       observacoes: `Estorno: item removido da OS (${motivo})`,
+      origem: 'remocao_item',
     });
   }
 
@@ -153,6 +154,7 @@ export async function devolverItem(
       pecaId: item.pecaId,
       quantidade: item.quantidade,
       observacoes: `Devolução de item da OS #${os.numero ?? '—'} (${motivo})`,
+      origem: 'devolucao_item_os',
     });
   }
 
