@@ -9,7 +9,7 @@ import type { ReactNode } from 'react';
 interface Props {
   titulo: string;
   valor: string;
-  tom?: 'neutro' | 'aviso' | 'perigo';
+  tom?: 'neutro' | 'aviso' | 'perigo' | 'sucesso';
   icone?: ReactNode;
 }
 

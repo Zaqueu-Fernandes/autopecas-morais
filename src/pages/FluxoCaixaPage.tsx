@@ -136,7 +136,7 @@ export function FluxoCaixaPage() {
             <CartaoResumo
               titulo="Saldo final"
               valor={formatarMoeda(resultado.saldoFinal)}
-              tom={resultado.saldoFinal < 0 ? 'perigo' : 'neutro'}
+              tom={resultado.saldoFinal < 0 ? 'perigo' : 'sucesso'}
               icone={resultado.saldoFinal < 0 ? <TrendingDown size={15} /> : <TrendingUp size={15} />}
             />
           </div>

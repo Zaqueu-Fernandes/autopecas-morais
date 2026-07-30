@@ -12,6 +12,22 @@
   --cor-borda-aviso: #fde68a;
   --cor-fundo-perigo: #fef2f2;
   --cor-borda-perigo: #fecaca;
+  --cor-fundo-sucesso: #f0fdf4;
+  --cor-borda-sucesso: #bbf7d0;
+  /* Texto/ícone de aviso, perigo e sucesso — SEPARADOS do fundo/borda acima
+     de propósito: em tema escuro o fundo vira um tom bem escuro (pra não
+     brigar com o resto da UI), mas um texto/ícone "escuro sobre escuro"
+     (os mesmos tons #92400e/#991b1b/#15803d do tema claro) fica ilegível.
+     Cada tema define sua própria dupla texto/ícone com contraste correto. */
+  --cor-texto-aviso: #92400e;
+  --cor-icone-fundo-aviso: #fef3c7;
+  --cor-icone-texto-aviso: #92400e;
+  --cor-texto-perigo: #991b1b;
+  --cor-icone-fundo-perigo: #fee2e2;
+  --cor-icone-texto-perigo: #991b1b;
+  --cor-texto-sucesso: #15803d;
+  --cor-icone-fundo-sucesso: #dcfce7;
+  --cor-icone-texto-sucesso: #15803d;
 }
 
 :root[data-theme='dark'] {
@@ -28,6 +44,17 @@
   --cor-borda-aviso: #5c481f;
   --cor-fundo-perigo: #351616;
   --cor-borda-perigo: #5c2626;
+  --cor-fundo-sucesso: #0f2416;
+  --cor-borda-sucesso: #1f4d2e;
+  --cor-texto-aviso: #fbbf24;
+  --cor-icone-fundo-aviso: rgba(251, 191, 36, .16);
+  --cor-icone-texto-aviso: #fbbf24;
+  --cor-texto-perigo: #f87171;
+  --cor-icone-fundo-perigo: rgba(248, 113, 113, .16);
+  --cor-icone-texto-perigo: #f87171;
+  --cor-texto-sucesso: #4ade80;
+  --cor-icone-fundo-sucesso: rgba(74, 222, 128, .16);
+  --cor-icone-texto-sucesso: #4ade80;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -45,6 +72,17 @@
     --cor-borda-aviso: #5c481f;
     --cor-fundo-perigo: #351616;
     --cor-borda-perigo: #5c2626;
+    --cor-fundo-sucesso: #0f2416;
+    --cor-borda-sucesso: #1f4d2e;
+    --cor-texto-aviso: #fbbf24;
+    --cor-icone-fundo-aviso: rgba(251, 191, 36, .16);
+    --cor-icone-texto-aviso: #fbbf24;
+    --cor-texto-perigo: #f87171;
+    --cor-icone-fundo-perigo: rgba(248, 113, 113, .16);
+    --cor-icone-texto-perigo: #f87171;
+    --cor-texto-sucesso: #4ade80;
+    --cor-icone-fundo-sucesso: rgba(74, 222, 128, .16);
+    --cor-icone-texto-sucesso: #4ade80;
   }
 }
 

@@ -73,72 +73,80 @@ export function DashboardPage() {
         <h1>Dashboard</h1>
       </div>
 
-      <div className="dash-monitores">
-        {empresas.map((emp) => (
-          <MonitorMeiEmpresa key={emp.id} empresa={emp} />
-        ))}
-      </div>
-
-      <div className="pg-filtros">
-        <select
-          value={empresaSelecionadaId}
-          onChange={(e) => setEmpresaSelecionadaId(e.target.value)}
-          aria-label="Filtrar por empresa"
-        >
+      <div className="dash-secao">
+        <h2 className="dash-secao-titulo">Limite anual do MEI</h2>
+        <div className="dash-monitores">
           {empresas.map((emp) => (
-            <option key={emp.id} value={emp.id}>
-              {emp.nomeFantasia}
-            </option>
+            <MonitorMeiEmpresa key={emp.id} empresa={emp} />
           ))}
-        </select>
+        </div>
       </div>
 
-      {resumo && (
-        <div className="dash-grid">
-          <CartaoResumo
-            titulo="Faturamento do mês"
-            valor={formatarMoeda(resumo.faturamentoMes)}
-            icone={<Wallet size={15} />}
-          />
-          <CartaoResumo
-            titulo="Despesas do mês"
-            valor={formatarMoeda(resumo.despesasMes)}
-            icone={<Receipt size={15} />}
-          />
-          <CartaoResumo
-            titulo="Resultado do mês"
-            valor={formatarMoeda(resumo.resultadoMes)}
-            tom={resumo.resultadoMes < 0 ? 'perigo' : 'neutro'}
-            icone={<Scale size={15} />}
-          />
-          <CartaoResumo
-            titulo="Faturamento do ano"
-            valor={formatarMoeda(resumo.faturamentoAno)}
-            icone={<CalendarRange size={15} />}
-          />
-          <CartaoResumo
-            titulo="A receber (pendente)"
-            valor={formatarMoeda(resumo.aReceberPendente)}
-            icone={<HandCoins size={15} />}
-          />
-          <CartaoResumo
-            titulo="A pagar (pendente)"
-            valor={formatarMoeda(resumo.aPagarPendente)}
-            icone={<FileClock size={15} />}
-          />
-          <CartaoResumo
-            titulo="Contas atrasadas"
-            valor={`${resumo.aPagarVencidoQtd} (${formatarMoeda(resumo.aPagarVencidoValor)})`}
-            tom={resumo.aPagarVencidoQtd > 0 ? 'perigo' : 'neutro'}
-            icone={<AlertTriangle size={15} />}
-          />
+      <div className="dash-secao">
+        <div className="dash-secao-cabecalho">
+          <h2 className="dash-secao-titulo">Resumo financeiro</h2>
+          <label className="dash-secao-empresa">
+            Empresa
+            <select
+              value={empresaSelecionadaId}
+              onChange={(e) => setEmpresaSelecionadaId(e.target.value)}
+            >
+              {empresas.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.nomeFantasia}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
-      )}
-      {resumo && resumo.resultadoMes < 0 && (
-        <p className="dash-mei-mensagem">
-          Despesas do mês superaram o faturamento desta empresa — não impede nada, é só um alerta.
-        </p>
-      )}
+
+        {resumo && (
+          <div className="dash-grid" aria-live="polite">
+            <CartaoResumo
+              titulo="Faturamento do mês"
+              valor={formatarMoeda(resumo.faturamentoMes)}
+              icone={<Wallet size={15} />}
+            />
+            <CartaoResumo
+              titulo="Despesas do mês"
+              valor={formatarMoeda(resumo.despesasMes)}
+              icone={<Receipt size={15} />}
+            />
+            <CartaoResumo
+              titulo="Resultado do mês"
+              valor={formatarMoeda(resumo.resultadoMes)}
+              tom={resumo.resultadoMes < 0 ? 'perigo' : 'sucesso'}
+              icone={<Scale size={15} />}
+            />
+            <CartaoResumo
+              titulo="Faturamento do ano"
+              valor={formatarMoeda(resumo.faturamentoAno)}
+              icone={<CalendarRange size={15} />}
+            />
+            <CartaoResumo
+              titulo="A receber (pendente)"
+              valor={formatarMoeda(resumo.aReceberPendente)}
+              icone={<HandCoins size={15} />}
+            />
+            <CartaoResumo
+              titulo="A pagar (pendente)"
+              valor={formatarMoeda(resumo.aPagarPendente)}
+              icone={<FileClock size={15} />}
+            />
+            <CartaoResumo
+              titulo="Contas atrasadas"
+              valor={`${resumo.aPagarVencidoQtd} (${formatarMoeda(resumo.aPagarVencidoValor)})`}
+              tom={resumo.aPagarVencidoQtd > 0 ? 'perigo' : 'neutro'}
+              icone={<AlertTriangle size={15} />}
+            />
+          </div>
+        )}
+        {resumo && resumo.resultadoMes < 0 && (
+          <p className="dash-mei-mensagem">
+            Despesas do mês superaram o faturamento desta empresa — não impede nada, é só um alerta.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

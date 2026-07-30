@@ -17,16 +17,29 @@
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   transition: box-shadow .15s ease, transform .15s ease, background-color .2s ease, border-color .2s ease;
 }
 .dash-cartao:hover { box-shadow: 0 4px 14px var(--cor-sombra); transform: translateY(-1px); }
 .dash-cartao-cabecalho { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-.dash-cartao-titulo { font-size: 12px; color: var(--cor-texto-secundario); font-weight: 500; }
-.dash-cartao-valor { font-size: 22px; color: var(--cor-texto); font-variant-numeric: tabular-nums; }
+.dash-cartao-titulo {
+  font-size: 11px;
+  color: var(--cor-texto-secundario);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.dash-cartao-valor {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--cor-texto);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+  line-height: 1.15;
+}
 .dash-cartao-icone {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -35,12 +48,19 @@
   background: #fee2e2;
   color: #D62839;
 }
-.dash-cartao-aviso  { border-color: var(--cor-borda-aviso); background: var(--cor-fundo-aviso); }
-.dash-cartao-aviso .dash-cartao-valor  { color: #92400e; }
-.dash-cartao-aviso .dash-cartao-icone  { background: #fef3c7; color: #92400e; }
-.dash-cartao-perigo { border-color: var(--cor-borda-perigo); background: var(--cor-fundo-perigo); }
-.dash-cartao-perigo .dash-cartao-valor { color: #991b1b; }
-.dash-cartao-perigo .dash-cartao-icone  { background: #fee2e2; color: #991b1b; }
+/* Tons semânticos: fundo/borda ficam com tint sutil da cor; texto e ícone
+   usam as variáveis --cor-texto-*/--cor-icone-* (contraste próprio por
+   tema — ver App.css) em vez de cor fixa, senão o card fica ilegível no
+   escuro (texto escuro sobre fundo escuro). */
+.dash-cartao-aviso   { border-color: var(--cor-borda-aviso); background: var(--cor-fundo-aviso); }
+.dash-cartao-aviso .dash-cartao-valor   { color: var(--cor-texto-aviso); }
+.dash-cartao-aviso .dash-cartao-icone   { background: var(--cor-icone-fundo-aviso); color: var(--cor-icone-texto-aviso); }
+.dash-cartao-perigo  { border-color: var(--cor-borda-perigo); background: var(--cor-fundo-perigo); }
+.dash-cartao-perigo .dash-cartao-valor  { color: var(--cor-texto-perigo); }
+.dash-cartao-perigo .dash-cartao-icone  { background: var(--cor-icone-fundo-perigo); color: var(--cor-icone-texto-perigo); }
+.dash-cartao-sucesso { border-color: var(--cor-borda-sucesso); background: var(--cor-fundo-sucesso); }
+.dash-cartao-sucesso .dash-cartao-valor { color: var(--cor-texto-sucesso); }
+.dash-cartao-sucesso .dash-cartao-icone { background: var(--cor-icone-fundo-sucesso); color: var(--cor-icone-texto-sucesso); }
 
 /* Monitor MEI */
 .dash-mei {
@@ -81,8 +101,8 @@
 .dash-mei-perigo .dash-mei-barra-preenchida { background: #dc2626; }
 
 .dash-mei-detalhe  { font-size: 12px; color: var(--cor-texto-secundario); margin: 0; }
-.dash-mei-mensagem { font-size: 12px; color: #b45309; margin: 8px 0 0; font-weight: 600; }
-.dash-mei-perigo .dash-mei-mensagem { color: #991b1b; }
+.dash-mei-mensagem { font-size: 12px; color: var(--cor-texto-aviso); margin: 8px 0 0; font-weight: 600; }
+.dash-mei-perigo .dash-mei-mensagem { color: var(--cor-texto-perigo); }
 .dash-mei-me p { font-size: 13px; color: var(--cor-texto-secundario); margin: 6px 0 0; }
 
 /* Monitores de várias empresas lado a lado */
@@ -92,6 +112,41 @@
 .dash-monitor-empresa .dash-mei { margin-bottom: 0; }
 .dash-monitor-empresa .dash-mei + .dash-mei { margin-top: 12px; }
 
+/* Seções da página (Monitor MEI / Resumo financeiro) — dá hierarquia visual
+   clara em vez de tudo empilhado sem separação nem título. */
+.dash-secao { margin-bottom: 28px; }
+.dash-secao-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.dash-secao-titulo { font-size: 14px; font-weight: 600; color: var(--cor-texto); margin: 0 0 12px; }
+.dash-secao-cabecalho .dash-secao-titulo { margin: 0; }
+.dash-secao-empresa {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--cor-texto-secundario);
+}
+.dash-secao-empresa select {
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  background: var(--cor-fundo-cartao);
+  color: var(--cor-texto);
+  cursor: pointer;
+  transition: border-color .15s ease;
+}
+.dash-secao-empresa select:focus-visible { outline: none; border-color: #D62839; box-shadow: 0 0 0 3px rgba(214, 40, 57, .12); }
+
 @media (max-width: 520px) {
   .dash-grid { grid-template-columns: 1fr 1fr; }
+  .dash-secao-cabecalho { align-items: stretch; }
+  .dash-secao-empresa { justify-content: space-between; }
+  .dash-secao-empresa select { flex: 1; }
 }
