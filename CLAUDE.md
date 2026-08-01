@@ -388,10 +388,37 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   empresa pagadora de verdade é exigida — FormQuitacao recebe
   `precisaEmpresa={lancamento.empresaId === null}` e, se true, mostra um
   select de Empresa obrigatório ANTES da forma de pagamento/conta;
-  `quitarLancamento` grava o `empresa_id` junto com pago=true. Todo OUTRO
-  jeito de lançar (conta a pagar manual, faturar OS, finalizar venda)
-  continua exigindo empresa na CRIAÇÃO como sempre — `financeiro.empresa_id
-  = null` só acontece nesse caso específico de despesa recorrente pendente.
+  `quitarLancamento` grava o `empresa_id` junto com pago=true. "Nova conta a
+  pagar" (FormContaPagar, lançamento manual) TAMBÉM nasce com
+  `empresaId: null` hoje — o select de Empresa saiu desse formulário e foi
+  pro Quitar, reaproveitando o mesmo mecanismo `precisaEmpresa` (decisão do
+  usuário: só faz sentido saber quem paga no momento em que o dinheiro sai
+  de verdade). Faturar OS e Finalizar venda são os únicos que CONTINUAM
+  exigindo empresa na CRIAÇÃO — ali o dinheiro entra imediatamente (à vista)
+  ou o cliente já sabe de qual CNPJ é a nota, então não faz sentido adiar.
+- Registrar pagamento/recebimento (FormQuitacao) também pede a **Data do
+  Pagamento** (`DadosQuitacao.dataPagamento`, obrigatória, default hoje mas
+  editável) — dá pra quitar retroativamente com a data real em vez de
+  travar em "agora" (`quitarLancamento(id, formaPagamento, contaFinanceiraId,
+  dataPagamento, empresaId?)`). O aviso de "resultado do mês vai ficar
+  negativo" (ver "NÃO existe trava..." abaixo) roda AQUI agora (junto do
+  aviso de saldo de caixa que já existia), não mais na criação da conta a
+  pagar — só dá pra calcular por empresa depois que ela é conhecida.
+- Faturar OS (FormFaturamento): quando a forma de pagamento à vista é
+  "Dinheiro", o campo Conta some e não é mais exigido (dinheiro não passa
+  por banco/cartão, não tem o que rastrear) — `financeiro.conta_financeira_id`
+  fica null nesse caso específico, única exceção à regra de "todo lançamento
+  pago=true exige conta" (ver Contas Financeiras acima).
+- Ordens de Serviço e Vendas de Balcão, na tabela de listagem, ganharam
+  colunas extras só preenchidas quando o registro já foi faturado/finalizado
+  (senão mostram "—"): OS ganha Empresa + Forma de Pagamento após Status;
+  Venda ganha Valor + Empresa + Forma de Pagamento após Status. Nenhuma das
+  duas tabelas guarda esse dado — vem do lançamento em `financeiro` via
+  `os_id`/`venda_id`, buscado em lote por `buscarLancamentosPorOS`/
+  `buscarLancamentosPorVenda` (financeiro.service.ts) e mesclado na página
+  (não nos services de ordens-servico/vendas, que não são donos da tabela
+  financeiro). Financeiro, na própria lista, ganhou Forma de Pagamento +
+  Data Pagamento após Valor, preenchidas só quando `pago=true`.
 - Página/menu chama-se "Despesas Recorrentes" (era "Despesas Fixas") —
   nomes internos (DespesaFixa, despesas_fixas, FormDespesaFixa,
   DespesasFixasPage) continuam iguais de propósito, só o texto visível
@@ -462,12 +489,17 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 - NÃO existe trava impedindo despesa > receita — é decisão de propósito
   (ficar no vermelho é uma situação real de negócio, não um erro; travar
   impediria registrar uma despesa que já aconteceu de verdade). Em vez
-  disso, dois avisos NÃO bloqueantes (window.confirm, dá pra prosseguir):
-  1. Ao criar conta a pagar com vencimento no mês corrente, se isso
+  disso, dois avisos NÃO bloqueantes (`confirmar()`, ver "Diálogos de
+  confirmação e aviso" mais abaixo — dá pra prosseguir), os DOIS disparados
+  em `handleQuitar` (FinanceiroPage.tsx), no momento de "Registrar
+  pagamento" — não mais na criação da conta a pagar, já que a empresa só é
+  conhecida a partir daqui (ver "Empresa mudou de tela" acima):
+  1. Ao quitar uma conta a pagar com vencimento no mês corrente, se isso
      zerar/negativar resultadoMes (receita - despesa do mês, ambos por
-     competência: faturamento por created_at, despesa por vencimento).
+     competência: faturamento por created_at, despesa por vencimento) da
+     empresa escolhida.
   2. Ao quitar uma conta a pagar, se isso negativar o saldo de caixa do
-     mês corrente (via buscarFluxoCaixa, regime de caixa).
+     mês corrente (via buscarFluxoCaixa, regime de caixa) da mesma empresa.
   Só avisa na transição de ok pra negativo (se já tava negativo, não
   fica repetindo o aviso a cada novo lançamento).
 
