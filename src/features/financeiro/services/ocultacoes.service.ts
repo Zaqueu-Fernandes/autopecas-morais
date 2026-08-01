@@ -4,10 +4,11 @@
  * ============================================================================
  * Único lugar que fala com `financeiro_ocultacoes` (ver
  * financeiro_ocultar_dinheiro.sql). Guarda, por lançamento, PRA QUAIS
- * usuários ele deve ficar invisível (listas, somatórios, relatórios) — o
- * admin decide isso lançamento a lançamento, podendo inclusive incluir a si
- * mesmo. A trava de quem pode ESCREVER aqui é a RLS (só admin); leitura é
- * liberada pro próprio usuário ver o que está oculto pra ele.
+ * usuários ele deve ficar invisível (listas, somatórios, relatórios). Quem
+ * gerencia isso é o painel admin "Ocultar Pagamentos em Dinheiro" (ver
+ * OcultarDinheiroPage.tsx), em lote por período — não mais lançamento a
+ * lançamento. A trava de quem pode ESCREVER aqui é a RLS (só admin);
+ * leitura é liberada pro próprio usuário ver o que está oculto pra ele.
  */
 
 import { supabase } from '@/lib/supabase';
@@ -32,10 +33,11 @@ export async function buscarIdsOcultosParaUsuario(usuarioId: string): Promise<Se
 }
 
 /**
- * Mapa financeiro_id -> lista de usuario_id pra quem está oculto — usado só
+ * Mapa financeiro_id -> lista de usuario_id pra quem está oculto — usado
  * pela tela de Financeiro (admin) pra mostrar "oculto pra N usuário(s)" e
- * pré-marcar o formulário de visibilidade, sem precisar de uma consulta por
- * linha. RLS só deixa admin ver TODAS as linhas (não só as próprias).
+ * pelo painel "Ocultar Pagamentos em Dinheiro" pra saber o estado atual
+ * antes de deixar o admin marcar/desmarcar em lote. RLS só deixa admin ver
+ * TODAS as linhas (não só as próprias).
  */
 export async function buscarTodasOcultacoes(): Promise<Record<string, string[]>> {
   const { data, error } = await supabase.from('financeiro_ocultacoes').select('financeiro_id, usuario_id');
@@ -48,23 +50,39 @@ export async function buscarTodasOcultacoes(): Promise<Record<string, string[]>>
 }
 
 /**
- * Substitui de uma vez o conjunto de usuários pra quem este lançamento fica
- * oculto: quem não está mais em `usuarioIds` volta a ver o lançamento; quem
- * foi incluído passa a não ver mais. Validação de "só entrada em dinheiro"
- * fica em definirVisibilidadeLancamento (financeiro.service.ts) — este
- * service é só o acesso cru à tabela de ocultações.
+ * Aplica em lote, pros `usuarioIds` escolhidos no painel: os lançamentos em
+ * `financeiroIdsOcultar` passam a ficar ocultos pra eles (se já não
+ * estivessem), e os lançamentos em `financeiroIdsMostrar` voltam a ficar
+ * visíveis pra eles (se estivessem ocultos). Só mexe nos usuários e
+ * lançamentos passados — não toca em ocultações de outros usuários nem de
+ * lançamentos fora do período filtrado na tela.
  */
-export async function definirUsuariosQueOcultam(financeiroId: string, usuarioIds: string[]): Promise<void> {
-  const { error: erroExcluir } = await supabase
-    .from('financeiro_ocultacoes')
-    .delete()
-    .eq('financeiro_id', financeiroId);
-  if (erroExcluir) throw erroExcluir;
-
+export async function sincronizarOcultacoesEmLote(
+  usuarioIds: string[],
+  financeiroIdsOcultar: string[],
+  financeiroIdsMostrar: string[],
+): Promise<void> {
   if (usuarioIds.length === 0) return;
 
-  const { error: erroInserir } = await supabase
-    .from('financeiro_ocultacoes')
-    .insert(usuarioIds.map((usuarioId) => ({ financeiro_id: financeiroId, usuario_id: usuarioId })));
-  if (erroInserir) throw erroInserir;
+  if (financeiroIdsMostrar.length > 0) {
+    const { error } = await supabase
+      .from('financeiro_ocultacoes')
+      .delete()
+      .in('usuario_id', usuarioIds)
+      .in('financeiro_id', financeiroIdsMostrar);
+    if (error) throw error;
+  }
+
+  if (financeiroIdsOcultar.length > 0) {
+    const linhas = financeiroIdsOcultar.flatMap((financeiroId) =>
+      usuarioIds.map((usuarioId) => ({ financeiro_id: financeiroId, usuario_id: usuarioId })),
+    );
+    // upsert com ignoreDuplicates: alguns pares já podem existir (lançamento
+    // já estava oculto pra esse usuário) — só insere os que faltam, sem
+    // precisar de um delete prévio (chave primária composta cuida disso).
+    const { error } = await supabase
+      .from('financeiro_ocultacoes')
+      .upsert(linhas, { onConflict: 'financeiro_id,usuario_id', ignoreDuplicates: true });
+    if (error) throw error;
+  }
 }

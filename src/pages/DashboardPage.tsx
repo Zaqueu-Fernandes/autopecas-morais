@@ -8,7 +8,17 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Wallet, Receipt, Scale, CalendarRange, HandCoins, FileClock, AlertTriangle } from 'lucide-react';
+import {
+  Wallet,
+  Receipt,
+  Scale,
+  CalendarRange,
+  HandCoins,
+  FileClock,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import {
   type ResumoDashboard,
@@ -28,6 +38,7 @@ export function DashboardPage() {
   const [empresaSelecionadaId, setEmpresaSelecionadaId] = useState('');
   const [resumo, setResumo] = useState<ResumoDashboard | null>(null);
   const [pecasBaixo, setPecasBaixo] = useState<PecaEstoqueBaixo[]>([]);
+  const [estoqueBaixoAberto, setEstoqueBaixoAberto] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -82,21 +93,31 @@ export function DashboardPage() {
 
       {pecasBaixo.length > 0 && (
         <div className="dash-secao">
-          <h2 className="dash-secao-titulo">Itens com estoque mínimo</h2>
-          <div className="dash-cartao dash-cartao-perigo dash-estoque-baixo">
-            <div className="dash-cartao-cabecalho">
-              <span className="dash-cartao-titulo">Recomendação: comprar mais</span>
-              <span className="dash-cartao-icone"><AlertTriangle size={15} /></span>
+          <button
+            type="button"
+            className="dash-secao-titulo dash-secao-titulo-btn"
+            onClick={() => setEstoqueBaixoAberto((v) => !v)}
+            aria-expanded={estoqueBaixoAberto}
+          >
+            Itens com estoque mínimo ({pecasBaixo.length})
+            {estoqueBaixoAberto ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+          {estoqueBaixoAberto && (
+            <div className="dash-cartao dash-cartao-perigo dash-estoque-baixo">
+              <div className="dash-cartao-cabecalho">
+                <span className="dash-cartao-titulo">Recomendação: comprar mais</span>
+                <span className="dash-cartao-icone"><AlertTriangle size={15} /></span>
+              </div>
+              <ul className="dash-estoque-baixo-lista">
+                {pecasBaixo.map((p) => (
+                  <li key={p.id}>
+                    <span className="dash-estoque-baixo-nome">{p.nome}</span>
+                    <span className="dash-estoque-baixo-qtd">{p.qtd} / mínimo {p.estoqueMinimo}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="dash-estoque-baixo-lista">
-              {pecasBaixo.map((p) => (
-                <li key={p.id}>
-                  <span className="dash-estoque-baixo-nome">{p.nome}</span>
-                  <span className="dash-estoque-baixo-qtd">{p.qtd} / mínimo {p.estoqueMinimo}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          )}
         </div>
       )}
 

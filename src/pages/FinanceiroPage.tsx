@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { FilePlus2, CircleDollarSign, Pencil, Trash2, Undo2, EyeOff } from 'lucide-react';
+import { FilePlus2, CircleDollarSign, Pencil, Trash2, Undo2 } from 'lucide-react';
 import {
   type LancamentoFinanceiro,
   type TipoFinanceiro,
@@ -20,14 +20,12 @@ import {
   FormQuitacao,
   FormEditarValor,
   FormEstorno,
-  FormVisibilidadeLancamento,
   listarFinanceiro,
   criarLancamento,
   quitarLancamento,
   atualizarValorLancamento,
   excluirLancamento,
   estornarLancamento,
-  definirVisibilidadeLancamento,
   buscarIdsOcultosParaUsuario,
   buscarTodasOcultacoes,
   buscarFluxoCaixa,
@@ -38,7 +36,7 @@ import { type Categoria, listarCategorias } from '@/features/categorias';
 import { type ContaFinanceira, listarContasFinanceiras, ROTULO_TIPO_CONTA } from '@/features/contas-financeiras';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { buscarResumoDashboard } from '@/features/dashboard';
-import { type Perfil, listarPerfis, useAuth } from '@/features/auth';
+import { useAuth } from '@/features/auth';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 import { formatarMoeda } from '@/shared/utils/formatadores';
 
@@ -78,7 +76,6 @@ export function FinanceiroPage() {
   const [lancamentosCompletos, setLancamentosCompletos] = useState<LancamentoFinanceiro[]>([]);
   const [idsOcultosParaMim, setIdsOcultosParaMim] = useState<Set<string>>(new Set());
   const [mapaOcultacoes, setMapaOcultacoes] = useState<Record<string, string[]>>({});
-  const [perfis, setPerfis] = useState<Perfil[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [contas, setContas] = useState<ContaFinanceira[]>([]);
@@ -93,7 +90,6 @@ export function FinanceiroPage() {
   const [lancamentoParaQuitar, setLancamentoParaQuitar] = useState<LancamentoFinanceiro | null>(null);
   const [lancamentoParaEditarValor, setLancamentoParaEditarValor] = useState<LancamentoFinanceiro | null>(null);
   const [lancamentoParaEstornar, setLancamentoParaEstornar] = useState<LancamentoFinanceiro | null>(null);
-  const [lancamentoParaVisibilidade, setLancamentoParaVisibilidade] = useState<LancamentoFinanceiro | null>(null);
 
   function nomeEmpresa(id: string | null): string {
     return empresas.find((e) => e.id === id)?.nomeFantasia ?? '—';
@@ -108,7 +104,7 @@ export function FinanceiroPage() {
     setCarregando(true);
     setErro(null);
     try {
-      const [lista, listaEmpresas, listaCategorias, listaContas, idsOcultos, mapaOcultacoesCarregado, listaPerfis] =
+      const [lista, listaEmpresas, listaCategorias, listaContas, idsOcultos, mapaOcultacoesCarregado] =
         await Promise.all([
           listarFinanceiro({
             tipo: filtroTipo === 'todos' ? undefined : filtroTipo,
@@ -120,7 +116,6 @@ export function FinanceiroPage() {
           listarContasFinanceiras({ somenteAtivas: false }),
           meuId ? buscarIdsOcultosParaUsuario(meuId) : Promise.resolve(new Set<string>()),
           ehAdmin ? buscarTodasOcultacoes() : Promise.resolve({}),
-          ehAdmin ? listarPerfis() : Promise.resolve([]),
         ]);
       setLancamentosCompletos(lista);
       setEmpresas(listaEmpresas);
@@ -128,7 +123,6 @@ export function FinanceiroPage() {
       setContas(listaContas);
       setIdsOcultosParaMim(idsOcultos);
       setMapaOcultacoes(mapaOcultacoesCarregado);
-      setPerfis(listaPerfis);
     } catch {
       setErro('Não foi possível carregar o financeiro.');
     } finally {
@@ -264,13 +258,6 @@ export function FinanceiroPage() {
     await carregar();
   }
 
-  async function handleSalvarVisibilidade(usuarioIds: string[]) {
-    if (!lancamentoParaVisibilidade) return;
-    await definirVisibilidadeLancamento(lancamentoParaVisibilidade.id!, usuarioIds);
-    setLancamentoParaVisibilidade(null);
-    await carregar();
-  }
-
   if (mostrarForm) {
     return <FormContaPagar onSalvar={handleSalvarContaPagar} onCancelar={() => setMostrarForm(false)} />;
   }
@@ -306,19 +293,6 @@ export function FinanceiroPage() {
         empresaId={lancamentoParaEstornar.empresaId}
         onConfirmar={handleEstornar}
         onCancelar={() => setLancamentoParaEstornar(null)}
-      />
-    );
-  }
-
-  if (lancamentoParaVisibilidade) {
-    return (
-      <FormVisibilidadeLancamento
-        descricao={`${lancamentoParaVisibilidade.descricao} — ${formatarMoeda(lancamentoParaVisibilidade.valor)}`}
-        perfis={perfis}
-        selecionadosIniciais={mapaOcultacoes[lancamentoParaVisibilidade.id!] ?? []}
-        meuId={meuId}
-        onConfirmar={handleSalvarVisibilidade}
-        onCancelar={() => setLancamentoParaVisibilidade(null)}
       />
     );
   }
@@ -483,15 +457,6 @@ export function FinanceiroPage() {
                         title={podeEstornar ? undefined : 'Essa função requer permissão de estorno'}
                       >
                         <Undo2 size={13} /> Estornar
-                      </button>
-                    )}
-                    {ehAdmin && l.tipo === 'receber' && l.formaPagamento === 'dinheiro' && (
-                      <button
-                        type="button"
-                        onClick={() => setLancamentoParaVisibilidade(l)}
-                        title="Escolher pra quais usuários este lançamento fica oculto"
-                      >
-                        <EyeOff size={13} /> Visibilidade
                       </button>
                     )}
                   </td>

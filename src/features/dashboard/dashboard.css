@@ -119,10 +119,32 @@
 .dash-secao { margin-bottom: 28px; }
 .dash-secao-titulo { font-size: 14px; font-weight: 600; color: var(--cor-texto); margin: 0 0 12px; }
 
+/* Título clicável (expandir/recolher) — reseta a aparência de <button>
+   mas mantém a tipografia de .dash-secao-titulo, só acrescentando o
+   chevron e um hover sutil pra indicar que é interativo. */
+.dash-secao-titulo-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  font: inherit;
+  cursor: pointer;
+  color: var(--cor-texto);
+  border-radius: 6px;
+  transition: color .15s ease;
+}
+.dash-secao-titulo-btn:hover { color: var(--cor-texto-perigo); }
+
 /* Prévia de peças no estoque mínimo, no Dashboard — card largo com uma
-   lista, não um grid de KPI (o conteúdo é a lista de peças em si). */
+   lista, não um grid de KPI (o conteúdo é a lista de peças em si). Recolhida
+   por padrão (ver estoqueBaixoAberto em DashboardPage.tsx) pra não tomar
+   espaço quando há muitos itens; expandida, a lista ganha um teto de altura
+   com rolagem própria pelo mesmo motivo. */
 .dash-estoque-baixo { max-width: 640px; }
-.dash-estoque-baixo-lista { list-style: none; margin: 0; padding: 0; }
+.dash-estoque-baixo-lista { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; }
 .dash-estoque-baixo-lista li {
   display: flex;
   align-items: center;

@@ -8,7 +8,6 @@
 
 import { supabase } from '@/lib/supabase';
 import type { LancamentoFinanceiro, TipoFinanceiro, FormaPagamento } from '../types';
-import { definirUsuariosQueOcultam } from './ocultacoes.service';
 
 interface LinhaFinanceiro {
   id: string;
@@ -76,6 +75,30 @@ export async function listarFinanceiro(
   if (opts.empresaId) query = query.eq('empresa_id', opts.empresaId);
 
   const { data, error } = await query;
+  if (error) throw error;
+  return (data as LinhaFinanceiro[]).map(linhaParaLancamento);
+}
+
+/**
+ * Lançamentos de ENTRADA recebidos em dinheiro num mês/ano específico — usado
+ * só pelo painel admin "Ocultar Pagamentos em Dinheiro" (ver
+ * OcultarDinheiroPage.tsx e ocultacoes.service.ts), que filtra por período
+ * pra não carregar o histórico inteiro de uma vez. `mes` é 1-indexado
+ * (1=janeiro). Estornado fica de fora — já não conta em nenhum total, não
+ * faz sentido gerenciar visibilidade dele.
+ */
+export async function listarLancamentosDinheiroRecebidos(ano: number, mes: number): Promise<LancamentoFinanceiro[]> {
+  const inicio = `${ano}-${String(mes).padStart(2, '0')}-01`;
+  const fim = new Date(ano, mes, 0).toISOString().slice(0, 10);
+  const { data, error } = await supabase
+    .from('financeiro')
+    .select('*')
+    .eq('tipo', 'receber')
+    .eq('forma_pagamento', 'dinheiro')
+    .eq('estornado', false)
+    .gte('data_pagamento', inicio)
+    .lte('data_pagamento', fim)
+    .order('data_pagamento', { ascending: false });
   if (error) throw error;
   return (data as LinhaFinanceiro[]).map(linhaParaLancamento);
 }
@@ -226,21 +249,4 @@ export async function marcarLancamentoEstornado(id: string, motivo: string): Pro
     .update({ estornado: true, estornado_em: new Date().toISOString(), estornado_motivo: motivo })
     .eq('id', id);
   if (error) throw error;
-}
-
-/**
- * Define, pra um lançamento, o conjunto de usuários pra quem ele deve ficar
- * oculto (listas, somatórios do Dashboard/Fluxo de Caixa e relatórios
- * impressos/PDF passam a ignorá-lo completamente pra cada usuário incluído
- * em `usuarioIds` — ver ocultacoes.service.ts). Só faz sentido pra entrada
- * recebida em dinheiro (validado aqui, não só na UI). A trava de QUEM pode
- * chamar isto é a RLS (só admin escreve em financeiro_ocultacoes, ver
- * financeiro_ocultar_dinheiro.sql).
- */
-export async function definirVisibilidadeLancamento(id: string, usuarioIds: string[]): Promise<void> {
-  const lancamento = await buscarLancamento(id);
-  if (lancamento.tipo !== 'receber' || lancamento.formaPagamento !== 'dinheiro') {
-    throw new Error('Só é possível ocultar lançamentos de entrada recebidos em dinheiro.');
-  }
-  await definirUsuariosQueOcultam(id, usuarioIds);
 }

@@ -100,6 +100,7 @@
 
 .fin-erro { color: var(--fin-erro); font-size: 11px; }
 .fin-aviso { color: var(--fin-aviso); font-size: 12px; margin: 0 0 12px; }
+.fin-sucesso { color: var(--cor-texto-sucesso); font-size: 12px; margin: 0 0 12px; font-weight: 600; }
 
 .fin-acoes {
   display: flex;
@@ -176,9 +177,10 @@
 }
 
 /* Lançamento oculto PRA MIM (ver financeiro_ocultacoes) — só aparece na
-   tabela quando o admin liga "Mostrar ocultos" pra gerenciar; esmaecido pra
-   deixar claro que não conta mais nos totais/relatórios de ninguém que
-   estiver na lista de quem oculta. */
+   tabela quando o admin liga "Mostrar ocultos" pra acompanhar; esmaecido
+   pra deixar claro que não conta mais nos totais/relatórios de ninguém que
+   estiver na lista de quem oculta. Gerenciar quem oculta o quê é feito no
+   painel "Ocultar Pagamentos em Dinheiro" (ver OcultarDinheiroPage.tsx). */
 .fin-linha-oculta { opacity: .55; }
 
 .fin-badge-oculto {
@@ -193,6 +195,32 @@
   white-space: nowrap;
 }
 
+/* Badge "oculto p/ N de M selecionados" no painel de ocultação em lote —
+   aviso de estado PARCIAL (nem todos os usuários marcados no checklist já
+   ocultam este lançamento), já que o checkbox da linha só reflete "oculto
+   pra TODOS" (ver OcultarDinheiroPage.tsx). Tom âmbar pra chamar atenção
+   sem parecer erro. */
+.fin-badge-parcial {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--cor-fundo-aviso);
+  color: var(--cor-texto-aviso);
+  white-space: nowrap;
+}
+
+/* Coluna de checkbox nas tabelas (seleção em lote, estilo Gmail). */
+.fin-celula-check { text-align: center; width: 36px; }
+.fin-celula-check input[type='checkbox'] {
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+  accent-color: #D62839;
+}
+.fin-celula-check input[type='checkbox']:disabled { cursor: default; opacity: .5; }
+
 /* Toggle "Mostrar ocultos" — mesmo padrão do "Mostrar inativas" (despesas). */
 .fin-filtro-ocultos {
   display: flex;
@@ -204,7 +232,8 @@
   cursor: pointer;
 }
 
-/* Checklist de usuários no FormVisibilidadeLancamento. */
+/* Checklist de usuários (painel "Ocultar Pagamentos em Dinheiro", ver
+   OcultarDinheiroPage.tsx). */
 .fin-checklist {
   display: flex;
   flex-direction: column;
