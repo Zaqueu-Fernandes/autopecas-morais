@@ -23,6 +23,7 @@ import {
   listarLancamentosDinheiroRecebidos,
   buscarTodasOcultacoes,
   sincronizarOcultacoesEmLote,
+  ROTULO_FORMA_PAGAMENTO,
 } from '@/features/financeiro';
 import { type Perfil, listarPerfis, useAuth } from '@/features/auth';
 import { formatarMoeda } from '@/shared/utils/formatadores';
@@ -223,6 +224,7 @@ export function OcultarDinheiroPage() {
                 <th>Descrição</th>
                 <th>Valor</th>
                 <th>Data</th>
+                <th>Forma de Pagamento</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -243,6 +245,7 @@ export function OcultarDinheiroPage() {
                     <td className="pg-tabela-truncar">{l.descricao}</td>
                     <td>{formatarMoeda(l.valor)}</td>
                     <td>{l.dataPagamento ? new Date(l.dataPagamento).toLocaleDateString('pt-BR') : '—'}</td>
+                    <td>{l.formaPagamento ? ROTULO_FORMA_PAGAMENTO[l.formaPagamento] : '—'}</td>
                     <td>
                       {parcial && <span className="fin-badge-parcial">{parcial}</span>}
                     </td>
@@ -251,7 +254,7 @@ export function OcultarDinheiroPage() {
               })}
               {lancamentos.length === 0 && (
                 <tr>
-                  <td colSpan={5}>Nenhum lançamento em dinheiro recebido nesse período.</td>
+                  <td colSpan={6}>Nenhum lançamento em dinheiro recebido nesse período.</td>
                 </tr>
               )}
             </tbody>
