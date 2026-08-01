@@ -136,7 +136,12 @@ export function FormFaturamento({ osId, clienteId, valorTotal, onFaturado, onCan
           <select
             id="ft-forma"
             value={dados.formaPagamento}
-            onChange={(e) => set({ formaPagamento: e.target.value as FormaPagamento })}
+            onChange={(e) => {
+              const forma = e.target.value as FormaPagamento;
+              // Dinheiro não usa conta — limpa o que já tinha sido escolhido
+              // pra não enviar uma conta escondida sem o usuário perceber.
+              set(forma === 'dinheiro' ? { formaPagamento: forma, contaFinanceiraId: '' } : { formaPagamento: forma });
+            }}
             aria-invalid={!!erros.formaPagamento}
           >
             <option value="">— selecione —</option>
@@ -154,7 +159,7 @@ export function FormFaturamento({ osId, clienteId, valorTotal, onFaturado, onCan
         </div>
       )}
 
-      {dados.situacao === 'a_vista' && (
+      {dados.situacao === 'a_vista' && dados.formaPagamento !== 'dinheiro' && (
         <div className="fin-campo">
           <label htmlFor="ft-conta">Conta *</label>
           <select

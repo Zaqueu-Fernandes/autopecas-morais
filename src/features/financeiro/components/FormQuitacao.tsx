@@ -23,7 +23,12 @@ interface Props {
   precisaEmpresa?: boolean;
   /** A empresa que o lançamento já tem, quando `precisaEmpresa` é false — usada só pra filtrar a lista de contas. */
   empresaId?: string;
-  onConfirmar: (formaPagamento: FormaPagamento, contaFinanceiraId: string, empresaId?: string) => Promise<void> | void;
+  onConfirmar: (
+    formaPagamento: FormaPagamento,
+    contaFinanceiraId: string,
+    dataPagamento: string,
+    empresaId?: string,
+  ) => Promise<void> | void;
   onCancelar?: () => void;
 }
 
@@ -74,7 +79,12 @@ export function FormQuitacao({ titulo, precisaEmpresa = false, empresaId, onConf
     setErroSalvar(null);
     setSalvando(true);
     try {
-      await onConfirmar(dados.formaPagamento, dados.contaFinanceiraId, precisaEmpresa ? dados.empresaId : undefined);
+      await onConfirmar(
+        dados.formaPagamento,
+        dados.contaFinanceiraId,
+        dados.dataPagamento,
+        precisaEmpresa ? dados.empresaId : undefined,
+      );
     } catch (erro) {
       setErroSalvar(erro instanceof Error ? erro.message : 'Não foi possível confirmar esta quitação.');
     } finally {
@@ -111,8 +121,8 @@ export function FormQuitacao({ titulo, precisaEmpresa = false, empresaId, onConf
             </span>
           )}
           <span className="fin-aviso">
-            Essa conta foi gerada de uma despesa recorrente sem empresa definida — informe agora qual empresa
-            está pagando de verdade.
+            Este lançamento ainda não tem uma empresa definida — informe agora qual empresa está
+            pagando/recebendo de verdade.
           </span>
         </div>
       )}
@@ -136,6 +146,22 @@ export function FormQuitacao({ titulo, precisaEmpresa = false, empresaId, onConf
         {erros.formaPagamento && (
           <span className="fin-erro" aria-live="polite">
             {erros.formaPagamento}
+          </span>
+        )}
+      </div>
+
+      <div className="fin-campo">
+        <label htmlFor="qt-data-pagamento">Data do pagamento *</label>
+        <input
+          id="qt-data-pagamento"
+          type="date"
+          value={dados.dataPagamento}
+          onChange={(e) => set({ dataPagamento: e.target.value })}
+          aria-invalid={!!erros.dataPagamento}
+        />
+        {erros.dataPagamento && (
+          <span className="fin-erro" aria-live="polite">
+            {erros.dataPagamento}
           </span>
         )}
       </div>

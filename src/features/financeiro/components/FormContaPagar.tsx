@@ -15,7 +15,6 @@ import {
   type ErrosValidacao,
 } from '../types';
 import { type Fornecedor, type Credor, listarFornecedores, listarCredores } from '@/features/cadastros';
-import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
 
 interface Props {
@@ -30,18 +29,12 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
   const [salvando, setSalvando] = useState(false);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [credores, setCredores] = useState<Credor[]>([]);
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   useEffect(() => {
     listarFornecedores().then(setFornecedores).catch(() => setFornecedores([]));
     listarCredores().then(setCredores).catch(() => setCredores([]));
     listarCategorias().then(setCategorias).catch(() => setCategorias([]));
-    listarEmpresas().then((lista) => {
-      setEmpresas(lista);
-      if (lista.length === 1) set({ empresaId: lista[0].id });
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function set(patch: Partial<DadosContaPagar>) {
@@ -69,29 +62,11 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
         <h2>Nova conta a pagar</h2>
       </div>
 
-      <div className="fin-grid">
-        <div className="fin-campo">
-          <label htmlFor="cp-empresa">Empresa (CNPJ) *</label>
-          <select
-            id="cp-empresa"
-            value={dados.empresaId}
-            onChange={(e) => set({ empresaId: e.target.value })}
-            aria-invalid={!!erros.empresaId}
-          >
-            <option value="">— selecione —</option>
-            {empresas.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.nomeFantasia}
-              </option>
-            ))}
-          </select>
-          {erros.empresaId && (
-            <span className="fin-erro" aria-live="polite">
-              {erros.empresaId}
-            </span>
-          )}
-        </div>
+      <p className="fin-aviso">
+        A empresa que paga é escolhida mais tarde, no momento de Quitar — não agora.
+      </p>
 
+      <div className="fin-grid">
         <div className="fin-campo">
           <label htmlFor="cp-categoria">Categoria *</label>
           <select

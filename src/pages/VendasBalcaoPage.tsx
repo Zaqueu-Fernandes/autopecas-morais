@@ -15,20 +15,40 @@ import {
   listarVendas,
   abrirVenda,
 } from '@/features/vendas';
+import { type FormaPagamento, buscarLancamentosPorVenda, ROTULO_FORMA_PAGAMENTO } from '@/features/financeiro';
+import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
+import { formatarMoeda } from '@/shared/utils/formatadores';
+
+interface PagamentoVenda {
+  empresaId: string | null;
+  formaPagamento: FormaPagamento | null;
+  valor: number;
+}
 
 export function VendasBalcaoPage() {
   const [vendas, setVendas] = useState<VendaBalcaoResumo[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [pagamentosPorVenda, setPagamentosPorVenda] = useState<Record<string, PagamentoVenda>>({});
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [vendaSelecionadaId, setVendaSelecionadaId] = useState<string | null>(null);
   const [abrindo, setAbrindo] = useState(false);
 
+  function nomeEmpresa(id: string | null): string {
+    return empresas.find((e) => e.id === id)?.nomeFantasia ?? '—';
+  }
+
   async function carregar() {
     setCarregando(true);
     setErro(null);
     try {
-      setVendas(await listarVendas());
+      const [lista, listaEmpresas] = await Promise.all([listarVendas(), listarEmpresas()]);
+      const idsFinalizadas = lista.filter((v) => v.status === 'finalizada').map((v) => v.id!);
+      const mapaPagamentos = await buscarLancamentosPorVenda(idsFinalizadas);
+      setVendas(lista);
+      setEmpresas(listaEmpresas);
+      setPagamentosPorVenda(mapaPagamentos);
     } catch {
       setErro('Não foi possível carregar as vendas.');
     } finally {
@@ -91,29 +111,38 @@ export function VendasBalcaoPage() {
               <th>Nº</th>
               <th>Cliente</th>
               <th>Status</th>
+              <th>Valor</th>
+              <th>Empresa</th>
+              <th>Forma de Pagamento</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {vendas.map((v) => (
-              <tr key={v.id}>
-                <td>#{v.numero}</td>
-                <td className="pg-tabela-truncar">{v.clienteNome ?? 'Avulsa'}</td>
-                <td>
-                  <span className={`vd-badge-status vd-badge-status-${v.status}`}>
-                    {v.status === 'aberta' ? 'Aberta' : 'Finalizada'}
-                  </span>
-                </td>
-                <td className="pg-acoes-linha">
-                  <button type="button" onClick={() => setVendaSelecionadaId(v.id!)}>
-                    Abrir <ArrowRight size={13} />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {vendas.map((v) => {
+              const pagamento = v.status === 'finalizada' ? pagamentosPorVenda[v.id!] : undefined;
+              return (
+                <tr key={v.id}>
+                  <td>#{v.numero}</td>
+                  <td className="pg-tabela-truncar">{v.clienteNome ?? 'Avulsa'}</td>
+                  <td>
+                    <span className={`vd-badge-status vd-badge-status-${v.status}`}>
+                      {v.status === 'aberta' ? 'Aberta' : 'Finalizada'}
+                    </span>
+                  </td>
+                  <td>{pagamento ? formatarMoeda(pagamento.valor) : '—'}</td>
+                  <td>{pagamento ? nomeEmpresa(pagamento.empresaId) : '—'}</td>
+                  <td>{pagamento?.formaPagamento ? ROTULO_FORMA_PAGAMENTO[pagamento.formaPagamento] : '—'}</td>
+                  <td className="pg-acoes-linha">
+                    <button type="button" onClick={() => setVendaSelecionadaId(v.id!)}>
+                      Abrir <ArrowRight size={13} />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
             {vendas.length === 0 && (
               <tr>
-                <td colSpan={4}>Nenhuma venda encontrada.</td>
+                <td colSpan={7}>Nenhuma venda encontrada.</td>
               </tr>
             )}
           </tbody>

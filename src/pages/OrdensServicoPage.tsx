@@ -17,12 +17,21 @@ import {
   listarOS,
   criarOS,
 } from '@/features/ordens-servico';
+import { type FormaPagamento, buscarLancamentosPorOS, ROTULO_FORMA_PAGAMENTO } from '@/features/financeiro';
+import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 
 const OPCOES_STATUS: Array<StatusOS | 'todas'> = ['todas', 'aberta', 'em_andamento', 'concluida', 'faturada'];
 
+interface PagamentoOS {
+  empresaId: string | null;
+  formaPagamento: FormaPagamento | null;
+}
+
 export function OrdensServicoPage() {
   const [osResumo, setOsResumo] = useState<OrdemServicoResumo[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [pagamentosPorOS, setPagamentosPorOS] = useState<Record<string, PagamentoOS>>({});
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [filtroStatus, setFiltroStatus] = useState<StatusOS | 'todas'>('todas');
@@ -31,11 +40,23 @@ export function OrdensServicoPage() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [osSelecionadaId, setOsSelecionadaId] = useState<string | null>(null);
 
+  function nomeEmpresa(id: string | null): string {
+    return empresas.find((e) => e.id === id)?.nomeFantasia ?? '—';
+  }
+
   async function carregar() {
     setCarregando(true);
     setErro(null);
     try {
-      setOsResumo(await listarOS(filtroStatus === 'todas' ? {} : { status: filtroStatus }));
+      const [lista, listaEmpresas] = await Promise.all([
+        listarOS(filtroStatus === 'todas' ? {} : { status: filtroStatus }),
+        listarEmpresas(),
+      ]);
+      const idsFaturadas = lista.filter((os) => os.status === 'faturada').map((os) => os.id!);
+      const mapaPagamentos = await buscarLancamentosPorOS(idsFaturadas);
+      setOsResumo(lista);
+      setEmpresas(listaEmpresas);
+      setPagamentosPorOS(mapaPagamentos);
     } catch {
       setErro('Não foi possível carregar as ordens de serviço.');
     } finally {
@@ -142,32 +163,39 @@ export function OrdensServicoPage() {
               <th>Cliente</th>
               <th>Veículo</th>
               <th>Status</th>
+              <th>Empresa</th>
+              <th>Forma de Pagamento</th>
               <th>Abertura</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {filtradas.map((os) => (
-              <tr key={os.id}>
-                <td>#{os.numero}</td>
-                <td className="pg-tabela-truncar">{os.clienteNome}</td>
-                <td>{os.veiculoPlaca}</td>
-                <td>
-                  <span className={`os-badge-status os-badge-status-${os.status}`}>
-                    {ROTULO_STATUS_OS[os.status]}
-                  </span>
-                </td>
-                <td>{os.dataAbertura && new Date(os.dataAbertura).toLocaleDateString('pt-BR')}</td>
-                <td className="pg-acoes-linha">
-                  <button type="button" onClick={() => setOsSelecionadaId(os.id!)}>
-                    Abrir <ArrowRight size={13} />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {filtradas.map((os) => {
+              const pagamento = os.status === 'faturada' ? pagamentosPorOS[os.id!] : undefined;
+              return (
+                <tr key={os.id}>
+                  <td>#{os.numero}</td>
+                  <td className="pg-tabela-truncar">{os.clienteNome}</td>
+                  <td>{os.veiculoPlaca}</td>
+                  <td>
+                    <span className={`os-badge-status os-badge-status-${os.status}`}>
+                      {ROTULO_STATUS_OS[os.status]}
+                    </span>
+                  </td>
+                  <td>{pagamento ? nomeEmpresa(pagamento.empresaId) : '—'}</td>
+                  <td>{pagamento?.formaPagamento ? ROTULO_FORMA_PAGAMENTO[pagamento.formaPagamento] : '—'}</td>
+                  <td>{os.dataAbertura && new Date(os.dataAbertura).toLocaleDateString('pt-BR')}</td>
+                  <td className="pg-acoes-linha">
+                    <button type="button" onClick={() => setOsSelecionadaId(os.id!)}>
+                      Abrir <ArrowRight size={13} />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
             {filtradas.length === 0 && (
               <tr>
-                <td colSpan={6}>Nenhuma OS encontrada.</td>
+                <td colSpan={8}>Nenhuma OS encontrada.</td>
               </tr>
             )}
           </tbody>

@@ -106,7 +106,6 @@ export const semErros = (e: ErrosValidacao) => Object.keys(e).length === 0;
 // ---- Conta a pagar (lançamento manual) --------------------------------------
 
 export interface DadosContaPagar {
-  empresaId: string;
   categoria: CategoriaPagar;
   descricao: string;
   valor: string;
@@ -118,7 +117,6 @@ export interface DadosContaPagar {
 }
 
 export const dadosContaPagarVazio = (): DadosContaPagar => ({
-  empresaId: '',
   categoria: 'despesa_geral',
   descricao: '',
   valor: '',
@@ -128,9 +126,14 @@ export const dadosContaPagarVazio = (): DadosContaPagar => ({
   observacoes: '',
 });
 
+/**
+ * Empresa NÃO é pedida aqui — a conta a pagar nasce com `empresaId: null`
+ * (mesma situação de "Empresa a Definir" que já existia pra despesa
+ * recorrente) e só é exigida no momento de Quitar (ver DadosQuitacao/
+ * FormQuitacao), quando o dinheiro sai de verdade.
+ */
 export function validarContaPagar(d: DadosContaPagar): ErrosValidacao {
   const erros: ErrosValidacao = {};
-  if (!d.empresaId) erros.empresaId = 'Selecione a empresa.';
   if (!d.categoria) erros.categoria = 'Selecione a categoria.';
   if (!d.descricao.trim()) erros.descricao = 'Descreva a conta.';
   const valor = Number(d.valor);
@@ -147,6 +150,8 @@ export function validarContaPagar(d: DadosContaPagar): ErrosValidacao {
 export interface DadosQuitacao {
   formaPagamento: FormaPagamento | '';
   contaFinanceiraId: string;
+  /** Data em que o pagamento/recebimento aconteceu de verdade — editável (não trava em "hoje"), pra dar pra quitar retroativamente. */
+  dataPagamento: string; // yyyy-mm-dd
   /** Só relevante/validado quando `precisaEmpresa` (lançamento ainda sem empresa definida). */
   empresaId: string;
 }
@@ -154,14 +159,16 @@ export interface DadosQuitacao {
 export const dadosQuitacaoVazio = (): DadosQuitacao => ({
   formaPagamento: '',
   contaFinanceiraId: '',
+  dataPagamento: new Date().toISOString().slice(0, 10),
   empresaId: '',
 });
 
-/** `precisaEmpresa` = o lançamento ainda não tem empresa (veio de despesa recorrente global). */
+/** `precisaEmpresa` = o lançamento ainda não tem empresa (veio de despesa recorrente global ou de conta a pagar manual — ver DadosContaPagar). */
 export function validarQuitacao(d: DadosQuitacao, precisaEmpresa: boolean): ErrosValidacao {
   const erros: ErrosValidacao = {};
   if (!d.formaPagamento) erros.formaPagamento = 'Selecione a forma de pagamento.';
   if (!d.contaFinanceiraId) erros.contaFinanceiraId = 'Selecione a conta.';
+  if (!d.dataPagamento) erros.dataPagamento = 'Informe a data do pagamento.';
   if (precisaEmpresa && !d.empresaId) erros.empresaId = 'Selecione a empresa que pagou/recebeu.';
   return erros;
 }
@@ -198,7 +205,9 @@ export function validarFaturamento(d: DadosFaturamento): ErrosValidacao {
   if (!d.empresaId) erros.empresaId = 'Selecione a empresa.';
   if (d.situacao === 'a_vista' && !d.formaPagamento)
     erros.formaPagamento = 'Selecione a forma de pagamento.';
-  if (d.situacao === 'a_vista' && !d.contaFinanceiraId)
+  // Pagamento em dinheiro não pede conta — não tem o que rastrear (não passa
+  // por banco/cartão). Nos demais, a conta é obrigatória.
+  if (d.situacao === 'a_vista' && d.formaPagamento !== 'dinheiro' && !d.contaFinanceiraId)
     erros.contaFinanceiraId = 'Selecione a conta.';
   if (d.situacao === 'a_prazo' && !d.vencimento)
     erros.vencimento = 'Informe o vencimento.';

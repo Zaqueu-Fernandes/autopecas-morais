@@ -151,21 +151,25 @@ export async function atualizarValorLancamento(id: string, valor: number): Promi
 
 /**
  * Marca um lançamento como quitado (pago ou recebido, conforme o tipo).
- * `empresaId` só precisa ser passado quando o lançamento ainda não tinha uma
- * (veio de despesa recorrente global, ver DespesaFixa) — nos demais casos o
+ * `dataPagamento` (yyyy-mm-dd) é a data em que o pagamento aconteceu de
+ * verdade — escolhida no formulário, não trava em "hoje" (dá pra quitar
+ * retroativamente). `empresaId` só precisa ser passado quando o lançamento
+ * ainda não tinha uma (veio de despesa recorrente global ou de conta a pagar
+ * manual, que agora só recebe a empresa aqui) — nos demais casos o
  * lançamento já nasceu com empresa definida e este parâmetro é ignorado.
  */
 export async function quitarLancamento(
   id: string,
   formaPagamento: FormaPagamento,
   contaFinanceiraId: string,
+  dataPagamento: string,
   empresaId?: string,
 ): Promise<LancamentoFinanceiro> {
   const patch: Record<string, unknown> = {
     pago: true,
     forma_pagamento: formaPagamento,
     conta_financeira_id: contaFinanceiraId,
-    data_pagamento: new Date().toISOString(),
+    data_pagamento: dataPagamento,
   };
   if (empresaId) patch.empresa_id = empresaId;
 
@@ -216,6 +220,58 @@ export async function buscarLancamentoDeVenda(vendaId: string): Promise<Lancamen
   if (error) throw error;
   const linha = (data as LinhaFinanceiro[])[0];
   return linha ? linhaParaLancamento(linha) : null;
+}
+
+interface PagamentoResumo {
+  empresaId: string | null;
+  formaPagamento: FormaPagamento | null;
+}
+
+/**
+ * Empresa/forma de pagamento do faturamento (não estornado) de várias OS de
+ * uma vez — usado pela listagem de Ordens de Serviço pra exibir essas colunas
+ * nas linhas com status='faturada', sem 1 consulta por linha.
+ */
+export async function buscarLancamentosPorOS(osIds: string[]): Promise<Record<string, PagamentoResumo>> {
+  if (osIds.length === 0) return {};
+  const { data, error } = await supabase
+    .from('financeiro')
+    .select('os_id, empresa_id, forma_pagamento')
+    .in('os_id', osIds)
+    .eq('estornado', false);
+  if (error) throw error;
+  const mapa: Record<string, PagamentoResumo> = {};
+  for (const l of data as { os_id: string; empresa_id: string | null; forma_pagamento: FormaPagamento | null }[]) {
+    mapa[l.os_id] = { empresaId: l.empresa_id, formaPagamento: l.forma_pagamento };
+  }
+  return mapa;
+}
+
+/**
+ * Igual buscarLancamentosPorOS, só que por venda de balcão — inclui também o
+ * valor total (a própria venda não guarda esse total, só os itens; o
+ * lançamento de faturamento já tem a soma pronta).
+ */
+export async function buscarLancamentosPorVenda(
+  vendaIds: string[],
+): Promise<Record<string, PagamentoResumo & { valor: number }>> {
+  if (vendaIds.length === 0) return {};
+  const { data, error } = await supabase
+    .from('financeiro')
+    .select('venda_id, empresa_id, forma_pagamento, valor')
+    .in('venda_id', vendaIds)
+    .eq('estornado', false);
+  if (error) throw error;
+  const mapa: Record<string, PagamentoResumo & { valor: number }> = {};
+  for (const l of data as {
+    venda_id: string;
+    empresa_id: string | null;
+    forma_pagamento: FormaPagamento | null;
+    valor: number;
+  }[]) {
+    mapa[l.venda_id] = { empresaId: l.empresa_id, formaPagamento: l.forma_pagamento, valor: Number(l.valor) };
+  }
+  return mapa;
 }
 
 /**

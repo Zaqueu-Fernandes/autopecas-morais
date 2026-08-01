@@ -30,6 +30,7 @@ import {
   buscarTodasOcultacoes,
   buscarFluxoCaixa,
   ROTULO_CATEGORIA_RECEBER,
+  ROTULO_FORMA_PAGAMENTO,
 } from '@/features/financeiro';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
@@ -56,16 +57,16 @@ function rotuloCategoria(l: LancamentoFinanceiro, categorias: Categoria[]): stri
   return categorias.find((c) => c.chave === l.categoria)?.nome ?? l.categoria;
 }
 
+function primeiroDiaDoMes(): string {
+  const hoje = new Date();
+  return new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0, 10);
+}
+
 /** yyyy-mm-dd cai no mês corrente? (só relevante pra decidir se vale a pena avisar) */
 function caiNoMesAtual(dataISO: string): boolean {
   const hoje = new Date();
   const [ano, mes] = dataISO.split('-').map(Number);
   return ano === hoje.getFullYear() && mes === hoje.getMonth() + 1;
-}
-
-function primeiroDiaDoMes(): string {
-  const hoje = new Date();
-  return new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0, 10);
 }
 
 export function FinanceiroPage() {
@@ -136,22 +137,12 @@ export function FinanceiroPage() {
   }, [filtroTipo, filtroStatus, filtroEmpresa]);
 
   async function handleSalvarContaPagar(d: DadosContaPagar) {
-    if (caiNoMesAtual(d.vencimento)) {
-      const resumo = await buscarResumoDashboard(d.empresaId, meuId);
-      const projetado = resumo.resultadoMes - Number(d.valor);
-      if (resumo.resultadoMes >= 0 && projetado < 0) {
-        const ok = await confirmar({
-          titulo: 'Resultado do mês vai ficar negativo',
-          tom: 'aviso',
-          mensagem: `Essa conta a pagar deixa o resultado do mês desta empresa negativo (${formatarMoeda(projetado)}). É uma situação real de negócio, não um erro — o sistema não bloqueia, só avisa antes de lançar.`,
-          textoConfirmar: 'Lançar mesmo assim',
-        });
-        if (!ok) return;
-      }
-    }
-
+    // Empresa não é escolhida aqui — nasce "Empresa a Definir" (empresaId
+    // null) e só é exigida no momento de Quitar (ver FormQuitacao). Por isso
+    // não dá mais pra avisar sobre o resultado do mês de uma empresa
+    // específica agora — não sabemos ainda qual vai pagar.
     await criarLancamento({
-      empresaId: d.empresaId,
+      empresaId: null,
       tipo: 'pagar',
       categoria: d.categoria,
       descricao: d.descricao,
@@ -174,26 +165,50 @@ export function FinanceiroPage() {
     await carregar();
   }
 
-  async function handleQuitar(formaPagamento: FormaPagamento, contaFinanceiraId: string, empresaId?: string) {
+  async function handleQuitar(
+    formaPagamento: FormaPagamento,
+    contaFinanceiraId: string,
+    dataPagamento: string,
+    empresaId?: string,
+  ) {
     if (!lancamentoParaQuitar) return;
     const empresaEfetiva = lancamentoParaQuitar.empresaId ?? empresaId;
 
     if (lancamentoParaQuitar.tipo === 'pagar') {
+      // Antes, essa checagem rodava na CRIAÇÃO da conta a pagar — mas desde
+      // que a empresa passou a ser escolhida só aqui (Quitar, não mais em
+      // "Nova conta a pagar"), é só agora que dá pra saber de qual empresa é
+      // o resultado do mês a proteger. Só roda se o vencimento cai no mês
+      // corrente (mesma condição de antes).
+      if (empresaEfetiva && lancamentoParaQuitar.vencimento && caiNoMesAtual(lancamentoParaQuitar.vencimento)) {
+        const resumo = await buscarResumoDashboard(empresaEfetiva, meuId);
+        const projetadoResultado = resumo.resultadoMes - lancamentoParaQuitar.valor;
+        if (resumo.resultadoMes >= 0 && projetadoResultado < 0) {
+          const ok = await confirmar({
+            titulo: 'Resultado do mês vai ficar negativo',
+            tom: 'aviso',
+            mensagem: `Esse pagamento deixa o resultado do mês desta empresa negativo (${formatarMoeda(projetadoResultado)}). É uma situação real de negócio, não um erro — o sistema não bloqueia, só avisa antes de quitar.`,
+            textoConfirmar: 'Pagar mesmo assim',
+          });
+          if (!ok) return;
+        }
+      }
+
       const hoje = new Date().toISOString().slice(0, 10);
       const fluxo = await buscarFluxoCaixa(primeiroDiaDoMes(), hoje, empresaEfetiva ?? undefined, meuId);
-      const projetado = fluxo.saldoFinal - lancamentoParaQuitar.valor;
-      if (fluxo.saldoFinal >= 0 && projetado < 0) {
+      const projetadoCaixa = fluxo.saldoFinal - lancamentoParaQuitar.valor;
+      if (fluxo.saldoFinal >= 0 && projetadoCaixa < 0) {
         const ok = await confirmar({
           titulo: 'Saldo de caixa do mês vai ficar negativo',
           tom: 'aviso',
-          mensagem: `Esse pagamento deixa o saldo de caixa do mês desta empresa negativo (${formatarMoeda(projetado)}). É uma situação real de negócio, não um erro — o sistema não bloqueia, só avisa antes de quitar.`,
+          mensagem: `Esse pagamento deixa o saldo de caixa do mês desta empresa negativo (${formatarMoeda(projetadoCaixa)}). É uma situação real de negócio, não um erro — o sistema não bloqueia, só avisa antes de quitar.`,
           textoConfirmar: 'Pagar mesmo assim',
         });
         if (!ok) return;
       }
     }
 
-    await quitarLancamento(lancamentoParaQuitar.id!, formaPagamento, contaFinanceiraId, empresaId);
+    await quitarLancamento(lancamentoParaQuitar.id!, formaPagamento, contaFinanceiraId, dataPagamento, empresaId);
     setLancamentoParaQuitar(null);
     await carregar();
   }
@@ -389,6 +404,8 @@ export function FinanceiroPage() {
               <th>Categoria</th>
               <th>Descrição</th>
               <th>Valor</th>
+              <th>Forma de Pagamento</th>
+              <th>Data Pagamento</th>
               <th>Vencimento</th>
               <th>Status</th>
               <th></th>
@@ -418,6 +435,8 @@ export function FinanceiroPage() {
                   </td>
                   <td className="pg-tabela-truncar">{l.descricao}</td>
                   <td>{formatarMoeda(l.valor)}</td>
+                  <td>{l.pago && l.formaPagamento ? ROTULO_FORMA_PAGAMENTO[l.formaPagamento] : '—'}</td>
+                  <td>{l.pago && l.dataPagamento ? new Date(l.dataPagamento).toLocaleDateString('pt-BR') : '—'}</td>
                   <td>{l.vencimento ? new Date(l.vencimento).toLocaleDateString('pt-BR') : '—'}</td>
                   <td>
                     <span
@@ -465,7 +484,7 @@ export function FinanceiroPage() {
             })}
             {lancamentos.length === 0 && (
               <tr>
-                <td colSpan={9}>Nenhum lançamento encontrado.</td>
+                <td colSpan={11}>Nenhum lançamento encontrado.</td>
               </tr>
             )}
           </tbody>
