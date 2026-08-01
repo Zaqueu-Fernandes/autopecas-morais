@@ -18,9 +18,12 @@ import {
   buscarResumoDashboard,
   buscarPecasEstoqueBaixo,
 } from '@/features/dashboard';
+import { useAuth } from '@/features/auth';
 import { formatarMoeda } from '@/shared/utils/formatadores';
 
 export function DashboardPage() {
+  const { sessao } = useAuth();
+  const meuId = sessao?.user.id;
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [empresaSelecionadaId, setEmpresaSelecionadaId] = useState('');
   const [resumo, setResumo] = useState<ResumoDashboard | null>(null);
@@ -49,10 +52,10 @@ export function DashboardPage() {
 
   useEffect(() => {
     if (!empresaSelecionadaId) return;
-    buscarResumoDashboard(empresaSelecionadaId)
+    buscarResumoDashboard(empresaSelecionadaId, meuId)
       .then(setResumo)
       .catch(() => setErro('Não foi possível carregar o resumo financeiro.'));
-  }, [empresaSelecionadaId]);
+  }, [empresaSelecionadaId, meuId]);
 
   if (carregando) return <p aria-live="polite">Carregando…</p>;
   if (erro) return <p className="dash-erro" aria-live="polite">{erro}</p>;

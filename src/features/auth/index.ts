@@ -8,4 +8,5 @@
 
 export { AuthProvider, useAuth } from './hooks/useAuth';
 export { LoginPage } from './components/LoginPage';
+export { listarPerfis } from './services/auth.service';
 export type { Perfil, Papel } from './types';

@@ -12,11 +12,17 @@ export { FormEditarValor } from './components/FormEditarValor';
 export { FormFaturamento } from './components/FormFaturamento';
 export { FormFinalizarVenda } from './components/FormFinalizarVenda';
 export { FormEstorno } from './components/FormEstorno';
+export { FormVisibilidadeLancamento } from './components/FormVisibilidadeLancamento';
 
 export * from './services/financeiro.service';
 export { faturarOS } from './services/faturamento.service';
 export { finalizarVenda } from './services/venda.service';
 export { estornarLancamento } from './services/estorno.service';
+export {
+  buscarIdsOcultosParaUsuario,
+  buscarTodasOcultacoes,
+  definirUsuariosQueOcultam,
+} from './services/ocultacoes.service';
 export {
   buscarFluxoCaixa,
   type MovimentoCaixa,

@@ -11,6 +11,7 @@
 
 import { useEffect, useState } from 'react';
 import type { Empresa } from '@/features/empresa';
+import { useAuth } from '@/features/auth';
 import { MonitorMei } from './MonitorMei';
 import { MonitorCustoAquisicao } from './MonitorCustoAquisicao';
 import { buscarResumoDashboard, type ResumoDashboard } from '../services/dashboard.service';
@@ -20,11 +21,13 @@ interface Props {
 }
 
 export function MonitorMeiEmpresa({ empresa }: Props) {
+  const { sessao } = useAuth();
+  const meuId = sessao?.user.id;
   const [resumo, setResumo] = useState<ResumoDashboard | null>(null);
 
   useEffect(() => {
-    buscarResumoDashboard(empresa.id).then(setResumo);
-  }, [empresa.id]);
+    buscarResumoDashboard(empresa.id, meuId).then(setResumo);
+  }, [empresa.id, meuId]);
 
   return (
     <div className="dash-monitor-empresa">

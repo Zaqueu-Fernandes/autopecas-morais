@@ -175,6 +175,63 @@
   white-space: nowrap;
 }
 
+/* Lançamento oculto PRA MIM (ver financeiro_ocultacoes) — só aparece na
+   tabela quando o admin liga "Mostrar ocultos" pra gerenciar; esmaecido pra
+   deixar claro que não conta mais nos totais/relatórios de ninguém que
+   estiver na lista de quem oculta. */
+.fin-linha-oculta { opacity: .55; }
+
+.fin-badge-oculto {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--cor-fundo-secundario);
+  color: var(--cor-texto-secundario);
+  white-space: nowrap;
+}
+
+/* Toggle "Mostrar ocultos" — mesmo padrão do "Mostrar inativas" (despesas). */
+.fin-filtro-ocultos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--cor-texto-secundario);
+  margin-left: auto;
+  cursor: pointer;
+}
+
+/* Checklist de usuários no FormVisibilidadeLancamento. */
+.fin-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--fin-borda, var(--cor-borda));
+  border-radius: 8px;
+  padding: 6px;
+  margin-bottom: 12px;
+}
+.fin-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.fin-checklist-item:hover { background: var(--cor-fundo-hover); }
+.fin-checklist-papel {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--cor-texto-secundario);
+}
+
 /* Filtro de período (Fluxo de Caixa) */
 .fin-campo-inline {
   display: inline-flex;

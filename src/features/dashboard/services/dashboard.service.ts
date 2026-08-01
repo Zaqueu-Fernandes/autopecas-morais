@@ -15,6 +15,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { buscarIdsOcultosParaUsuario } from '@/features/financeiro';
 
 export interface ResumoDashboard {
   faturamentoMes: number;
@@ -39,7 +40,14 @@ export interface ResumoDashboard {
   custoAquisicaoAno: number;
 }
 
-export async function buscarResumoDashboard(empresaId?: string): Promise<ResumoDashboard> {
+/**
+ * `usuarioId` filtra o faturamento pelo que NÃO está oculto pra esse usuário
+ * (ver @/features/financeiro — financeiro_ocultacoes): cada usuário logado
+ * vê seus próprios totais, descontando o que o admin ocultou especificamente
+ * pra ele. Omitido = nenhum lançamento é descontado (ex.: chamada sem
+ * usuário logado ainda).
+ */
+export async function buscarResumoDashboard(empresaId?: string, usuarioId?: string): Promise<ResumoDashboard> {
   const agora = new Date();
   const inicioAno = new Date(agora.getFullYear(), 0, 1).toISOString();
   const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString();
@@ -47,19 +55,22 @@ export async function buscarResumoDashboard(empresaId?: string): Promise<ResumoD
   const inicioMesData = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString().slice(0, 10);
   const fimMesData = new Date(agora.getFullYear(), agora.getMonth() + 1, 0).toISOString().slice(0, 10);
 
+  const idsOcultos = usuarioId ? await buscarIdsOcultosParaUsuario(usuarioId) : new Set<string>();
+
   let queryReceitas = supabase
     .from('financeiro')
-    .select('valor, created_at')
+    .select('id, valor, created_at')
     .eq('tipo', 'receber')
     .eq('estornado', false)
     .in('categoria', ['servico_os', 'venda_balcao'])
     .gte('created_at', inicioAno);
   if (empresaId) queryReceitas = queryReceitas.eq('empresa_id', empresaId);
-  const { data: receitasAno, error: erroReceitas } = await queryReceitas;
+  const { data: receitasAnoBruto, error: erroReceitas } = await queryReceitas;
   if (erroReceitas) throw erroReceitas;
+  const receitasAno = (receitasAnoBruto ?? []).filter((r) => !idsOcultos.has(r.id));
 
-  const faturamentoAno = (receitasAno ?? []).reduce((soma, r) => soma + Number(r.valor), 0);
-  const faturamentoMes = (receitasAno ?? [])
+  const faturamentoAno = receitasAno.reduce((soma, r) => soma + Number(r.valor), 0);
+  const faturamentoMes = receitasAno
     .filter((r) => r.created_at >= inicioMes)
     .reduce((soma, r) => soma + Number(r.valor), 0);
 
@@ -75,6 +86,9 @@ export async function buscarResumoDashboard(empresaId?: string): Promise<ResumoD
   if (erroDespesasMes) throw erroDespesasMes;
   const despesasMes = (despesasDoMes ?? []).reduce((soma, r) => soma + Number(r.valor), 0);
 
+  // Pendente (pago=false) nunca tem forma_pagamento='dinheiro' — só é
+  // preenchida na quitação — então nunca pode estar em financeiro_ocultacoes;
+  // não precisa filtrar por usuário aqui.
   let queryReceber = supabase
     .from('financeiro')
     .select('valor')

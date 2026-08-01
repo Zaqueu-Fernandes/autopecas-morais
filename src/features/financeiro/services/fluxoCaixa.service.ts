@@ -14,6 +14,7 @@
 
 import { supabase } from '@/lib/supabase';
 import type { TipoFinanceiro } from '../types';
+import { buscarIdsOcultosParaUsuario } from './ocultacoes.service';
 
 export interface MovimentoCaixa {
   id: string;
@@ -42,17 +43,34 @@ interface LinhaMovimento {
   data_pagamento: string;
 }
 
-/** `inicio`/`fim` no formato yyyy-mm-dd (inclusive dos dois lados). `empresaId` filtra por empresa. */
-export async function buscarFluxoCaixa(inicio: string, fim: string, empresaId?: string): Promise<ResultadoFluxoCaixa> {
+/**
+ * `inicio`/`fim` no formato yyyy-mm-dd (inclusive dos dois lados). `empresaId`
+ * filtra por empresa. `usuarioId` desconta do saldo/movimentos o que está
+ * oculto especificamente pra esse usuário (ver financeiro_ocultacoes) —
+ * omitido = nada é descontado.
+ */
+export async function buscarFluxoCaixa(
+  inicio: string,
+  fim: string,
+  empresaId?: string,
+  usuarioId?: string,
+): Promise<ResultadoFluxoCaixa> {
   const inicioISO = new Date(`${inicio}T00:00:00`).toISOString();
   const fimISO = new Date(`${fim}T23:59:59.999`).toISOString();
 
-  let queryAnteriores = supabase.from('financeiro').select('tipo, valor').eq('pago', true).lt('data_pagamento', inicioISO);
-  if (empresaId) queryAnteriores = queryAnteriores.eq('empresa_id', empresaId);
-  const { data: anteriores, error: erroAnteriores } = await queryAnteriores;
-  if (erroAnteriores) throw erroAnteriores;
+  const idsOcultos = usuarioId ? await buscarIdsOcultosParaUsuario(usuarioId) : new Set<string>();
 
-  const saldoAnterior = (anteriores ?? []).reduce(
+  let queryAnteriores = supabase
+    .from('financeiro')
+    .select('id, tipo, valor')
+    .eq('pago', true)
+    .lt('data_pagamento', inicioISO);
+  if (empresaId) queryAnteriores = queryAnteriores.eq('empresa_id', empresaId);
+  const { data: anterioresBruto, error: erroAnteriores } = await queryAnteriores;
+  if (erroAnteriores) throw erroAnteriores;
+  const anteriores = (anterioresBruto ?? []).filter((r) => !idsOcultos.has(r.id));
+
+  const saldoAnterior = anteriores.reduce(
     (soma, r) => soma + (r.tipo === 'receber' ? Number(r.valor) : -Number(r.valor)),
     0,
   );
@@ -67,12 +85,13 @@ export async function buscarFluxoCaixa(inicio: string, fim: string, empresaId?: 
   if (empresaId) query = query.eq('empresa_id', empresaId);
   const { data, error } = await query;
   if (error) throw error;
+  const movimentosBrutos = (data as LinhaMovimento[]).filter((r) => !idsOcultos.has(r.id));
 
   let saldo = saldoAnterior;
   let totalEntradas = 0;
   let totalSaidas = 0;
 
-  const movimentos: MovimentoCaixa[] = (data as LinhaMovimento[]).map((r) => {
+  const movimentos: MovimentoCaixa[] = movimentosBrutos.map((r) => {
     const valor = Number(r.valor);
     if (r.tipo === 'receber') {
       saldo += valor;

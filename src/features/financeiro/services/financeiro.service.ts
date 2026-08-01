@@ -8,6 +8,7 @@
 
 import { supabase } from '@/lib/supabase';
 import type { LancamentoFinanceiro, TipoFinanceiro, FormaPagamento } from '../types';
+import { definirUsuariosQueOcultam } from './ocultacoes.service';
 
 interface LinhaFinanceiro {
   id: string;
@@ -225,4 +226,21 @@ export async function marcarLancamentoEstornado(id: string, motivo: string): Pro
     .update({ estornado: true, estornado_em: new Date().toISOString(), estornado_motivo: motivo })
     .eq('id', id);
   if (error) throw error;
+}
+
+/**
+ * Define, pra um lançamento, o conjunto de usuários pra quem ele deve ficar
+ * oculto (listas, somatórios do Dashboard/Fluxo de Caixa e relatórios
+ * impressos/PDF passam a ignorá-lo completamente pra cada usuário incluído
+ * em `usuarioIds` — ver ocultacoes.service.ts). Só faz sentido pra entrada
+ * recebida em dinheiro (validado aqui, não só na UI). A trava de QUEM pode
+ * chamar isto é a RLS (só admin escreve em financeiro_ocultacoes, ver
+ * financeiro_ocultar_dinheiro.sql).
+ */
+export async function definirVisibilidadeLancamento(id: string, usuarioIds: string[]): Promise<void> {
+  const lancamento = await buscarLancamento(id);
+  if (lancamento.tipo !== 'receber' || lancamento.formaPagamento !== 'dinheiro') {
+    throw new Error('Só é possível ocultar lançamentos de entrada recebidos em dinheiro.');
+  }
+  await definirUsuariosQueOcultam(id, usuarioIds);
 }

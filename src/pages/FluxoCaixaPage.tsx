@@ -19,6 +19,7 @@ import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { CartaoResumo } from '@/features/dashboard';
+import { useAuth } from '@/features/auth';
 import { formatarMoeda } from '@/shared/utils/formatadores';
 
 function primeiroDiaDoMes(): string {
@@ -36,6 +37,8 @@ function rotuloCategoria(tipo: 'pagar' | 'receber', categoria: string, categoria
 }
 
 export function FluxoCaixaPage() {
+  const { sessao } = useAuth();
+  const meuId = sessao?.user.id;
   const [inicio, setInicio] = useState(primeiroDiaDoMes());
   const [fim, setFim] = useState(hojeISO());
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
@@ -57,7 +60,7 @@ export function FluxoCaixaPage() {
     setCarregando(true);
     setErro(null);
     try {
-      setResultado(await buscarFluxoCaixa(inicio, fim, empresaId || undefined));
+      setResultado(await buscarFluxoCaixa(inicio, fim, empresaId || undefined, meuId));
     } catch {
       setErro('Não foi possível carregar o fluxo de caixa.');
     } finally {
@@ -68,7 +71,7 @@ export function FluxoCaixaPage() {
   useEffect(() => {
     carregar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inicio, fim, empresaId]);
+  }, [inicio, fim, empresaId, meuId]);
 
   const documentoImpressao: DocumentoListaImpressao = {
     titulo: 'Fluxo de Caixa',

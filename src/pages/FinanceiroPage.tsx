@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { FilePlus2, CircleDollarSign, Pencil, Trash2, Undo2 } from 'lucide-react';
+import { FilePlus2, CircleDollarSign, Pencil, Trash2, Undo2, EyeOff } from 'lucide-react';
 import {
   type LancamentoFinanceiro,
   type TipoFinanceiro,
@@ -20,12 +20,16 @@ import {
   FormQuitacao,
   FormEditarValor,
   FormEstorno,
+  FormVisibilidadeLancamento,
   listarFinanceiro,
   criarLancamento,
   quitarLancamento,
   atualizarValorLancamento,
   excluirLancamento,
   estornarLancamento,
+  definirVisibilidadeLancamento,
+  buscarIdsOcultosParaUsuario,
+  buscarTodasOcultacoes,
   buscarFluxoCaixa,
   ROTULO_CATEGORIA_RECEBER,
 } from '@/features/financeiro';
@@ -34,7 +38,7 @@ import { type Categoria, listarCategorias } from '@/features/categorias';
 import { type ContaFinanceira, listarContasFinanceiras, ROTULO_TIPO_CONTA } from '@/features/contas-financeiras';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { buscarResumoDashboard } from '@/features/dashboard';
-import { useAuth } from '@/features/auth';
+import { type Perfil, listarPerfis, useAuth } from '@/features/auth';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 import { formatarMoeda } from '@/shared/utils/formatadores';
 
@@ -68,9 +72,13 @@ function primeiroDiaDoMes(): string {
 
 export function FinanceiroPage() {
   const { confirmar, avisar } = useConfirmacao();
-  const { temPermissao } = useAuth();
+  const { sessao, ehAdmin, temPermissao } = useAuth();
+  const meuId = sessao?.user.id;
   const podeEstornar = temPermissao('estornar_financeiro');
-  const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
+  const [lancamentosCompletos, setLancamentosCompletos] = useState<LancamentoFinanceiro[]>([]);
+  const [idsOcultosParaMim, setIdsOcultosParaMim] = useState<Set<string>>(new Set());
+  const [mapaOcultacoes, setMapaOcultacoes] = useState<Record<string, string[]>>({});
+  const [perfis, setPerfis] = useState<Perfil[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [contas, setContas] = useState<ContaFinanceira[]>([]);
@@ -79,11 +87,13 @@ export function FinanceiroPage() {
   const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>('todos');
   const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>('pendentes');
   const [filtroEmpresa, setFiltroEmpresa] = useState<string>('');
+  const [mostrarOcultos, setMostrarOcultos] = useState(false);
 
   const [mostrarForm, setMostrarForm] = useState(false);
   const [lancamentoParaQuitar, setLancamentoParaQuitar] = useState<LancamentoFinanceiro | null>(null);
   const [lancamentoParaEditarValor, setLancamentoParaEditarValor] = useState<LancamentoFinanceiro | null>(null);
   const [lancamentoParaEstornar, setLancamentoParaEstornar] = useState<LancamentoFinanceiro | null>(null);
+  const [lancamentoParaVisibilidade, setLancamentoParaVisibilidade] = useState<LancamentoFinanceiro | null>(null);
 
   function nomeEmpresa(id: string | null): string {
     return empresas.find((e) => e.id === id)?.nomeFantasia ?? '—';
@@ -98,20 +108,27 @@ export function FinanceiroPage() {
     setCarregando(true);
     setErro(null);
     try {
-      const [lista, listaEmpresas, listaCategorias, listaContas] = await Promise.all([
-        listarFinanceiro({
-          tipo: filtroTipo === 'todos' ? undefined : filtroTipo,
-          pago: filtroStatus === 'todos' ? undefined : filtroStatus === 'quitados',
-          empresaId: filtroEmpresa || undefined,
-        }),
-        listarEmpresas(),
-        listarCategorias({ somenteAtivas: false }),
-        listarContasFinanceiras({ somenteAtivas: false }),
-      ]);
-      setLancamentos(lista);
+      const [lista, listaEmpresas, listaCategorias, listaContas, idsOcultos, mapaOcultacoesCarregado, listaPerfis] =
+        await Promise.all([
+          listarFinanceiro({
+            tipo: filtroTipo === 'todos' ? undefined : filtroTipo,
+            pago: filtroStatus === 'todos' ? undefined : filtroStatus === 'quitados',
+            empresaId: filtroEmpresa || undefined,
+          }),
+          listarEmpresas(),
+          listarCategorias({ somenteAtivas: false }),
+          listarContasFinanceiras({ somenteAtivas: false }),
+          meuId ? buscarIdsOcultosParaUsuario(meuId) : Promise.resolve(new Set<string>()),
+          ehAdmin ? buscarTodasOcultacoes() : Promise.resolve({}),
+          ehAdmin ? listarPerfis() : Promise.resolve([]),
+        ]);
+      setLancamentosCompletos(lista);
       setEmpresas(listaEmpresas);
       setCategorias(listaCategorias);
       setContas(listaContas);
+      setIdsOcultosParaMim(idsOcultos);
+      setMapaOcultacoes(mapaOcultacoesCarregado);
+      setPerfis(listaPerfis);
     } catch {
       setErro('Não foi possível carregar o financeiro.');
     } finally {
@@ -126,7 +143,7 @@ export function FinanceiroPage() {
 
   async function handleSalvarContaPagar(d: DadosContaPagar) {
     if (caiNoMesAtual(d.vencimento)) {
-      const resumo = await buscarResumoDashboard(d.empresaId);
+      const resumo = await buscarResumoDashboard(d.empresaId, meuId);
       const projetado = resumo.resultadoMes - Number(d.valor);
       if (resumo.resultadoMes >= 0 && projetado < 0) {
         const ok = await confirmar({
@@ -169,7 +186,7 @@ export function FinanceiroPage() {
 
     if (lancamentoParaQuitar.tipo === 'pagar') {
       const hoje = new Date().toISOString().slice(0, 10);
-      const fluxo = await buscarFluxoCaixa(primeiroDiaDoMes(), hoje, empresaEfetiva ?? undefined);
+      const fluxo = await buscarFluxoCaixa(primeiroDiaDoMes(), hoje, empresaEfetiva ?? undefined, meuId);
       const projetado = fluxo.saldoFinal - lancamentoParaQuitar.valor;
       if (fluxo.saldoFinal >= 0 && projetado < 0) {
         const ok = await confirmar({
@@ -247,6 +264,13 @@ export function FinanceiroPage() {
     await carregar();
   }
 
+  async function handleSalvarVisibilidade(usuarioIds: string[]) {
+    if (!lancamentoParaVisibilidade) return;
+    await definirVisibilidadeLancamento(lancamentoParaVisibilidade.id!, usuarioIds);
+    setLancamentoParaVisibilidade(null);
+    await carregar();
+  }
+
   if (mostrarForm) {
     return <FormContaPagar onSalvar={handleSalvarContaPagar} onCancelar={() => setMostrarForm(false)} />;
   }
@@ -286,11 +310,31 @@ export function FinanceiroPage() {
     );
   }
 
+  if (lancamentoParaVisibilidade) {
+    return (
+      <FormVisibilidadeLancamento
+        descricao={`${lancamentoParaVisibilidade.descricao} — ${formatarMoeda(lancamentoParaVisibilidade.valor)}`}
+        perfis={perfis}
+        selecionadosIniciais={mapaOcultacoes[lancamentoParaVisibilidade.id!] ?? []}
+        meuId={meuId}
+        onConfirmar={handleSalvarVisibilidade}
+        onCancelar={() => setLancamentoParaVisibilidade(null)}
+      />
+    );
+  }
+
+  // O que EU vejo: todo lançamento, menos os que estão ocultos pra mim
+  // especificamente (ver financeiro_ocultacoes). É essa lista — nunca a
+  // completa — que alimenta o relatório impresso/PDF, mesmo quando admin
+  // está com "Mostrar ocultos" ligado pra gerenciar a tabela na tela.
+  const lancamentosVisiveisParaMim = lancamentosCompletos.filter((l) => !idsOcultosParaMim.has(l.id!));
+  const lancamentos = ehAdmin && mostrarOcultos ? lancamentosCompletos : lancamentosVisiveisParaMim;
+
   const documentoImpressao: DocumentoListaImpressao = {
     titulo: 'Financeiro',
     subtitulo: filtroEmpresa ? empresas.find((e) => e.id === filtroEmpresa)?.nomeFantasia : 'Todas as empresas',
     colunas: ['Empresa', 'Conta', 'Tipo', 'Categoria', 'Descrição', 'Valor', 'Vencimento', 'Status'],
-    linhas: lancamentos.map((l) => [
+    linhas: lancamentosVisiveisParaMim.map((l) => [
       l.empresaId === null ? 'Empresa a Definir' : nomeEmpresa(l.empresaId),
       nomeConta(l.contaFinanceiraId),
       l.tipo === 'pagar' ? 'Despesa' : 'Receita',
@@ -345,6 +389,16 @@ export function FinanceiroPage() {
           <option value="quitados">Quitados</option>
           <option value="todos">Todos</option>
         </select>
+        {ehAdmin && (
+          <label className="fin-filtro-ocultos">
+            <input
+              type="checkbox"
+              checked={mostrarOcultos}
+              onChange={(e) => setMostrarOcultos(e.target.checked)}
+            />
+            Mostrar ocultos
+          </label>
+        )}
       </div>
 
       {carregando && <p aria-live="polite">Carregando…</p>}
@@ -367,66 +421,83 @@ export function FinanceiroPage() {
             </tr>
           </thead>
           <tbody>
-            {lancamentos.map((l) => (
-              <tr key={l.id}>
-                <td>
-                  {l.empresaId === null ? (
-                    <span className="fin-badge-empresa-definir">Empresa a Definir</span>
-                  ) : (
-                    nomeEmpresa(l.empresaId)
-                  )}
-                </td>
-                <td>{nomeConta(l.contaFinanceiraId)}</td>
-                <td>
-                  <span className={`fin-badge-tipo fin-badge-${l.tipo}`}>
-                    {l.tipo === 'pagar' ? 'Despesa' : 'Receita'}
-                  </span>
-                </td>
-                <td>
-                  {rotuloCategoria(l, categorias)}
-                  {l.periodicidade && <span className="fin-tag">{ROTULO_PERIODICIDADE[l.periodicidade]}</span>}
-                </td>
-                <td className="pg-tabela-truncar">{l.descricao}</td>
-                <td>{formatarMoeda(l.valor)}</td>
-                <td>{l.vencimento ? new Date(l.vencimento).toLocaleDateString('pt-BR') : '—'}</td>
-                <td>
-                  <span
-                    className={`fin-badge-status ${
-                      l.estornado ? 'fin-badge-estornado' : l.pago ? 'fin-badge-pago' : 'fin-badge-pendente'
-                    }`}
-                  >
-                    {l.estornado ? 'Estornado' : l.pago ? 'Quitado' : 'Pendente'}
-                  </span>
-                </td>
-                <td className="pg-acoes-linha">
-                  {!l.estornado && !l.pago && (
-                    <>
-                      <button type="button" onClick={() => setLancamentoParaEditarValor(l)}>
-                        <Pencil size={13} /> Editar valor
-                      </button>
-                      <button type="button" onClick={() => setLancamentoParaQuitar(l)}>
-                        <CircleDollarSign size={13} /> Quitar
-                      </button>
-                    </>
-                  )}
-                  {!l.estornado && !l.pago && !l.osId && !l.vendaId && (
-                    <button type="button" onClick={() => handleExcluir(l)}>
-                      <Trash2 size={13} /> Excluir
-                    </button>
-                  )}
-                  {!l.estornado && (l.pago || l.osId || l.vendaId) && (
-                    <button
-                      type="button"
-                      onClick={() => podeEstornar && setLancamentoParaEstornar(l)}
-                      disabled={!podeEstornar}
-                      title={podeEstornar ? undefined : 'Essa função requer permissão de estorno'}
+            {lancamentos.map((l) => {
+              const usuariosQueOcultam = mapaOcultacoes[l.id!] ?? [];
+              return (
+                <tr key={l.id} className={idsOcultosParaMim.has(l.id!) ? 'fin-linha-oculta' : undefined}>
+                  <td>
+                    {l.empresaId === null ? (
+                      <span className="fin-badge-empresa-definir">Empresa a Definir</span>
+                    ) : (
+                      nomeEmpresa(l.empresaId)
+                    )}
+                  </td>
+                  <td>{nomeConta(l.contaFinanceiraId)}</td>
+                  <td>
+                    <span className={`fin-badge-tipo fin-badge-${l.tipo}`}>
+                      {l.tipo === 'pagar' ? 'Despesa' : 'Receita'}
+                    </span>
+                  </td>
+                  <td>
+                    {rotuloCategoria(l, categorias)}
+                    {l.periodicidade && <span className="fin-tag">{ROTULO_PERIODICIDADE[l.periodicidade]}</span>}
+                  </td>
+                  <td className="pg-tabela-truncar">{l.descricao}</td>
+                  <td>{formatarMoeda(l.valor)}</td>
+                  <td>{l.vencimento ? new Date(l.vencimento).toLocaleDateString('pt-BR') : '—'}</td>
+                  <td>
+                    <span
+                      className={`fin-badge-status ${
+                        l.estornado ? 'fin-badge-estornado' : l.pago ? 'fin-badge-pago' : 'fin-badge-pendente'
+                      }`}
                     >
-                      <Undo2 size={13} /> Estornar
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
+                      {l.estornado ? 'Estornado' : l.pago ? 'Quitado' : 'Pendente'}
+                    </span>
+                    {ehAdmin && usuariosQueOcultam.length > 0 && (
+                      <span className="fin-badge-oculto">
+                        Oculto p/ {usuariosQueOcultam.length} usuário{usuariosQueOcultam.length > 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </td>
+                  <td className="pg-acoes-linha">
+                    {!l.estornado && !l.pago && (
+                      <>
+                        <button type="button" onClick={() => setLancamentoParaEditarValor(l)}>
+                          <Pencil size={13} /> Editar valor
+                        </button>
+                        <button type="button" onClick={() => setLancamentoParaQuitar(l)}>
+                          <CircleDollarSign size={13} /> Quitar
+                        </button>
+                      </>
+                    )}
+                    {!l.estornado && !l.pago && !l.osId && !l.vendaId && (
+                      <button type="button" onClick={() => handleExcluir(l)}>
+                        <Trash2 size={13} /> Excluir
+                      </button>
+                    )}
+                    {!l.estornado && (l.pago || l.osId || l.vendaId) && (
+                      <button
+                        type="button"
+                        onClick={() => podeEstornar && setLancamentoParaEstornar(l)}
+                        disabled={!podeEstornar}
+                        title={podeEstornar ? undefined : 'Essa função requer permissão de estorno'}
+                      >
+                        <Undo2 size={13} /> Estornar
+                      </button>
+                    )}
+                    {ehAdmin && l.tipo === 'receber' && l.formaPagamento === 'dinheiro' && (
+                      <button
+                        type="button"
+                        onClick={() => setLancamentoParaVisibilidade(l)}
+                        title="Escolher pra quais usuários este lançamento fica oculto"
+                      >
+                        <EyeOff size={13} /> Visibilidade
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
             {lancamentos.length === 0 && (
               <tr>
                 <td colSpan={9}>Nenhum lançamento encontrado.</td>
