@@ -15,18 +15,22 @@ import {
   listarVendas,
   abrirVenda,
 } from '@/features/vendas';
-import { type FormaPagamento, buscarLancamentosPorVenda, ROTULO_FORMA_PAGAMENTO } from '@/features/financeiro';
+import {
+  type PagamentoResumo,
+  buscarLancamentosPorVenda,
+  buscarIdsOcultosParaUsuario,
+  ROTULO_FORMA_PAGAMENTO,
+} from '@/features/financeiro';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { formatarMoeda } from '@/shared/utils/formatadores';
+import { useAuth } from '@/features/auth';
 
-interface PagamentoVenda {
-  empresaId: string | null;
-  formaPagamento: FormaPagamento | null;
-  valor: number;
-}
+type PagamentoVenda = PagamentoResumo & { valor: number };
 
 export function VendasBalcaoPage() {
+  const { sessao } = useAuth();
+  const meuId = sessao?.user.id;
   const [vendas, setVendas] = useState<VendaBalcaoResumo[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [pagamentosPorVenda, setPagamentosPorVenda] = useState<Record<string, PagamentoVenda>>({});
@@ -43,9 +47,19 @@ export function VendasBalcaoPage() {
     setCarregando(true);
     setErro(null);
     try {
-      const [lista, listaEmpresas] = await Promise.all([listarVendas(), listarEmpresas()]);
+      const [lista, listaEmpresas, idsOcultos] = await Promise.all([
+        listarVendas(),
+        listarEmpresas(),
+        meuId ? buscarIdsOcultosParaUsuario(meuId) : Promise.resolve(new Set<string>()),
+      ]);
       const idsFinalizadas = lista.filter((v) => v.status === 'finalizada').map((v) => v.id!);
       const mapaPagamentos = await buscarLancamentosPorVenda(idsFinalizadas);
+      // Mesma regra do Financeiro/Fluxo de Caixa/Dashboard: lançamento oculto
+      // pra mim some daqui também — Valor/Empresa/Forma de Pagamento voltam a
+      // mostrar "—", como se a venda ainda não tivesse sido finalizada.
+      for (const vendaId of Object.keys(mapaPagamentos)) {
+        if (idsOcultos.has(mapaPagamentos[vendaId].id)) delete mapaPagamentos[vendaId];
+      }
       setVendas(lista);
       setEmpresas(listaEmpresas);
       setPagamentosPorVenda(mapaPagamentos);
@@ -58,7 +72,8 @@ export function VendasBalcaoPage() {
 
   useEffect(() => {
     carregar();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meuId]);
 
   async function handleNovaVenda() {
     setAbrindo(true);

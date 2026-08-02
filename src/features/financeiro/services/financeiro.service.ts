@@ -80,25 +80,37 @@ export async function listarFinanceiro(
 }
 
 /**
- * Lançamentos de ENTRADA recebidos em dinheiro num mês/ano específico — usado
- * só pelo painel admin "Ocultar Pagamentos em Dinheiro" (ver
- * OcultarDinheiroPage.tsx e ocultacoes.service.ts), que filtra por período
- * pra não carregar o histórico inteiro de uma vez. `mes` é 1-indexado
- * (1=janeiro). Estornado fica de fora — já não conta em nenhum total, não
- * faz sentido gerenciar visibilidade dele.
+ * Lançamentos de ENTRADA recebidos em dinheiro — usado só pelo painel admin
+ * "Ocultar Pagamentos em Dinheiro" (ver OcultarDinheiroPage.tsx e
+ * ocultacoes.service.ts). `ano`/`mes` null = "todos" (sem filtro naquele
+ * eixo — pra deixar a tela ver/gerenciar o histórico inteiro de uma vez,
+ * não só um período por vez). `mes` só é aplicado quando `ano` também está
+ * definido (filtrar só por mês, ignorando o ano, misturaria janeiros de anos
+ * diferentes — não é o caso de uso pedido). `mes` é 1-indexado (1=janeiro).
+ * Estornado fica de fora — já não conta em nenhum total, não faz sentido
+ * gerenciar visibilidade dele.
  */
-export async function listarLancamentosDinheiroRecebidos(ano: number, mes: number): Promise<LancamentoFinanceiro[]> {
-  const inicio = `${ano}-${String(mes).padStart(2, '0')}-01`;
-  const fim = new Date(ano, mes, 0).toISOString().slice(0, 10);
-  const { data, error } = await supabase
+export async function listarLancamentosDinheiroRecebidos(
+  ano: number | null,
+  mes: number | null,
+): Promise<LancamentoFinanceiro[]> {
+  let query = supabase
     .from('financeiro')
     .select('*')
     .eq('tipo', 'receber')
     .eq('forma_pagamento', 'dinheiro')
     .eq('estornado', false)
-    .gte('data_pagamento', inicio)
-    .lte('data_pagamento', fim)
     .order('data_pagamento', { ascending: false });
+
+  if (ano !== null && mes !== null) {
+    const inicio = `${ano}-${String(mes).padStart(2, '0')}-01`;
+    const fim = new Date(ano, mes, 0).toISOString().slice(0, 10);
+    query = query.gte('data_pagamento', inicio).lte('data_pagamento', fim);
+  } else if (ano !== null) {
+    query = query.gte('data_pagamento', `${ano}-01-01`).lte('data_pagamento', `${ano}-12-31`);
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
   return (data as LinhaFinanceiro[]).map(linhaParaLancamento);
 }
@@ -222,7 +234,9 @@ export async function buscarLancamentoDeVenda(vendaId: string): Promise<Lancamen
   return linha ? linhaParaLancamento(linha) : null;
 }
 
-interface PagamentoResumo {
+export interface PagamentoResumo {
+  /** id do lançamento em `financeiro` — usado só pra cruzar com financeiro_ocultacoes, não é exibido. */
+  id: string;
   empresaId: string | null;
   formaPagamento: FormaPagamento | null;
 }
@@ -230,19 +244,27 @@ interface PagamentoResumo {
 /**
  * Empresa/forma de pagamento do faturamento (não estornado) de várias OS de
  * uma vez — usado pela listagem de Ordens de Serviço pra exibir essas colunas
- * nas linhas com status='faturada', sem 1 consulta por linha.
+ * nas linhas com status='faturada', sem 1 consulta por linha. Devolve o `id`
+ * do lançamento pra quem chama poder descontar os que estão ocultos (ver
+ * ocultacoes.service.ts) — esta função não filtra sozinha, porque não sabe
+ * pra qual usuário está buscando.
  */
 export async function buscarLancamentosPorOS(osIds: string[]): Promise<Record<string, PagamentoResumo>> {
   if (osIds.length === 0) return {};
   const { data, error } = await supabase
     .from('financeiro')
-    .select('os_id, empresa_id, forma_pagamento')
+    .select('id, os_id, empresa_id, forma_pagamento')
     .in('os_id', osIds)
     .eq('estornado', false);
   if (error) throw error;
   const mapa: Record<string, PagamentoResumo> = {};
-  for (const l of data as { os_id: string; empresa_id: string | null; forma_pagamento: FormaPagamento | null }[]) {
-    mapa[l.os_id] = { empresaId: l.empresa_id, formaPagamento: l.forma_pagamento };
+  for (const l of data as {
+    id: string;
+    os_id: string;
+    empresa_id: string | null;
+    forma_pagamento: FormaPagamento | null;
+  }[]) {
+    mapa[l.os_id] = { id: l.id, empresaId: l.empresa_id, formaPagamento: l.forma_pagamento };
   }
   return mapa;
 }
@@ -258,18 +280,19 @@ export async function buscarLancamentosPorVenda(
   if (vendaIds.length === 0) return {};
   const { data, error } = await supabase
     .from('financeiro')
-    .select('venda_id, empresa_id, forma_pagamento, valor')
+    .select('id, venda_id, empresa_id, forma_pagamento, valor')
     .in('venda_id', vendaIds)
     .eq('estornado', false);
   if (error) throw error;
   const mapa: Record<string, PagamentoResumo & { valor: number }> = {};
   for (const l of data as {
+    id: string;
     venda_id: string;
     empresa_id: string | null;
     forma_pagamento: FormaPagamento | null;
     valor: number;
   }[]) {
-    mapa[l.venda_id] = { empresaId: l.empresa_id, formaPagamento: l.forma_pagamento, valor: Number(l.valor) };
+    mapa[l.venda_id] = { id: l.id, empresaId: l.empresa_id, formaPagamento: l.forma_pagamento, valor: Number(l.valor) };
   }
   return mapa;
 }

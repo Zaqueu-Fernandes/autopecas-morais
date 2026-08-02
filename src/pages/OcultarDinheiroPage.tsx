@@ -4,16 +4,19 @@
  * ============================================================================
  * Sub-seção da aba Permissões (ver AdministracaoPage.tsx). Substitui o
  * antigo botão "Visibilidade" por lançamento (FormVisibilidadeLancamento,
- * removido) por um painel em lote: o admin filtra um mês/ano, escolhe pra
- * quais usuários a ação vale, e marca/desmarca lançamentos numa tabela
- * estilo caixa de e-mail (selecionar todos + desmarcar alguns manualmente).
+ * removido) por um painel em lote: o admin filtra um mês/ano (ou "Todos os
+ * anos"/"Todos os meses", pra ver/gerenciar o histórico inteiro de uma vez),
+ * escolhe pra quais usuários a ação vale, e marca/desmarca lançamentos numa
+ * tabela estilo caixa de e-mail (selecionar todos + desmarcar alguns
+ * manualmente).
  *
  * O checkbox de cada linha reflete o ESTADO ATUAL: só vem marcado se o
  * lançamento já está oculto pra TODOS os usuários selecionados no
  * checklist. Ao clicar "Salvar", os marcados passam a ficar ocultos pra
  * todos os selecionados (soma quem faltava) e os desmarcados voltam a
  * ficar visíveis pra todos os selecionados (tira quem sobrava) — só dentro
- * do mês/ano filtrado, sem mexer em outros períodos nem em outros usuários.
+ * do período filtrado (ou de tudo, se "Todos" estiver selecionado), sem
+ * mexer em outros usuários.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -33,6 +36,10 @@ const NOMES_MES = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 
+/** 'todos' = sem filtro naquele eixo (ver listarLancamentosDinheiroRecebidos). */
+type FiltroAno = number | 'todos';
+type FiltroMes = number | 'todos';
+
 function anosDisponiveis(): number[] {
   const atual = new Date().getFullYear();
   return [atual, atual - 1, atual - 2];
@@ -41,10 +48,14 @@ function anosDisponiveis(): number[] {
 export function OcultarDinheiroPage() {
   const { sessao } = useAuth();
   const meuId = sessao?.user.id;
-  const hoje = new Date();
 
-  const [ano, setAno] = useState(hoje.getFullYear());
-  const [mes, setMes] = useState(hoje.getMonth() + 1);
+  // Nasce em "Todos os anos"/"Todos os meses" (não no mês atual): assim,
+  // toda vez que a página é montada de novo (entrar de novo, dar refresh),
+  // o checklist e as linhas refletem o estado COMPLETO já salvo, não só uma
+  // fatia estreita de um mês qualquer — senão a última regra aplicada num
+  // período diferente do mês corrente parece "sumir" ao recarregar.
+  const [ano, setAno] = useState<FiltroAno>('todos');
+  const [mes, setMes] = useState<FiltroMes>('todos');
   const [perfis, setPerfis] = useState<Perfil[]>([]);
   const [usuariosSelecionados, setUsuariosSelecionados] = useState<Set<string>>(new Set());
   const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
@@ -56,18 +67,40 @@ export function OcultarDinheiroPage() {
   const [mensagem, setMensagem] = useState<string | null>(null);
   const checkboxTodosRef = useRef<HTMLInputElement>(null);
 
-  async function carregar() {
+  /**
+   * `preencherChecklist=true` (padrão): pré-marca no checklist quem já tem
+   * pelo menos 1 lançamento oculto neste período — sem isso, ao ENTRAR na
+   * página o checklist nasce vazio e TODA linha aparece desmarcada (mesmo
+   * com dado salvo no banco), dando a falsa impressão de que nada persistiu.
+   * Só faz sentido rodar isso numa entrada "fria" (mount ou troca de
+   * ano/mês) — depois de handleSalvar já sabemos exatamente quem está
+   * selecionado (foi a própria ação do usuário), então passamos `false` pra
+   * não trocar a seleção por "todo mundo que tem algo oculto no período"
+   * (que pode incluir usuários de uma ação anterior, não só a de agora).
+   */
+  async function carregar(preencherChecklist = true) {
     setCarregando(true);
     setErro(null);
     try {
+      // "Todos os anos" ignora o mês junto (misturar "todo ano" com "só
+      // março", por exemplo, não é o caso de uso pedido — ver tipo FiltroAno).
+      const anoEfetivo = ano === 'todos' ? null : ano;
+      const mesEfetivo = ano === 'todos' || mes === 'todos' ? null : mes;
       const [listaPerfis, listaLancamentos, mapa] = await Promise.all([
         listarPerfis(),
-        listarLancamentosDinheiroRecebidos(ano, mes),
+        listarLancamentosDinheiroRecebidos(anoEfetivo, mesEfetivo),
         buscarTodasOcultacoes(),
       ]);
       setPerfis(listaPerfis);
       setLancamentos(listaLancamentos);
       setMapaOcultacoes(mapa);
+      if (preencherChecklist) {
+        const idsComOcultacao = new Set<string>();
+        for (const l of listaLancamentos) {
+          for (const usuarioId of mapa[l.id!] ?? []) idsComOcultacao.add(usuarioId);
+        }
+        setUsuariosSelecionados(idsComOcultacao);
+      }
     } catch {
       setErro('Não foi possível carregar os lançamentos em dinheiro deste período.');
     } finally {
@@ -149,7 +182,7 @@ export function OcultarDinheiroPage() {
       const mostrar = lancamentos.filter((l) => !selecionados.has(l.id!)).map((l) => l.id!);
       await sincronizarOcultacoesEmLote(Array.from(usuariosSelecionados), ocultar, mostrar);
       setMensagem('Visibilidade atualizada com sucesso.');
-      await carregar();
+      await carregar(false);
     } catch {
       setErro('Não foi possível salvar as alterações — tente de novo.');
     } finally {
@@ -165,18 +198,31 @@ export function OcultarDinheiroPage() {
 
       <p className="perm-intro">
         Escolha o período, marque pra quais usuários a regra vale, e selecione os lançamentos
-        recebidos em dinheiro que devem sumir de listas, somatórios (Dashboard, Fluxo de Caixa) e
-        relatórios impressos/PDF pra eles — como se não existissem. É reversível a qualquer momento,
-        voltando aqui e desmarcando.
+        recebidos em dinheiro que devem sumir de listas, somatórios (Dashboard, Fluxo de Caixa),
+        relatórios impressos/PDF e das colunas Empresa/Forma de Pagamento em Ordens de Serviço e
+        Vendas de Balcão pra eles — como se não existissem. É reversível a qualquer momento, voltando
+        aqui e desmarcando.
       </p>
 
       <div className="pg-filtros">
-        <select value={ano} onChange={(e) => setAno(Number(e.target.value))} aria-label="Filtrar por ano">
+        <select
+          value={ano}
+          onChange={(e) => setAno(e.target.value === 'todos' ? 'todos' : Number(e.target.value))}
+          aria-label="Filtrar por ano"
+        >
+          <option value="todos">Todos os anos</option>
           {anosDisponiveis().map((a) => (
             <option key={a} value={a}>{a}</option>
           ))}
         </select>
-        <select value={mes} onChange={(e) => setMes(Number(e.target.value))} aria-label="Filtrar por mês">
+        <select
+          value={mes}
+          onChange={(e) => setMes(e.target.value === 'todos' ? 'todos' : Number(e.target.value))}
+          aria-label="Filtrar por mês"
+          disabled={ano === 'todos'}
+          title={ano === 'todos' ? 'Com "Todos os anos" selecionado, o mês não se aplica' : undefined}
+        >
+          <option value="todos">Todos os meses</option>
           {NOMES_MES.map((nome, i) => (
             <option key={nome} value={i + 1}>{nome}</option>
           ))}

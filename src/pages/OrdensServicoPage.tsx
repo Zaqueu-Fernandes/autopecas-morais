@@ -17,21 +17,24 @@ import {
   listarOS,
   criarOS,
 } from '@/features/ordens-servico';
-import { type FormaPagamento, buscarLancamentosPorOS, ROTULO_FORMA_PAGAMENTO } from '@/features/financeiro';
+import {
+  type PagamentoResumo,
+  buscarLancamentosPorOS,
+  buscarIdsOcultosParaUsuario,
+  ROTULO_FORMA_PAGAMENTO,
+} from '@/features/financeiro';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
+import { useAuth } from '@/features/auth';
 
 const OPCOES_STATUS: Array<StatusOS | 'todas'> = ['todas', 'aberta', 'em_andamento', 'concluida', 'faturada'];
 
-interface PagamentoOS {
-  empresaId: string | null;
-  formaPagamento: FormaPagamento | null;
-}
-
 export function OrdensServicoPage() {
+  const { sessao } = useAuth();
+  const meuId = sessao?.user.id;
   const [osResumo, setOsResumo] = useState<OrdemServicoResumo[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
-  const [pagamentosPorOS, setPagamentosPorOS] = useState<Record<string, PagamentoOS>>({});
+  const [pagamentosPorOS, setPagamentosPorOS] = useState<Record<string, PagamentoResumo>>({});
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [filtroStatus, setFiltroStatus] = useState<StatusOS | 'todas'>('todas');
@@ -48,12 +51,20 @@ export function OrdensServicoPage() {
     setCarregando(true);
     setErro(null);
     try {
-      const [lista, listaEmpresas] = await Promise.all([
+      const [lista, listaEmpresas, idsOcultos] = await Promise.all([
         listarOS(filtroStatus === 'todas' ? {} : { status: filtroStatus }),
         listarEmpresas(),
+        meuId ? buscarIdsOcultosParaUsuario(meuId) : Promise.resolve(new Set<string>()),
       ]);
       const idsFaturadas = lista.filter((os) => os.status === 'faturada').map((os) => os.id!);
       const mapaPagamentos = await buscarLancamentosPorOS(idsFaturadas);
+      // Lançamento oculto pra mim (ver Ocultar Pagamentos em Dinheiro) some
+      // daqui igual some do Financeiro/Fluxo de Caixa/Dashboard — a coluna
+      // Empresa/Forma de Pagamento volta a mostrar "—", como se a OS ainda
+      // não tivesse sido faturada.
+      for (const osId of Object.keys(mapaPagamentos)) {
+        if (idsOcultos.has(mapaPagamentos[osId].id)) delete mapaPagamentos[osId];
+      }
       setOsResumo(lista);
       setEmpresas(listaEmpresas);
       setPagamentosPorOS(mapaPagamentos);
@@ -67,7 +78,7 @@ export function OrdensServicoPage() {
   useEffect(() => {
     carregar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtroStatus]);
+  }, [filtroStatus, meuId]);
 
   async function handleSalvar(os: Parameters<typeof criarOS>[0]) {
     const nova = await criarOS(os);
