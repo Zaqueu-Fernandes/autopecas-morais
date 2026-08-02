@@ -436,17 +436,25 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   cada lançamento com `empresa_id = null`. Enquanto esse lançamento estiver
   PENDENTE, a lista do Financeiro mostra a badge laranja "Empresa a Definir"
   no lugar do nome da empresa (ContasPagarPage.tsx/ContasReceberPage.tsx/
-  ExtratoFinanceiroPage.tsx, classe `.fin-badge-empresa-definir`). Só no
-  momento de clicar "Quitar" é que a
-  empresa pagadora de verdade é exigida — FormQuitacao recebe
-  `precisaEmpresa={lancamento.empresaId === null}` e, se true, mostra um
-  select de Empresa obrigatório ANTES da forma de pagamento/conta;
-  `quitarLancamento` grava o `empresa_id` junto com pago=true. "Nova conta a
-  pagar" (FormContaPagar, lançamento manual) TAMBÉM nasce com
-  `empresaId: null` hoje — o select de Empresa saiu desse formulário e foi
-  pro Quitar, reaproveitando o mesmo mecanismo `precisaEmpresa` (decisão do
-  usuário: só faz sentido saber quem paga no momento em que o dinheiro sai
-  de verdade). Faturar OS e Finalizar venda são os únicos que CONTINUAM
+  ExtratoFinanceiroPage.tsx, classe `.fin-badge-empresa-definir`). No
+  momento de clicar "Quitar" é que a empresa pagadora de verdade é exigida
+  — FormQuitacao recebe uma prop `precisaEmpresa` que, quando true, mostra
+  um select de Empresa obrigatório ANTES da forma de pagamento/conta;
+  `quitarLancamento` grava o `empresa_id` junto com pago=true. Em **Contas
+  a Pagar** (ContasPagarPage.tsx), `precisaEmpresa` é passado sempre `true`
+  — o select de Empresa aparece em TODO "Registrar pagamento", mesmo que o
+  lançamento já tenha uma empresa associada (decisão do usuário: quer
+  confirmar/poder trocar a empresa pagadora sempre nesse momento, não só
+  quando ainda está "a definir"). Em **Contas a Receber**
+  (ContasReceberPage.tsx), continua condicional —
+  `precisaEmpresa={lancamento.empresaId === null}` — porque a maioria das
+  receitas já chega com empresa definida desde o faturamento de OS/venda, e
+  ali não foi pedido pra sempre perguntar de novo. "Nova conta a pagar"
+  (FormContaPagar, lançamento manual) e "Nova conta a receber"
+  (FormContaReceber) nascem com `empresaId: null` — o select de Empresa
+  saiu desses formulários e foi pro Quitar (decisão do usuário: só faz
+  sentido saber quem paga/recebe no momento em que o dinheiro sai/entra de
+  verdade). Faturar OS e Finalizar venda são os únicos que CONTINUAM
   exigindo empresa na CRIAÇÃO — ali o dinheiro entra imediatamente (à vista)
   ou o cliente já sabe de qual CNPJ é a nota, então não faz sentido adiar.
 - Registrar pagamento/recebimento (FormQuitacao) também pede a **Data do

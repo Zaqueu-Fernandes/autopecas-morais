@@ -260,8 +260,10 @@ export function ContasPagarPage() {
     return (
       <FormQuitacao
         titulo="Registrar pagamento"
-        precisaEmpresa={lancamentoParaQuitar.empresaId === null}
-        empresaId={lancamentoParaQuitar.empresaId ?? undefined}
+        // Sempre pede a empresa aqui em Contas a Pagar (não só quando ainda
+        // "a definir") — pedido explícito do usuário: é neste momento
+        // (quitar) que a empresa pagadora deve ser informada/confirmada.
+        precisaEmpresa
         onConfirmar={handleQuitar}
         onCancelar={() => setLancamentoParaQuitar(null)}
       />
