@@ -275,6 +275,22 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
 
 ### Financeiro (feature já pronta em src/features/financeiro)
 
+- **Navegação**: "Financeiro" é uma aba PAI (`src/pages/FinanceiroPage.tsx`,
+  mesmo padrão de `CadastrosPage`/`AdministracaoPage`) com 4 sub-abas:
+  **Contas a Pagar** (`ContasPagarPage.tsx`, `tipo='pagar'`) e **Contas a
+  Receber** (`ContasReceberPage.tsx`, `tipo='receber'`) concentram as AÇÕES
+  (lançar — só em Contas a Pagar, receita nunca é manual — quitar, editar
+  valor, excluir, estornar); **Extrato** (`ExtratoFinanceiroPage.tsx`) é só
+  CONSULTA — despesas e receitas juntas, filtros, impressão/PDF, badge de
+  oculto, sem NENHUM botão de ação; **Fluxo de Caixa** (`FluxoCaixaPage.tsx`,
+  inalterada) entra debaixo do mesmo guarda-chuva. Antes as 4 coisas viviam
+  numa tela só ("Financeiro" misturava listar com agir) — separado a pedido
+  do usuário, pra não confundir "ver o extrato" com "mexer num lançamento".
+  Os avisos de "resultado do mês negativo"/"saldo de caixa negativo" (ver
+  "NÃO existe trava..." abaixo) moraram sempre em quem quita despesa, então
+  ficaram em Contas a Pagar. A ocultação por usuário (ver "Ocultar
+  Pagamentos em Dinheiro" em Autenticação) só faz sentido pra receita —
+  aparece em Contas a Receber e no Extrato, nunca em Contas a Pagar.
 - Tabela única `financeiro` com discriminador `tipo` ('pagar' | 'receber').
 - Toda saída é financeiro tipo='pagar' com uma `categoria` (chave de
   categorias_despesa — ver "Categoria virou cadastro do usuário" abaixo).
@@ -383,8 +399,9 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   parâmetro de empresa) roda pra TODAS as despesas ativas de uma vez e cria
   cada lançamento com `empresa_id = null`. Enquanto esse lançamento estiver
   PENDENTE, a lista do Financeiro mostra a badge laranja "Empresa a Definir"
-  no lugar do nome da empresa (FinanceiroPage.tsx, classe
-  `.fin-badge-empresa-definir`). Só no momento de clicar "Quitar" é que a
+  no lugar do nome da empresa (ContasPagarPage.tsx/ContasReceberPage.tsx/
+  ExtratoFinanceiroPage.tsx, classe `.fin-badge-empresa-definir`). Só no
+  momento de clicar "Quitar" é que a
   empresa pagadora de verdade é exigida — FormQuitacao recebe
   `precisaEmpresa={lancamento.empresaId === null}` e, se true, mostra um
   select de Empresa obrigatório ANTES da forma de pagamento/conta;
@@ -491,7 +508,7 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   impediria registrar uma despesa que já aconteceu de verdade). Em vez
   disso, dois avisos NÃO bloqueantes (`confirmar()`, ver "Diálogos de
   confirmação e aviso" mais abaixo — dá pra prosseguir), os DOIS disparados
-  em `handleQuitar` (FinanceiroPage.tsx), no momento de "Registrar
+  em `handleQuitar` (ContasPagarPage.tsx), no momento de "Registrar
   pagamento" — não mais na criação da conta a pagar, já que a empresa só é
   conhecida a partir daqui (ver "Empresa mudou de tela" acima):
   1. Ao quitar uma conta a pagar com vencimento no mês corrente, se isso

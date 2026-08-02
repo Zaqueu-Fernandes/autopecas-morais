@@ -4,7 +4,6 @@ import {
   Wrench,
   ShoppingCart,
   Wallet,
-  ArrowLeftRight,
   ReceiptText,
   Package,
   ClipboardList,
@@ -27,7 +26,6 @@ import { CadastrosPage } from '@/pages/CadastrosPage';
 import { EstoquePage } from '@/pages/EstoquePage';
 import { OrdensServicoPage } from '@/pages/OrdensServicoPage';
 import { FinanceiroPage } from '@/pages/FinanceiroPage';
-import { FluxoCaixaPage } from '@/pages/FluxoCaixaPage';
 import { VendasBalcaoPage } from '@/pages/VendasBalcaoPage';
 import { DespesasFixasPage } from '@/pages/DespesasFixasPage';
 import { DashboardPage } from '@/pages/DashboardPage';
@@ -44,7 +42,6 @@ const ABAS = [
   { id: 'ordens-servico', label: 'Ordens de Serviço', Icone: Wrench, Componente: OrdensServicoPage },
   { id: 'vendas', label: 'Vendas de Balcão', Icone: ShoppingCart, Componente: VendasBalcaoPage },
   { id: 'financeiro', label: 'Financeiro', Icone: Wallet, Componente: FinanceiroPage },
-  { id: 'fluxo-caixa', label: 'Fluxo de Caixa', Icone: ArrowLeftRight, Componente: FluxoCaixaPage },
   { id: 'despesas', label: 'Despesas Recorrentes', Icone: ReceiptText, Componente: DespesasFixasPage },
   { id: 'estoque', label: 'Estoque', Icone: Package, Componente: EstoquePage },
   { id: 'pedido-fornecedor', label: 'Fazer Pedido', Icone: ClipboardList, Componente: PedidoFornecedorPage },
