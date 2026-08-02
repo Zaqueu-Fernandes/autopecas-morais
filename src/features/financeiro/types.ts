@@ -19,7 +19,7 @@ export type TipoFinanceiro = 'pagar' | 'receber';
  */
 export type CategoriaPagar = string;
 
-export type CategoriaReceber = 'servico_os' | 'venda_balcao' | 'estorno';
+export type CategoriaReceber = 'servico_os' | 'venda_balcao' | 'estorno' | 'receita_avulsa';
 
 /** Espelha despesas/types.ts Periodicidade — duplicado de propósito (ver nota lá). */
 export type Periodicidade = 'semanal' | 'mensal' | 'anual';
@@ -28,6 +28,7 @@ export const ROTULO_CATEGORIA_RECEBER: Record<CategoriaReceber, string> = {
   servico_os: 'Serviço (OS)',
   venda_balcao: 'Venda de balcão',
   estorno: 'Estorno / Reembolso',
+  receita_avulsa: 'Receita Avulsa',
 };
 
 export type FormaPagamento =
@@ -142,6 +143,47 @@ export function validarContaPagar(d: DadosContaPagar): ErrosValidacao {
   if (!d.vencimento) erros.vencimento = 'Informe o vencimento.';
   if (d.categoria === 'fornecedor' && !d.fornecedorId)
     erros.fornecedorId = 'Selecione o fornecedor.';
+  return erros;
+}
+
+// ---- Conta a receber (lançamento manual — sempre categoria 'receita_avulsa') --
+
+/**
+ * Cobre receita que NÃO vem de faturar OS nem finalizar venda de balcão —
+ * ex.: reembolso de terceiro, serviço avulso cobrado fora do fluxo normal.
+ * Categoria fixa 'receita_avulsa' (não é escolha do usuário, diferente de
+ * DadosContaPagar): servico_os/venda_balcao continuam só nascendo do
+ * faturamento automático, nunca digitadas manualmente.
+ */
+export interface DadosContaReceber {
+  descricao: string;
+  valor: string;
+  /** Opcional — mesma regra de Venda de Balcão (cliente só é obrigatório pra fechar a prazo/fiado, aqui nem isso). */
+  clienteId: string;
+  vencimento: string;
+  observacoes: string;
+}
+
+export const dadosContaReceberVazio = (): DadosContaReceber => ({
+  descricao: '',
+  valor: '',
+  clienteId: '',
+  vencimento: '',
+  observacoes: '',
+});
+
+/**
+ * Empresa NÃO é pedida aqui — mesma lógica de DadosContaPagar: nasce com
+ * `empresaId: null` ("Empresa a Definir") e só é exigida no momento de
+ * Quitar (ver DadosQuitacao/FormQuitacao), quando o dinheiro entra de verdade.
+ */
+export function validarContaReceber(d: DadosContaReceber): ErrosValidacao {
+  const erros: ErrosValidacao = {};
+  if (!d.descricao.trim()) erros.descricao = 'Descreva a receita.';
+  const valor = Number(d.valor);
+  if (!d.valor.trim() || Number.isNaN(valor) || valor <= 0)
+    erros.valor = 'Informe um valor maior que zero.';
+  if (!d.vencimento) erros.vencimento = 'Informe o vencimento.';
   return erros;
 }
 

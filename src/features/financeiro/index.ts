@@ -7,6 +7,7 @@
  */
 
 export { FormContaPagar } from './components/FormContaPagar';
+export { FormContaReceber } from './components/FormContaReceber';
 export { FormQuitacao } from './components/FormQuitacao';
 export { FormEditarValor } from './components/FormEditarValor';
 export { FormFaturamento } from './components/FormFaturamento';
@@ -32,6 +33,8 @@ export {
   semErros,
   dadosContaPagarVazio,
   validarContaPagar,
+  dadosContaReceberVazio,
+  validarContaReceber,
   dadosQuitacaoVazio,
   validarQuitacao,
   dadosFaturamentoVazio,
@@ -48,6 +51,7 @@ export {
   type FormaPagamento,
   type LancamentoFinanceiro,
   type DadosContaPagar,
+  type DadosContaReceber,
   type DadosQuitacao,
   type SituacaoRecebimento,
   type DadosFaturamento,

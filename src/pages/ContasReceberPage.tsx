@@ -3,24 +3,26 @@
  * PÁGINA — CONTAS A RECEBER
  * ============================================================================
  * Sub-aba de Financeiro (ver FinanceiroPage.tsx). Concentra as AÇÕES sobre
- * receitas (tipo='receber' — nascem de faturar OS ou finalizar venda de
- * balcão, nunca são lançadas manualmente aqui): quitar, editar valor e
- * estornar. Sem "Nova conta a receber" de propósito. A sub-aba "Extrato"
- * continua sendo o lugar de só OLHAR (despesas e receitas juntas, sem nenhum
- * botão de ação) — separação pedida pelo usuário pra não confundir consulta
- * com ação.
+ * receitas (tipo='receber'): lançar receita avulsa (ver FormContaReceber —
+ * fora do fluxo normal, que é OS faturada/venda finalizada), quitar, editar
+ * valor, excluir e estornar. A sub-aba "Extrato" continua sendo o lugar de
+ * só OLHAR (despesas e receitas juntas, sem nenhum botão de ação) —
+ * separação pedida pelo usuário pra não confundir consulta com ação.
  */
 
 import { useEffect, useState } from 'react';
-import { CircleDollarSign, Pencil, Trash2, Undo2 } from 'lucide-react';
+import { FilePlus2, CircleDollarSign, Pencil, Trash2, Undo2 } from 'lucide-react';
 import {
   type LancamentoFinanceiro,
   type FormaPagamento,
+  type DadosContaReceber,
   type DadosEstorno,
+  FormContaReceber,
   FormQuitacao,
   FormEditarValor,
   FormEstorno,
   listarFinanceiro,
+  criarLancamento,
   quitarLancamento,
   atualizarValorLancamento,
   excluirLancamento,
@@ -72,6 +74,7 @@ export function ContasReceberPage() {
   const [filtroEmpresa, setFiltroEmpresa] = useState<string>('');
   const [mostrarOcultos, setMostrarOcultos] = useState(false);
 
+  const [mostrarForm, setMostrarForm] = useState(false);
   const [lancamentoParaQuitar, setLancamentoParaQuitar] = useState<LancamentoFinanceiro | null>(null);
   const [lancamentoParaEditarValor, setLancamentoParaEditarValor] = useState<LancamentoFinanceiro | null>(null);
   const [lancamentoParaEstornar, setLancamentoParaEstornar] = useState<LancamentoFinanceiro | null>(null);
@@ -116,6 +119,34 @@ export function ContasReceberPage() {
     carregar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtroStatus, filtroEmpresa]);
+
+  async function handleSalvarContaReceber(d: DadosContaReceber) {
+    // Empresa não é escolhida aqui — nasce "Empresa a Definir" (empresaId
+    // null) e só é exigida no momento de Quitar (ver FormQuitacao). Categoria
+    // é sempre 'receita_avulsa' — servico_os/venda_balcao continuam só
+    // nascendo do faturamento automático.
+    await criarLancamento({
+      empresaId: null,
+      tipo: 'receber',
+      categoria: 'receita_avulsa',
+      descricao: d.descricao,
+      valor: Number(d.valor),
+      pago: false,
+      formaPagamento: null,
+      contaFinanceiraId: null,
+      dataPagamento: null,
+      vencimento: d.vencimento,
+      clienteId: d.clienteId || null,
+      fornecedorId: null,
+      osId: null,
+      vendaId: null,
+      despesaFixaId: null,
+      periodicidade: null,
+      observacoes: d.observacoes,
+    });
+    setMostrarForm(false);
+    await carregar();
+  }
 
   async function handleQuitar(
     formaPagamento: FormaPagamento,
@@ -189,6 +220,10 @@ export function ContasReceberPage() {
     await carregar();
   }
 
+  if (mostrarForm) {
+    return <FormContaReceber onSalvar={handleSalvarContaReceber} onCancelar={() => setMostrarForm(false)} />;
+  }
+
   if (lancamentoParaQuitar) {
     return (
       <FormQuitacao
@@ -252,6 +287,9 @@ export function ContasReceberPage() {
         <h1>Contas a Receber</h1>
         <div className="pg-head-acoes">
           <BotoesImpressaoLista documento={documentoImpressao} className="fin-btn-sec" />
+          <button type="button" className="fin-btn" onClick={() => setMostrarForm(true)}>
+            <FilePlus2 size={16} /> Nova conta a receber
+          </button>
         </div>
       </div>
 

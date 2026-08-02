@@ -279,18 +279,43 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   mesmo padrão de `CadastrosPage`/`AdministracaoPage`) com 4 sub-abas:
   **Contas a Pagar** (`ContasPagarPage.tsx`, `tipo='pagar'`) e **Contas a
   Receber** (`ContasReceberPage.tsx`, `tipo='receber'`) concentram as AÇÕES
-  (lançar — só em Contas a Pagar, receita nunca é manual — quitar, editar
-  valor, excluir, estornar); **Extrato** (`ExtratoFinanceiroPage.tsx`) é só
-  CONSULTA — despesas e receitas juntas, filtros, impressão/PDF, badge de
-  oculto, sem NENHUM botão de ação; **Fluxo de Caixa** (`FluxoCaixaPage.tsx`,
-  inalterada) entra debaixo do mesmo guarda-chuva. Antes as 4 coisas viviam
-  numa tela só ("Financeiro" misturava listar com agir) — separado a pedido
-  do usuário, pra não confundir "ver o extrato" com "mexer num lançamento".
-  Os avisos de "resultado do mês negativo"/"saldo de caixa negativo" (ver
-  "NÃO existe trava..." abaixo) moraram sempre em quem quita despesa, então
-  ficaram em Contas a Pagar. A ocultação por usuário (ver "Ocultar
-  Pagamentos em Dinheiro" em Autenticação) só faz sentido pra receita —
-  aparece em Contas a Receber e no Extrato, nunca em Contas a Pagar.
+  (lançar manual, quitar, editar valor, excluir, estornar — ver "Receita
+  Avulsa" abaixo pro lançamento manual do lado receber); **Extrato**
+  (`ExtratoFinanceiroPage.tsx`) é só CONSULTA — despesas e receitas juntas,
+  filtros, impressão/PDF, badge de oculto, sem NENHUM botão de ação; **Fluxo
+  de Caixa** (`FluxoCaixaPage.tsx`, inalterada) entra debaixo do mesmo
+  guarda-chuva. Antes as 4 coisas viviam numa tela só ("Financeiro"
+  misturava listar com agir) — separado a pedido do usuário, pra não
+  confundir "ver o extrato" com "mexer num lançamento". Os avisos de
+  "resultado do mês negativo"/"saldo de caixa negativo" (ver "NÃO existe
+  trava..." abaixo) moraram sempre em quem quita despesa, então ficaram em
+  Contas a Pagar. A ocultação por usuário (ver "Ocultar Pagamentos em
+  Dinheiro" em Autenticação) só faz sentido pra receita — aparece em Contas
+  a Receber e no Extrato, nunca em Contas a Pagar.
+- **Receita Avulsa** (`CategoriaReceber` ganhou um 4º valor,
+  `'receita_avulsa'`, ao lado de `servico_os`/`venda_balcao`/`estorno`):
+  único jeito de lançar uma receita manualmente, via "Nova conta a receber"
+  (`FormContaReceber.tsx`) em Contas a Receber. Diferente de
+  `CategoriaPagar` (texto livre, validado contra o cadastro de Categorias),
+  `CategoriaReceber` é um enum FECHADO — não tem cadastro de categorias de
+  receita, então "Receita Avulsa" é a única opção pra dinheiro que não vem
+  de faturar OS nem finalizar venda (ex.: reembolso de terceiro, serviço
+  cobrado fora do fluxo normal). `servico_os`/`venda_balcao` continuam
+  IMPOSSÍVEIS de lançar manualmente — só nascem do faturamento automático.
+  O formulário avisa explicitamente que venda de peça deve sempre passar
+  por Vendas de Balcão (é o que dá baixa no estoque) — "Receita Avulsa" não
+  filtra nem valida isso no banco, é só um aviso de texto pro usuário não
+  usar como atalho e furar o controle de estoque sem querer. Mesmo padrão
+  de "Nova conta a pagar": nasce com `empresaId: null` ("Empresa a
+  Definir") e `pago: false`; Cliente é opcional (não trava o lançamento).
+  ARMADILHA (já caiu nela uma vez): diferente do lado `pagar` — cuja
+  `categoria` é texto livre validado só na aplicação — o lado `receber`
+  ainda tem um CHECK constraint de verdade no banco (`financeiro_check`,
+  ver `financeiro_receita_avulsa.sql`) travando os valores aceitos. Se um
+  valor novo de `CategoriaReceber` for adicionado no TypeScript sem
+  atualizar esse CHECK também, o INSERT quebra no banco (23514) mesmo com a
+  validação da aplicação passando — sempre migration nova (drop-e-recria o
+  constraint, mesmo padrão do arquivo citado) junto de qualquer valor novo.
 - Tabela única `financeiro` com discriminador `tipo` ('pagar' | 'receber').
 - Toda saída é financeiro tipo='pagar' com uma `categoria` (chave de
   categorias_despesa — ver "Categoria virou cadastro do usuário" abaixo).
