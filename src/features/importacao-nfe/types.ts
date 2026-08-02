@@ -43,6 +43,8 @@ export interface MapeamentoItem {
    */
   margem: string;
   precoVenda: string;
+  /** Também só usado quando pecaId='nova' — vira pecas.estoque_minimo direto (não é calculadora, é o valor final). Vazio = sem monitoramento, igual FormPeca. */
+  estoqueMinimo: string;
   incluir: boolean;
 }
 

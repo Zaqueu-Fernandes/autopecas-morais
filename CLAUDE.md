@@ -201,6 +201,17 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   lote — NÃO divide o saldo. pecas.qtd continua somando o razão inteiro,
   compartilhado entre as empresas (mesma oficina física, ver seção
   "Múltiplas empresas" acima).
+- ENTRADA também aceita Fornecedor (movimentacao_estoque.fornecedor_id) —
+  diferente de Empresa, é OPCIONAL nos 3 pontos que geram entrada (select
+  com "— não informado —"), mesmo padrão em FormPeca (estoque inicial),
+  FormMovimentacao (entrada manual) e ImportarXmlNFe (casa pelo CNPJ do
+  emitente automaticamente). FormPeca não tinha esse campo até uma sessão
+  posterior (só Empresa) — corrigido a pedido do usuário, que considerou a
+  ausência um problema (rastrear de quem veio a peça é importante mesmo
+  fora do fluxo de XML). `Peca.fornecedorIdInicial` (novo, opcional) só
+  existe no formulário, nunca persiste em `pecas` — vira o
+  `fornecedorId` passado pro `registrarEntrada` da primeira movimentação,
+  igual `empresaIdInicial` já fazia.
 - "Margem de lucro (%)" no formulário da peça é só uma calculadora:
   sugere preco_venda = custo × (1 + margem/100) a partir do custo
   (digitado, se a peça for nova; cacheado, se estiver editando). O campo
@@ -245,6 +256,24 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   Empresa (CNPJ da autopeças morais que recebeu a nota) é casada pelo
   CNPJ do destinatário (`dest`, não `emit`) da mesma forma; obrigatório
   escolher antes de confirmar a importação.
+- Quando o item casa com uma peça JÁ EXISTENTE, o select "Peça no
+  estoque" mostra logo abaixo o estoque atual + mínimo dela (semáforo
+  vermelho/verde igual EstoquePage — só aparece quando
+  `estoqueMinimo > 0`, mesma regra de "monitorada" de lá) — ajuda a
+  decidir a quantidade certa a incluir na importação sabendo se aquele
+  item já está baixo. Atualiza junto se o usuário trocar manualmente a
+  peça casada no select (não é só pro auto-match).
+- Quando o item vira PEÇA NOVA, a linha ganha um campo "Estoque mínimo"
+  (igual já existia com Margem/Preço de venda) — diferente da Margem
+  (que é uma calculadora, sugere preço a partir do custo), aqui o valor
+  digitado é o final mesmo, sem cálculo, vira `pecas.estoque_minimo`
+  direto ao criar a peça (`criarPeca` recebe `estoqueMinimo: map.
+  estoqueMinimo || '0'`). Também tem uma barra "Aplicar valor de Estoque
+  mínimo em todas as peças novas" (mesmo esquema global da Margem — só
+  copia o número pra todas de uma vez, cada linha continua editável
+  depois por cima). Objetivo: não obrigar reabrir cada peça em Estoque
+  depois só pra configurar o mínimo — pedido do usuário, "pra não perder
+  tempo com retrabalho".
 - Ao confirmar: cria as peças que faltarem, registra uma ENTRADA
   (registrarEntrada, feature estoque) por item incluído, e grava a nota
   em nfe_importadas (chave_acesso é única) — reimportar a mesma nota é

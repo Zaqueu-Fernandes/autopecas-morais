@@ -9,7 +9,7 @@
  */
 
 import { useState } from 'react';
-import { FileUp, Building2, CheckCircle2, RotateCcw, ArrowLeft, Loader2, Percent } from 'lucide-react';
+import { FileUp, Building2, CheckCircle2, RotateCcw, ArrowLeft, Loader2, Percent, PackageMinus } from 'lucide-react';
 import type { DadosNFeExtraida, MapeamentoItem, ResultadoImportacaoNFe } from '../types';
 import { parseNFe } from '../services/parseNFe';
 import { verificarNFeJaImportada, registrarNFeImportada } from '../services/nfeImportadas.service';
@@ -38,6 +38,7 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [empresaId, setEmpresaId] = useState('');
   const [margemGlobal, setMargemGlobal] = useState('');
+  const [estoqueMinimoGlobal, setEstoqueMinimoGlobal] = useState('');
 
   const [importando, setImportando] = useState(false);
   const [progresso, setProgresso] = useState({ atual: 0, total: 0 });
@@ -91,6 +92,7 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
             custoUnit: String(item.valorUnitario || 0),
             margem: '',
             precoVenda: '',
+            estoqueMinimo: '',
             incluir: true,
           };
         }),
@@ -139,6 +141,19 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
         const sugestao = calcularPrecoVenda(m.custoUnit, margemGlobal);
         return sugestao !== null ? { ...m, margem: margemGlobal, precoVenda: sugestao } : m;
       }),
+    );
+  }
+
+  /**
+   * Mesmo esquema de aplicarMargemGlobal, só que pro estoque mínimo — aqui
+   * não tem cálculo nenhum (não é uma calculadora, é o valor final), só
+   * copia o número digitado pra todas as peças novas de uma vez. Cada linha
+   * continua editável individualmente depois.
+   */
+  function aplicarEstoqueMinimoGlobal() {
+    if (!estoqueMinimoGlobal.trim()) return;
+    setMapeamento((lista) =>
+      lista.map((m) => (m.pecaId === 'nova' ? { ...m, estoqueMinimo: estoqueMinimoGlobal } : m)),
     );
   }
 
@@ -200,6 +215,7 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
             nome: item.descricao,
             unidade: item.unidade,
             precoVenda: map.precoVenda,
+            estoqueMinimo: map.estoqueMinimo || '0',
           });
           pecaId = nova.id!;
           pecasCriadas++;
@@ -241,6 +257,7 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
     setMapeamento([]);
     setEmpresaId('');
     setMargemGlobal('');
+    setEstoqueMinimoGlobal('');
     setProgresso({ atual: 0, total: 0 });
     setResultado(null);
     setErro(null);
@@ -359,6 +376,31 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
           </div>
         )}
 
+        {dados.itens.length > 0 && mapeamento.some((m) => m.pecaId === 'nova') && (
+          <div className="nfe-margem-global">
+            <PackageMinus size={16} />
+            <label htmlFor="nfe-estoque-minimo-global">
+              Aplicar valor de Estoque mínimo em todas as peças novas
+            </label>
+            <input
+              id="nfe-estoque-minimo-global"
+              inputMode="numeric"
+              autoComplete="off"
+              value={estoqueMinimoGlobal}
+              onChange={(e) => setEstoqueMinimoGlobal(e.target.value)}
+              placeholder="Ex.: 5"
+            />
+            <button
+              type="button"
+              className="est-btn-sec"
+              onClick={aplicarEstoqueMinimoGlobal}
+              disabled={!estoqueMinimoGlobal.trim()}
+            >
+              Aplicar a todas
+            </button>
+          </div>
+        )}
+
         {dados.itens.length === 0 ? (
           <p className="nfe-instrucao">Nenhum item pra importar — esta nota não trouxe itens.</p>
         ) : (
@@ -373,6 +415,7 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
                   <th>Custo unit. (R$)</th>
                   <th>Margem (%)</th>
                   <th>Preço de venda (R$)</th>
+                  <th>Estoque mínimo</th>
                 </tr>
               </thead>
               <tbody>
@@ -408,6 +451,26 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
                             </option>
                           ))}
                         </select>
+                        {map.pecaId !== 'nova' &&
+                          (() => {
+                            const pecaExistente = pecas.find((p) => p.id === map.pecaId);
+                            if (!pecaExistente) return null;
+                            const estoqueMinimo = Number(pecaExistente.estoqueMinimo);
+                            const monitorada = estoqueMinimo > 0;
+                            const estoqueBaixo = monitorada && pecaExistente.qtd <= estoqueMinimo;
+                            return (
+                              <span className="nfe-item-estoque">
+                                {monitorada && (
+                                  <span
+                                    className={`est-semaforo ${estoqueBaixo ? 'est-semaforo-baixo' : 'est-semaforo-ok'}`}
+                                    aria-hidden="true"
+                                  />
+                                )}
+                                Estoque atual: {pecaExistente.qtd} {pecaExistente.unidade}
+                                {monitorada && ` · Mínimo: ${estoqueMinimo}`}
+                              </span>
+                            );
+                          })()}
                       </td>
                       <td>
                         <input
@@ -462,6 +525,24 @@ export function ImportarXmlNFe({ aoConcluir, aoCancelar }: Props) {
                         ) : (
                           <span className="nfe-item-codigo">
                             já tem preço — edite em Estoque se precisar mudar
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {map.pecaId === 'nova' ? (
+                          <input
+                            inputMode="numeric"
+                            name={`estoque-minimo-${i}`}
+                            autoComplete="off"
+                            value={map.estoqueMinimo}
+                            disabled={!map.incluir}
+                            placeholder="0"
+                            aria-label="Estoque mínimo"
+                            onChange={(e) => atualizarItem(i, { estoqueMinimo: e.target.value })}
+                          />
+                        ) : (
+                          <span className="nfe-item-codigo">
+                            já tem estoque mínimo — edite em Estoque se precisar mudar
                           </span>
                         )}
                       </td>

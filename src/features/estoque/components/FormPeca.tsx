@@ -21,6 +21,7 @@
 import { useEffect, useState } from 'react';
 import { type Peca, pecaVazia, validarPeca, semErros, type ErrosValidacao } from '../types';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
+import { type Fornecedor, listarFornecedores } from '@/features/cadastros';
 import { formatarMoeda } from '@/shared/utils/formatadores';
 
 interface Props {
@@ -46,6 +47,7 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [salvando, setSalvando] = useState(false);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
 
   const ehNova = !peca.id;
   const custoBase = ehNova ? Number(peca.custoInicial || 0) : peca.precoCusto;
@@ -56,6 +58,7 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
       setEmpresas(lista);
       if (lista.length === 1) set({ empresaIdInicial: lista[0].id });
     });
+    listarFornecedores().then(setFornecedores).catch(() => setFornecedores([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ehNova]);
 
@@ -231,6 +234,22 @@ export function FormPeca({ inicial, onSalvar, onCancelar }: Props) {
                 ))}
               </select>
               {erros.empresaIdInicial && <span className="est-erro">{erros.empresaIdInicial}</span>}
+            </div>
+
+            <div className="est-campo">
+              <label htmlFor="est-peca-fornecedor-inicial">Fornecedor</label>
+              <select
+                id="est-peca-fornecedor-inicial"
+                value={peca.fornecedorIdInicial}
+                onChange={(e) => set({ fornecedorIdInicial: e.target.value })}
+              >
+                <option value="">— não informado —</option>
+                {fornecedores.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.nome}
+                  </option>
+                ))}
+              </select>
             </div>
           </>
         )}

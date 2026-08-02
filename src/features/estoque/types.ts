@@ -38,6 +38,8 @@ export interface Peca {
   custoInicial?: string;
   /** Empresa (CNPJ) da nota do estoque inicial — vira o empresa_id daquela primeira entrada. */
   empresaIdInicial?: string;
+  /** Fornecedor da nota do estoque inicial — vira o fornecedor_id daquela primeira entrada. Opcional, igual no Registrar entrada manual. */
+  fornecedorIdInicial?: string;
 }
 
 export const pecaVazia = (): Peca => ({
@@ -55,6 +57,7 @@ export const pecaVazia = (): Peca => ({
   qtdInicial: '',
   custoInicial: '',
   empresaIdInicial: '',
+  fornecedorIdInicial: '',
 });
 
 export type ErrosValidacao = Record<string, string>;

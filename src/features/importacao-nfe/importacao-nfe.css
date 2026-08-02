@@ -105,7 +105,19 @@
   background: var(--cor-fundo-cartao);
   color: var(--cor-texto);
 }
+/* "Peça no estoque" é um <select> — diferente do texto do "Item da nota" (que
+   quebra linha sozinho), ele não cresce pra caber o nome inteiro sem uma
+   largura mínima, então o nome da peça ficava cortado. */
+.nfe-tabela td:nth-child(3) { min-width: 260px; }
 .nfe-item-codigo { font-size: 11px; color: #9aa0a6; }
+.nfe-item-estoque {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--cor-texto-secundario);
+  margin-top: 4px;
+}
 .nfe-linha-excluida { opacity: .5; }
 
 .nfe-acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
