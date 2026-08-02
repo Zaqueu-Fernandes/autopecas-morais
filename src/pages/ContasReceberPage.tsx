@@ -120,12 +120,12 @@ export function ContasReceberPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtroStatus, filtroEmpresa]);
 
-  async function handleSalvarContaReceber(d: DadosContaReceber) {
+  async function handleSalvarContaReceber(d: DadosContaReceber, receberAgora: boolean) {
     // Empresa não é escolhida aqui — nasce "Empresa a Definir" (empresaId
     // null) e só é exigida no momento de Quitar (ver FormQuitacao). Categoria
     // é sempre 'receita_avulsa' — servico_os/venda_balcao continuam só
     // nascendo do faturamento automático.
-    await criarLancamento({
+    const novo = await criarLancamento({
       empresaId: null,
       tipo: 'receber',
       categoria: 'receita_avulsa',
@@ -145,7 +145,13 @@ export function ContasReceberPage() {
       observacoes: d.observacoes,
     });
     setMostrarForm(false);
-    await carregar();
+    if (receberAgora) {
+      // Vai direto pra "Registrar recebimento" com o lançamento recém-criado
+      // — equivalente a criar e já clicar em "Quitar" na sequência.
+      setLancamentoParaQuitar(novo);
+    } else {
+      await carregar();
+    }
   }
 
   async function handleQuitar(
@@ -269,13 +275,25 @@ export function ContasReceberPage() {
   const documentoImpressao: DocumentoListaImpressao = {
     titulo: 'Contas a Receber',
     subtitulo: filtroEmpresa ? empresas.find((e) => e.id === filtroEmpresa)?.nomeFantasia : 'Todas as empresas',
-    colunas: ['Empresa', 'Conta', 'Categoria', 'Descrição', 'Valor', 'Vencimento', 'Status'],
+    colunas: [
+      'Empresa',
+      'Conta',
+      'Categoria',
+      'Descrição',
+      'Valor',
+      'Forma de Pagamento',
+      'Data Pagamento',
+      'Vencimento',
+      'Status',
+    ],
     linhas: lancamentosVisiveisParaMim.map((l) => [
       l.empresaId === null ? 'Empresa a Definir' : nomeEmpresa(l.empresaId),
       nomeConta(l.contaFinanceiraId),
       nomeCategoriaReceber(l),
       l.descricao,
       formatarMoeda(l.valor),
+      l.pago && l.formaPagamento ? ROTULO_FORMA_PAGAMENTO[l.formaPagamento] : '—',
+      l.pago && l.dataPagamento ? new Date(l.dataPagamento).toLocaleDateString('pt-BR') : '—',
       rotuloVencimento(l),
       l.estornado ? 'Estornado' : l.pago ? 'Quitado' : 'Pendente',
     ]),

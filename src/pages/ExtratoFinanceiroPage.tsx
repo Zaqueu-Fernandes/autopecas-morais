@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import {
   type LancamentoFinanceiro,
   type TipoFinanceiro,
+  type FormaPagamento,
   type Periodicidade,
   listarFinanceiro,
   buscarIdsOcultosParaUsuario,
@@ -38,10 +39,25 @@ const ROTULO_PERIODICIDADE: Record<Periodicidade, string> = {
 type FiltroTipo = TipoFinanceiro | 'todos';
 type FiltroStatus = 'pendentes' | 'quitados' | 'todos';
 
+const FORMAS = Object.keys(ROTULO_FORMA_PAGAMENTO) as FormaPagamento[];
+
 function rotuloCategoria(l: LancamentoFinanceiro, categorias: Categoria[]): string {
   if (l.tipo === 'receber')
     return ROTULO_CATEGORIA_RECEBER[l.categoria as keyof typeof ROTULO_CATEGORIA_RECEBER];
   return categorias.find((c) => c.chave === l.categoria)?.nome ?? l.categoria;
+}
+
+/**
+ * Vencimento nulo tem 2 causas bem diferentes (ver "3 situações de
+ * recebimento" em Faturamento, CLAUDE.md): à vista, que já foi pago na hora
+ * e nunca teve vencimento — não tem o que rotular; ou fiado ("Em aberto"),
+ * pendente sem data marcada. Só o segundo caso ganha o rótulo "Em Aberto";
+ * o primeiro continua "—". Mesmo helper de ContasReceberPage.tsx.
+ */
+function rotuloVencimento(l: LancamentoFinanceiro): string {
+  if (l.vencimento) return new Date(l.vencimento).toLocaleDateString('pt-BR');
+  if (!l.pago && !l.estornado) return 'Em Aberto';
+  return '—';
 }
 
 export function ExtratoFinanceiroPage() {
@@ -58,6 +74,7 @@ export function ExtratoFinanceiroPage() {
   const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>('todos');
   const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>('pendentes');
   const [filtroEmpresa, setFiltroEmpresa] = useState<string>('');
+  const [filtroFormaPagamento, setFiltroFormaPagamento] = useState<FormaPagamento | ''>('');
   const [mostrarOcultos, setMostrarOcultos] = useState(false);
 
   function nomeEmpresa(id: string | null): string {
@@ -79,6 +96,7 @@ export function ExtratoFinanceiroPage() {
             tipo: filtroTipo === 'todos' ? undefined : filtroTipo,
             pago: filtroStatus === 'todos' ? undefined : filtroStatus === 'quitados',
             empresaId: filtroEmpresa || undefined,
+            formaPagamento: filtroFormaPagamento || undefined,
           }),
           listarEmpresas(),
           listarCategorias({ somenteAtivas: false }),
@@ -102,7 +120,7 @@ export function ExtratoFinanceiroPage() {
   useEffect(() => {
     carregar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtroTipo, filtroStatus, filtroEmpresa]);
+  }, [filtroTipo, filtroStatus, filtroEmpresa, filtroFormaPagamento]);
 
   // O que EU vejo: todo lançamento, menos os que estão ocultos pra mim
   // especificamente (ver financeiro_ocultacoes). É essa lista — nunca a
@@ -114,7 +132,18 @@ export function ExtratoFinanceiroPage() {
   const documentoImpressao: DocumentoListaImpressao = {
     titulo: 'Extrato',
     subtitulo: filtroEmpresa ? empresas.find((e) => e.id === filtroEmpresa)?.nomeFantasia : 'Todas as empresas',
-    colunas: ['Empresa', 'Conta', 'Tipo', 'Categoria', 'Descrição', 'Valor', 'Vencimento', 'Status'],
+    colunas: [
+      'Empresa',
+      'Conta',
+      'Tipo',
+      'Categoria',
+      'Descrição',
+      'Valor',
+      'Forma de Pagamento',
+      'Data Pagamento',
+      'Vencimento',
+      'Status',
+    ],
     linhas: lancamentosVisiveisParaMim.map((l) => [
       l.empresaId === null ? 'Empresa a Definir' : nomeEmpresa(l.empresaId),
       nomeConta(l.contaFinanceiraId),
@@ -122,7 +151,9 @@ export function ExtratoFinanceiroPage() {
       rotuloCategoria(l, categorias),
       l.descricao,
       formatarMoeda(l.valor),
-      l.vencimento ? new Date(l.vencimento).toLocaleDateString('pt-BR') : '—',
+      l.pago && l.formaPagamento ? ROTULO_FORMA_PAGAMENTO[l.formaPagamento] : '—',
+      l.pago && l.dataPagamento ? new Date(l.dataPagamento).toLocaleDateString('pt-BR') : '—',
+      rotuloVencimento(l),
       l.estornado ? 'Estornado' : l.pago ? 'Quitado' : 'Pendente',
     ]),
   };
@@ -166,6 +197,18 @@ export function ExtratoFinanceiroPage() {
           <option value="pendentes">Pendentes</option>
           <option value="quitados">Quitados</option>
           <option value="todos">Todos</option>
+        </select>
+        <select
+          value={filtroFormaPagamento}
+          onChange={(e) => setFiltroFormaPagamento(e.target.value as FormaPagamento | '')}
+          aria-label="Filtrar por forma de pagamento"
+        >
+          <option value="">Todas as formas de pagamento</option>
+          {FORMAS.map((f) => (
+            <option key={f} value={f}>
+              {ROTULO_FORMA_PAGAMENTO[f]}
+            </option>
+          ))}
         </select>
         {ehAdmin && (
           <label className="fin-filtro-ocultos">
@@ -221,7 +264,7 @@ export function ExtratoFinanceiroPage() {
                   <td>{formatarMoeda(l.valor)}</td>
                   <td>{l.pago && l.formaPagamento ? ROTULO_FORMA_PAGAMENTO[l.formaPagamento] : '—'}</td>
                   <td>{l.pago && l.dataPagamento ? new Date(l.dataPagamento).toLocaleDateString('pt-BR') : '—'}</td>
-                  <td>{l.vencimento ? new Date(l.vencimento).toLocaleDateString('pt-BR') : '—'}</td>
+                  <td>{rotuloVencimento(l)}</td>
                   <td>
                     <span
                       className={`fin-badge-status ${

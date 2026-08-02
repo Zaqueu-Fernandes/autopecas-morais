@@ -14,6 +14,7 @@ import {
   type CategoriaReceber,
   buscarFluxoCaixa,
   ROTULO_CATEGORIA_RECEBER,
+  ROTULO_FORMA_PAGAMENTO,
 } from '@/features/financeiro';
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type Categoria, listarCategorias } from '@/features/categorias';
@@ -76,12 +77,13 @@ export function FluxoCaixaPage() {
   const documentoImpressao: DocumentoListaImpressao = {
     titulo: 'Fluxo de Caixa',
     subtitulo: `${new Date(inicio).toLocaleDateString('pt-BR')} a ${new Date(fim).toLocaleDateString('pt-BR')}`,
-    colunas: ['Data', 'Tipo', 'Categoria', 'Descrição', 'Valor', 'Saldo acumulado'],
+    colunas: ['Data', 'Tipo', 'Categoria', 'Descrição', 'Forma de Pagamento/Recebimento', 'Valor', 'Saldo acumulado'],
     linhas: (resultado?.movimentos ?? []).map((m) => [
       new Date(m.dataPagamento).toLocaleDateString('pt-BR'),
       m.tipo === 'pagar' ? 'Saída' : 'Entrada',
       rotuloCategoria(m.tipo, m.categoria, categorias),
       m.descricao,
+      m.formaPagamento ? ROTULO_FORMA_PAGAMENTO[m.formaPagamento] : '—',
       `${m.tipo === 'pagar' ? '-' : '+'} ${formatarMoeda(m.valor)}`,
       formatarMoeda(m.saldoAcumulado),
     ]),
@@ -153,6 +155,7 @@ export function FluxoCaixaPage() {
                 <th>Tipo</th>
                 <th>Categoria</th>
                 <th>Descrição</th>
+                <th>Forma de Pagamento/Recebimento</th>
                 <th>Valor</th>
                 <th>Saldo acumulado</th>
               </tr>
@@ -168,6 +171,7 @@ export function FluxoCaixaPage() {
                   </td>
                   <td>{rotuloCategoria(m.tipo, m.categoria, categorias)}</td>
                   <td className="pg-tabela-truncar">{m.descricao}</td>
+                  <td>{m.formaPagamento ? ROTULO_FORMA_PAGAMENTO[m.formaPagamento] : '—'}</td>
                   <td>
                     {m.tipo === 'pagar' ? '-' : '+'} {formatarMoeda(m.valor)}
                   </td>
@@ -176,7 +180,7 @@ export function FluxoCaixaPage() {
               ))}
               {resultado.movimentos.length === 0 && (
                 <tr>
-                  <td colSpan={6}>Nenhuma movimentação quitada neste período.</td>
+                  <td colSpan={7}>Nenhuma movimentação quitada neste período.</td>
                 </tr>
               )}
             </tbody>

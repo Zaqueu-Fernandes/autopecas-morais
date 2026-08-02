@@ -122,10 +122,10 @@ export function ContasPagarPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtroStatus, filtroEmpresa]);
 
-  async function handleSalvarContaPagar(d: DadosContaPagar) {
+  async function handleSalvarContaPagar(d: DadosContaPagar, pagarAgora: boolean) {
     // Empresa não é escolhida aqui — nasce "Empresa a Definir" (empresaId
     // null) e só é exigida no momento de Quitar (ver FormQuitacao).
-    await criarLancamento({
+    const novo = await criarLancamento({
       empresaId: null,
       tipo: 'pagar',
       categoria: d.categoria,
@@ -146,7 +146,13 @@ export function ContasPagarPage() {
       observacoes: d.observacoes,
     });
     setMostrarForm(false);
-    await carregar();
+    if (pagarAgora) {
+      // Vai direto pra "Registrar pagamento" com o lançamento recém-criado —
+      // equivalente a criar e já clicar em "Quitar" na sequência.
+      setLancamentoParaQuitar(novo);
+    } else {
+      await carregar();
+    }
   }
 
   async function handleQuitar(
@@ -288,13 +294,25 @@ export function ContasPagarPage() {
   const documentoImpressao: DocumentoListaImpressao = {
     titulo: 'Contas a Pagar',
     subtitulo: filtroEmpresa ? empresas.find((e) => e.id === filtroEmpresa)?.nomeFantasia : 'Todas as empresas',
-    colunas: ['Empresa', 'Conta', 'Categoria', 'Descrição', 'Valor', 'Vencimento', 'Status'],
+    colunas: [
+      'Empresa',
+      'Conta',
+      'Categoria',
+      'Descrição',
+      'Valor',
+      'Forma de Pagamento',
+      'Data Pagamento',
+      'Vencimento',
+      'Status',
+    ],
     linhas: lancamentos.map((l) => [
       l.empresaId === null ? 'Empresa a Definir' : nomeEmpresa(l.empresaId),
       nomeConta(l.contaFinanceiraId),
       nomeCategoria(l),
       l.descricao,
       formatarMoeda(l.valor),
+      l.pago && l.formaPagamento ? ROTULO_FORMA_PAGAMENTO[l.formaPagamento] : '—',
+      l.pago && l.dataPagamento ? new Date(l.dataPagamento).toLocaleDateString('pt-BR') : '—',
       l.vencimento ? new Date(l.vencimento).toLocaleDateString('pt-BR') : '—',
       l.estornado ? 'Estornado' : l.pago ? 'Quitado' : 'Pendente',
     ]),

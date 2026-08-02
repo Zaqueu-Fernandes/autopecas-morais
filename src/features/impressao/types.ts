@@ -12,6 +12,8 @@ export interface ItemImpressao {
   descricao: string;
   quantidade: number;
   valorUnit: number;
+  /** Opcional — só a OS distingue peça de serviço. Ausente (Venda de Balcão, só vende peça) vira "Peça" no comprovante. */
+  tipo?: 'peca' | 'servico';
 }
 
 export interface DocumentoImpressao {

@@ -78,7 +78,7 @@ export function DetalheOS({ osId, aoVoltar }: Props) {
     veiculo: { placa: os.veiculoPlaca, marcaModelo: os.veiculoMarcaModelo },
     itens: itensOS
       .filter((i) => !i.removido)
-      .map((i) => ({ descricao: i.descricao, quantidade: i.quantidade, valorUnit: i.valorUnit })),
+      .map((i) => ({ descricao: i.descricao, quantidade: i.quantidade, valorUnit: i.valorUnit, tipo: i.tipo })),
     total: totalOS,
     observacoes: os.observacoes || undefined,
     fiscal: false,

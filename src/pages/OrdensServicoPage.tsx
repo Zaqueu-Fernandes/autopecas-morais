@@ -16,6 +16,7 @@ import {
   DetalheOS,
   listarOS,
   criarOS,
+  buscarValoresPorOS,
 } from '@/features/ordens-servico';
 import {
   type PagamentoResumo,
@@ -26,8 +27,14 @@ import {
 import { type Empresa, listarEmpresas } from '@/features/empresa';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { useAuth } from '@/features/auth';
+import { formatarMoeda } from '@/shared/utils/formatadores';
 
 const OPCOES_STATUS: Array<StatusOS | 'todas'> = ['todas', 'aberta', 'em_andamento', 'concluida', 'faturada'];
+
+/** Valor só faz sentido mostrar quando já tem itens "fechados" — concluída ou faturada. */
+function temValor(status: StatusOS): boolean {
+  return status === 'concluida' || status === 'faturada';
+}
 
 export function OrdensServicoPage() {
   const { sessao } = useAuth();
@@ -35,6 +42,7 @@ export function OrdensServicoPage() {
   const [osResumo, setOsResumo] = useState<OrdemServicoResumo[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [pagamentosPorOS, setPagamentosPorOS] = useState<Record<string, PagamentoResumo>>({});
+  const [valoresPorOS, setValoresPorOS] = useState<Record<string, number>>({});
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [filtroStatus, setFiltroStatus] = useState<StatusOS | 'todas'>('todas');
@@ -57,7 +65,11 @@ export function OrdensServicoPage() {
         meuId ? buscarIdsOcultosParaUsuario(meuId) : Promise.resolve(new Set<string>()),
       ]);
       const idsFaturadas = lista.filter((os) => os.status === 'faturada').map((os) => os.id!);
-      const mapaPagamentos = await buscarLancamentosPorOS(idsFaturadas);
+      const idsComValor = lista.filter((os) => temValor(os.status)).map((os) => os.id!);
+      const [mapaPagamentos, mapaValores] = await Promise.all([
+        buscarLancamentosPorOS(idsFaturadas),
+        buscarValoresPorOS(idsComValor),
+      ]);
       // Lançamento oculto pra mim (ver Ocultar Pagamentos em Dinheiro) some
       // daqui igual some do Financeiro/Fluxo de Caixa/Dashboard — a coluna
       // Empresa/Forma de Pagamento volta a mostrar "—", como se a OS ainda
@@ -68,6 +80,7 @@ export function OrdensServicoPage() {
       setOsResumo(lista);
       setEmpresas(listaEmpresas);
       setPagamentosPorOS(mapaPagamentos);
+      setValoresPorOS(mapaValores);
     } catch {
       setErro('Não foi possível carregar as ordens de serviço.');
     } finally {
@@ -98,14 +111,20 @@ export function OrdensServicoPage() {
 
   const documentoImpressao: DocumentoListaImpressao = {
     titulo: 'Ordens de Serviço',
-    colunas: ['Nº', 'Cliente', 'Veículo', 'Status', 'Abertura'],
-    linhas: filtradas.map((os) => [
-      `#${os.numero}`,
-      os.clienteNome,
-      os.veiculoPlaca,
-      ROTULO_STATUS_OS[os.status],
-      os.dataAbertura ? new Date(os.dataAbertura).toLocaleDateString('pt-BR') : '—',
-    ]),
+    colunas: ['Nº', 'Cliente', 'Veículo', 'Status', 'Empresa', 'Forma de Pagamento', 'Valor', 'Abertura'],
+    linhas: filtradas.map((os) => {
+      const pagamento = os.status === 'faturada' ? pagamentosPorOS[os.id!] : undefined;
+      return [
+        `#${os.numero}`,
+        os.clienteNome,
+        os.veiculoPlaca,
+        ROTULO_STATUS_OS[os.status],
+        pagamento ? nomeEmpresa(pagamento.empresaId) : '—',
+        pagamento?.formaPagamento ? ROTULO_FORMA_PAGAMENTO[pagamento.formaPagamento] : '—',
+        temValor(os.status) ? formatarMoeda(valoresPorOS[os.id!] ?? 0) : '—',
+        os.dataAbertura ? new Date(os.dataAbertura).toLocaleDateString('pt-BR') : '—',
+      ];
+    }),
   };
 
   if (osSelecionadaId) {
@@ -176,6 +195,7 @@ export function OrdensServicoPage() {
               <th>Status</th>
               <th>Empresa</th>
               <th>Forma de Pagamento</th>
+              <th>Valor</th>
               <th>Abertura</th>
               <th></th>
             </tr>
@@ -195,6 +215,7 @@ export function OrdensServicoPage() {
                   </td>
                   <td>{pagamento ? nomeEmpresa(pagamento.empresaId) : '—'}</td>
                   <td>{pagamento?.formaPagamento ? ROTULO_FORMA_PAGAMENTO[pagamento.formaPagamento] : '—'}</td>
+                  <td>{temValor(os.status) ? formatarMoeda(valoresPorOS[os.id!] ?? 0) : '—'}</td>
                   <td>{os.dataAbertura && new Date(os.dataAbertura).toLocaleDateString('pt-BR')}</td>
                   <td className="pg-acoes-linha">
                     <button type="button" onClick={() => setOsSelecionadaId(os.id!)}>
@@ -206,7 +227,7 @@ export function OrdensServicoPage() {
             })}
             {filtradas.length === 0 && (
               <tr>
-                <td colSpan={8}>Nenhuma OS encontrada.</td>
+                <td colSpan={9}>Nenhuma OS encontrada.</td>
               </tr>
             )}
           </tbody>

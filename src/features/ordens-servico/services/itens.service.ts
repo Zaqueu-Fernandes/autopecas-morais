@@ -61,6 +61,28 @@ export async function listarItensPorOS(osId: string): Promise<ItemOS[]> {
   return (data as LinhaItemOS[]).map(linhaParaItem);
 }
 
+/**
+ * Soma dos itens NÃO removidos (quantidade × valor_unit) de várias OS de uma
+ * vez — usado pela listagem de Ordens de Serviço pra exibir a coluna Valor
+ * nas linhas com status 'concluida'/'faturada', sem 1 consulta por linha.
+ * Mesmo cálculo do "Total" em ListaItensOS.tsx — pra uma OS faturada, bate
+ * exatamente com o valor do lançamento em financeiro (é o que foi faturado).
+ */
+export async function buscarValoresPorOS(osIds: string[]): Promise<Record<string, number>> {
+  if (osIds.length === 0) return {};
+  const { data, error } = await supabase
+    .from('os_itens')
+    .select('os_id, quantidade, valor_unit')
+    .in('os_id', osIds)
+    .eq('removido', false);
+  if (error) throw error;
+  const mapa: Record<string, number> = {};
+  for (const l of data as { os_id: string; quantidade: number; valor_unit: number }[]) {
+    mapa[l.os_id] = (mapa[l.os_id] ?? 0) + l.quantidade * Number(l.valor_unit);
+  }
+  return mapa;
+}
+
 /** Adiciona uma peça à OS: baixa o estoque primeiro, só depois grava o item. */
 export async function adicionarItemPeca(osId: string, peca: Peca, quantidade: number): Promise<ItemOS> {
   const movimentacao = await registrarSaida({

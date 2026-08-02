@@ -18,7 +18,8 @@ import { type Fornecedor, type Credor, listarFornecedores, listarCredores } from
 import { type Categoria, listarCategorias } from '@/features/categorias';
 
 interface Props {
-  onSalvar: (d: DadosContaPagar) => Promise<void> | void;
+  /** `pagarAgora` diz se foi "Salvar e Pagar Agora" (true) ou "Salvar e Pagar Depois" (false). */
+  onSalvar: (d: DadosContaPagar, pagarAgora: boolean) => Promise<void> | void;
   onCancelar?: () => void;
 }
 
@@ -26,7 +27,7 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
   const [dados, setDados] = useState<DadosContaPagar>(dadosContaPagarVazio());
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
-  const [salvando, setSalvando] = useState(false);
+  const [salvando, setSalvando] = useState<'agora' | 'depois' | null>(null);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [credores, setCredores] = useState<Credor[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -41,18 +42,18 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
     setDados((d) => ({ ...d, ...patch }));
   }
 
-  async function handleSalvar() {
+  async function handleSalvar(pagarAgora: boolean) {
     const e = validarContaPagar(dados);
     setErros(e);
     if (!semErros(e)) return;
     setErroSalvar(null);
-    setSalvando(true);
+    setSalvando(pagarAgora ? 'agora' : 'depois');
     try {
-      await onSalvar(dados);
+      await onSalvar(dados, pagarAgora);
     } catch (erro) {
       setErroSalvar(erro instanceof Error ? erro.message : 'Não foi possível salvar esta conta.');
     } finally {
-      setSalvando(false);
+      setSalvando(null);
     }
   }
 
@@ -203,12 +204,20 @@ export function FormContaPagar({ onSalvar, onCancelar }: Props) {
 
       <div className="fin-acoes">
         {onCancelar && (
-          <button type="button" className="fin-btn-sec" onClick={onCancelar}>
+          <button type="button" className="fin-btn-sec" onClick={onCancelar} disabled={!!salvando}>
             Cancelar
           </button>
         )}
-        <button type="button" className="fin-btn" onClick={handleSalvar} disabled={salvando}>
-          {salvando ? 'Salvando…' : 'Salvar conta'}
+        <button
+          type="button"
+          className="fin-btn-sec"
+          onClick={() => handleSalvar(false)}
+          disabled={!!salvando}
+        >
+          {salvando === 'depois' ? 'Salvando…' : 'Salvar e Pagar Depois'}
+        </button>
+        <button type="button" className="fin-btn" onClick={() => handleSalvar(true)} disabled={!!salvando}>
+          {salvando === 'agora' ? 'Salvando…' : 'Salvar e Pagar Agora'}
         </button>
       </div>
     </div>

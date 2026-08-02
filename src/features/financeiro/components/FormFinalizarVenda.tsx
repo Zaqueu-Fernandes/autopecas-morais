@@ -143,7 +143,12 @@ export function FormFinalizarVenda({ vendaId, clienteId, valorTotal, onFinalizad
           <select
             id="fv-forma"
             value={dados.formaPagamento}
-            onChange={(e) => set({ formaPagamento: e.target.value as FormaPagamento })}
+            onChange={(e) => {
+              const forma = e.target.value as FormaPagamento;
+              // Dinheiro não usa conta — limpa o que já tinha sido escolhido
+              // pra não enviar uma conta escondida sem o usuário perceber.
+              set(forma === 'dinheiro' ? { formaPagamento: forma, contaFinanceiraId: '' } : { formaPagamento: forma });
+            }}
             aria-invalid={!!erros.formaPagamento}
           >
             <option value="">— selecione —</option>
@@ -161,7 +166,7 @@ export function FormFinalizarVenda({ vendaId, clienteId, valorTotal, onFinalizad
         </div>
       )}
 
-      {dados.situacao === 'a_vista' && (
+      {dados.situacao === 'a_vista' && dados.formaPagamento !== 'dinheiro' && (
         <div className="fin-campo">
           <label htmlFor="fv-conta">Conta *</label>
           <select

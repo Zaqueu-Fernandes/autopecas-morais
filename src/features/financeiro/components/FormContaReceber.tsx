@@ -19,7 +19,8 @@ import {
 import { type Cliente, listarClientes } from '@/features/cadastros';
 
 interface Props {
-  onSalvar: (d: DadosContaReceber) => Promise<void> | void;
+  /** `receberAgora` diz se foi "Salvar e Receber Agora" (true) ou "Salvar e Receber Depois" (false). */
+  onSalvar: (d: DadosContaReceber, receberAgora: boolean) => Promise<void> | void;
   onCancelar?: () => void;
 }
 
@@ -27,7 +28,7 @@ export function FormContaReceber({ onSalvar, onCancelar }: Props) {
   const [dados, setDados] = useState<DadosContaReceber>(dadosContaReceberVazio());
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
-  const [salvando, setSalvando] = useState(false);
+  const [salvando, setSalvando] = useState<'agora' | 'depois' | null>(null);
   const [clientes, setClientes] = useState<Cliente[]>([]);
 
   useEffect(() => {
@@ -38,18 +39,18 @@ export function FormContaReceber({ onSalvar, onCancelar }: Props) {
     setDados((d) => ({ ...d, ...patch }));
   }
 
-  async function handleSalvar() {
+  async function handleSalvar(receberAgora: boolean) {
     const e = validarContaReceber(dados);
     setErros(e);
     if (!semErros(e)) return;
     setErroSalvar(null);
-    setSalvando(true);
+    setSalvando(receberAgora ? 'agora' : 'depois');
     try {
-      await onSalvar(dados);
+      await onSalvar(dados, receberAgora);
     } catch (erro) {
       setErroSalvar(erro instanceof Error ? erro.message : 'Não foi possível salvar esta receita.');
     } finally {
-      setSalvando(false);
+      setSalvando(null);
     }
   }
 
@@ -148,12 +149,20 @@ export function FormContaReceber({ onSalvar, onCancelar }: Props) {
 
       <div className="fin-acoes">
         {onCancelar && (
-          <button type="button" className="fin-btn-sec" onClick={onCancelar}>
+          <button type="button" className="fin-btn-sec" onClick={onCancelar} disabled={!!salvando}>
             Cancelar
           </button>
         )}
-        <button type="button" className="fin-btn" onClick={handleSalvar} disabled={salvando}>
-          {salvando ? 'Salvando…' : 'Salvar receita'}
+        <button
+          type="button"
+          className="fin-btn-sec"
+          onClick={() => handleSalvar(false)}
+          disabled={!!salvando}
+        >
+          {salvando === 'depois' ? 'Salvando…' : 'Salvar e Receber Depois'}
+        </button>
+        <button type="button" className="fin-btn" onClick={() => handleSalvar(true)} disabled={!!salvando}>
+          {salvando === 'agora' ? 'Salvando…' : 'Salvar e Receber Agora'}
         </button>
       </div>
     </div>

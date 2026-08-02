@@ -65,14 +65,15 @@ function linhaParaLancamento(l: LinhaFinanceiro): LancamentoFinanceiro {
   };
 }
 
-/** Lista lançamentos, mais recentes primeiro. Filtros opcionais por tipo/pago/empresa. */
+/** Lista lançamentos, mais recentes primeiro. Filtros opcionais por tipo/pago/empresa/forma de pagamento. */
 export async function listarFinanceiro(
-  opts: { tipo?: TipoFinanceiro; pago?: boolean; empresaId?: string } = {},
+  opts: { tipo?: TipoFinanceiro; pago?: boolean; empresaId?: string; formaPagamento?: FormaPagamento } = {},
 ): Promise<LancamentoFinanceiro[]> {
   let query = supabase.from('financeiro').select('*').order('vencimento', { ascending: true, nullsFirst: false });
   if (opts.tipo) query = query.eq('tipo', opts.tipo);
   if (opts.pago !== undefined) query = query.eq('pago', opts.pago);
   if (opts.empresaId) query = query.eq('empresa_id', opts.empresaId);
+  if (opts.formaPagamento) query = query.eq('forma_pagamento', opts.formaPagamento);
 
   const { data, error } = await query;
   if (error) throw error;
@@ -180,7 +181,9 @@ export async function quitarLancamento(
   const patch: Record<string, unknown> = {
     pago: true,
     forma_pagamento: formaPagamento,
-    conta_financeira_id: contaFinanceiraId,
+    // '' (dinheiro, sem conta) precisa virar null — coluna é uuid, string
+    // vazia quebraria o cast no Postgres.
+    conta_financeira_id: contaFinanceiraId || null,
     data_pagamento: dataPagamento,
   };
   if (empresaId) patch.empresa_id = empresaId;

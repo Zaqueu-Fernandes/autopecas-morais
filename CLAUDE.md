@@ -316,6 +316,17 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   atualizar esse CHECK também, o INSERT quebra no banco (23514) mesmo com a
   validação da aplicação passando — sempre migration nova (drop-e-recria o
   constraint, mesmo padrão do arquivo citado) junto de qualquer valor novo.
+- "Nova conta a pagar" (`FormContaPagar.tsx`) e "Nova conta a receber"
+  (`FormContaReceber.tsx`) têm DOIS botões cada, em vez de um — mesmo
+  padrão espelhado nos dois lados: **"Salvar e Pagar/Receber Depois"**
+  (fluxo de sempre — cria pendente, volta pra lista) e **"Salvar e Pagar/
+  Receber Agora"** (cria E já abre "Registrar pagamento"/"Registrar
+  recebimento" em seguida, equivalente a criar e clicar em "Quitar" na
+  sequência). `onSalvar(dados, pagarAgora/receberAgora: boolean)` — quem
+  decide o que fazer com a flag é `ContasPagarPage.handleSalvarContaPagar`/
+  `ContasReceberPage.handleSalvarContaReceber`: se a flag for true, guarda
+  o lançamento recém-criado (retornado por `criarLancamento`) em
+  `lancamentoParaQuitar` em vez de recarregar a lista.
 - Tabela única `financeiro` com discriminador `tipo` ('pagar' | 'receber').
 - Toda saída é financeiro tipo='pagar' com uma `categoria` (chave de
   categorias_despesa — ver "Categoria virou cadastro do usuário" abaixo).
@@ -446,11 +457,18 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   negativo" (ver "NÃO existe trava..." abaixo) roda AQUI agora (junto do
   aviso de saldo de caixa que já existia), não mais na criação da conta a
   pagar — só dá pra calcular por empresa depois que ela é conhecida.
-- Faturar OS (FormFaturamento): quando a forma de pagamento à vista é
-  "Dinheiro", o campo Conta some e não é mais exigido (dinheiro não passa
-  por banco/cartão, não tem o que rastrear) — `financeiro.conta_financeira_id`
-  fica null nesse caso específico, única exceção à regra de "todo lançamento
-  pago=true exige conta" (ver Contas Financeiras acima).
+- Quando a forma de pagamento é "Dinheiro", o campo Conta some e não é mais
+  exigido (dinheiro não passa por banco/cartão, não tem o que rastrear) —
+  `financeiro.conta_financeira_id` fica null nesse caso específico, exceção
+  à regra de "todo lançamento pago=true exige conta" (ver Contas
+  Financeiras acima). Vale nos 4 pontos que coletam forma de pagamento +
+  conta juntos: Faturar OS e Finalizar venda (`FormFaturamento`/
+  `FormFinalizarVenda`, campo `situacao='a_vista'`), e Quitar
+  (`FormQuitacao`, usado tanto por "Registrar pagamento" em Contas a Pagar
+  quanto por "Registrar recebimento" em Contas a Receber — um fix cobre os
+  dois). Cada form limpa `contaFinanceiraId` no próprio `onChange` do select
+  de forma de pagamento ao trocar pra dinheiro, pra não mandar uma conta
+  escondida sem o usuário perceber.
 - Ordens de Serviço e Vendas de Balcão, na tabela de listagem, ganharam
   colunas extras só preenchidas quando o registro já foi faturado/finalizado
   (senão mostram "—"): OS ganha Empresa + Forma de Pagamento após Status;
@@ -459,8 +477,37 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   `os_id`/`venda_id`, buscado em lote por `buscarLancamentosPorOS`/
   `buscarLancamentosPorVenda` (financeiro.service.ts) e mesclado na página
   (não nos services de ordens-servico/vendas, que não são donos da tabela
-  financeiro). Financeiro, na própria lista, ganhou Forma de Pagamento +
-  Data Pagamento após Valor, preenchidas só quando `pago=true`.
+  financeiro). Contas a Pagar/Contas a Receber/Extrato, nas próprias
+  listas, ganharam Forma de Pagamento + Data Pagamento após Valor,
+  preenchidas só quando `pago=true` — e os relatórios impressos/PDF de
+  todas as listas de OS, Vendas, Contas a Pagar/Receber, Extrato e Fluxo de
+  Caixa foram alinhados pra sempre espelhar as MESMAS colunas que aparecem
+  na tela (antes vários ficavam pra trás, mostrando só um subconjunto).
+- OS ganhou também uma coluna **Valor**, após Forma de Pagamento, mostrada
+  quando o status é `concluida` OU `faturada` (não só faturada — diferente
+  de Empresa/Forma de Pagamento, que dependem de um lançamento em
+  `financeiro` já existir). Calculada como a soma dos itens NÃO removidos
+  (quantidade × valor_unit, mesma conta de "Total" em ListaItensOS.tsx) via
+  `buscarValoresPorOS` (itens.service.ts, bulk igual a
+  buscarLancamentosPorOS) — não vem do financeiro porque uma OS
+  "Concluída" ainda não foi faturada, não tem lançamento nenhum ainda; pra
+  uma OS "Faturada", esse valor bate exatamente com o que foi faturado.
+- Comprovante impresso (`src/features/impressao`) ganhou uma coluna
+  **Item** antes de Descrição, nos dois formatos (térmica 80mm e A4/Carta,
+  `template.ts`). `ItemImpressao.tipo?: 'peca' | 'servico'` é opcional —
+  só a OS (`DetalheOS.tsx`) preenche de verdade (espelha `ItemOS.tipo`);
+  Venda de Balcão (`DetalheVenda.tsx`, só vende peça) não preenche esse
+  campo de propósito, e o template cai no fallback "Peça" pra qualquer item
+  sem `tipo` (`rotuloItem()`) — decisão consciente de não complicar o
+  template com um branch condicional só pra esconder a coluna na Venda.
+- Extrato ganhou um filtro por Forma de Pagamento (select simples, usa o
+  `formaPagamento` novo em `listarFinanceiro`) e o mesmo rótulo "Em Aberto"
+  no Vencimento que Contas a Receber já tinha (`rotuloVencimento()`,
+  duplicada nas duas páginas — lançamento fiado, pendente, sem data
+  marcada). Fluxo de Caixa ganhou a coluna **Forma de Pagamento/
+  Recebimento** após Descrição (`MovimentoCaixa.formaPagamento`, novo em
+  `fluxoCaixa.service.ts` — só existe porque todo movimento ali já é
+  `pago=true`, então sempre tem forma de pagamento preenchida).
 - Página/menu chama-se "Despesas Recorrentes" (era "Despesas Fixas") —
   nomes internos (DespesaFixa, despesas_fixas, FormDespesaFixa,
   DespesasFixasPage) continuam iguais de propósito, só o texto visível

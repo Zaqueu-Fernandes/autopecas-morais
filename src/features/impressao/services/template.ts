@@ -20,6 +20,11 @@ function formatarMoeda(valor: number): string {
   return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+/** Item sem `tipo` (Venda de Balcão só vende peça) cai no fallback "Peça". */
+function rotuloItem(tipo: 'peca' | 'servico' | undefined): string {
+  return tipo === 'servico' ? 'Serviço' : 'Peça';
+}
+
 export function gerarHtmlComprovanteTermica(doc: DocumentoImpressao): string {
   const dataFormatada = doc.data.toLocaleString('pt-BR');
 
@@ -27,6 +32,7 @@ export function gerarHtmlComprovanteTermica(doc: DocumentoImpressao): string {
     .map(
       (item) => `
         <tr>
+          <td class="item">${escapar(rotuloItem(item.tipo))}</td>
           <td class="descricao">${escapar(item.descricao)}</td>
           <td class="qtd">${item.quantidade}x</td>
           <td class="valor">${formatarMoeda(item.quantidade * item.valorUnit)}</td>
@@ -57,9 +63,10 @@ export function gerarHtmlComprovanteTermica(doc: DocumentoImpressao): string {
   .separador { border-top: 1px dashed #000; margin: 2mm 0; }
   table { width: 100%; border-collapse: collapse; margin-top: 1mm; }
   td { padding: 1mm 0; vertical-align: top; }
-  .descricao { width: 60%; }
-  .qtd { width: 15%; text-align: center; }
-  .valor { width: 25%; text-align: right; }
+  .item { width: 20%; font-size: 10px; }
+  .descricao { width: 45%; }
+  .qtd { width: 12%; text-align: center; }
+  .valor { width: 23%; text-align: right; }
   .total-linha { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; margin-top: 2mm; }
   .rodape { text-align: center; font-size: 10px; margin-top: 4mm; }
   .rodape strong { display: block; margin-bottom: 1mm; }
@@ -111,6 +118,7 @@ export function gerarHtmlComprovanteA4(doc: DocumentoImpressao): string {
     .map(
       (item) => `
         <tr>
+          <td>${escapar(rotuloItem(item.tipo))}</td>
           <td>${escapar(item.descricao)}</td>
           <td class="centro">${item.quantidade}</td>
           <td class="direita">R$ ${formatarMoeda(item.valorUnit)}</td>
@@ -181,7 +189,7 @@ export function gerarHtmlComprovanteA4(doc: DocumentoImpressao): string {
 
   <table>
     <thead>
-      <tr><th>Descrição</th><th class="centro">Qtd.</th><th class="direita">Valor unit.</th><th class="direita">Subtotal</th></tr>
+      <tr><th>Item</th><th>Descrição</th><th class="centro">Qtd.</th><th class="direita">Valor unit.</th><th class="direita">Subtotal</th></tr>
     </thead>
     <tbody>${linhasItens}</tbody>
   </table>

@@ -99,8 +99,18 @@ export function VendasBalcaoPage() {
 
   const documentoImpressao: DocumentoListaImpressao = {
     titulo: 'Vendas de Balcão',
-    colunas: ['Nº', 'Cliente', 'Status'],
-    linhas: vendas.map((v) => [`#${v.numero}`, v.clienteNome ?? 'Avulsa', v.status === 'aberta' ? 'Aberta' : 'Finalizada']),
+    colunas: ['Nº', 'Cliente', 'Status', 'Valor', 'Empresa', 'Forma de Pagamento'],
+    linhas: vendas.map((v) => {
+      const pagamento = v.status === 'finalizada' ? pagamentosPorVenda[v.id!] : undefined;
+      return [
+        `#${v.numero}`,
+        v.clienteNome ?? 'Avulsa',
+        v.status === 'aberta' ? 'Aberta' : 'Finalizada',
+        pagamento ? formatarMoeda(pagamento.valor) : '—',
+        pagamento ? nomeEmpresa(pagamento.empresaId) : '—',
+        pagamento?.formaPagamento ? ROTULO_FORMA_PAGAMENTO[pagamento.formaPagamento] : '—',
+      ];
+    }),
   };
 
   return (

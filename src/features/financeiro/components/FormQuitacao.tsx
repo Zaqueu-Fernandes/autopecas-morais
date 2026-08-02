@@ -75,7 +75,8 @@ export function FormQuitacao({ titulo, precisaEmpresa = false, empresaId, onConf
   async function handleConfirmar() {
     const e = validarQuitacao(dados, precisaEmpresa);
     setErros(e);
-    if (!semErros(e) || !dados.formaPagamento || !dados.contaFinanceiraId) return;
+    if (!semErros(e) || !dados.formaPagamento) return;
+    if (dados.formaPagamento !== 'dinheiro' && !dados.contaFinanceiraId) return;
     setErroSalvar(null);
     setSalvando(true);
     try {
@@ -132,7 +133,12 @@ export function FormQuitacao({ titulo, precisaEmpresa = false, empresaId, onConf
         <select
           id="qt-forma"
           value={dados.formaPagamento}
-          onChange={(e) => set({ formaPagamento: e.target.value as FormaPagamento })}
+          onChange={(e) => {
+            const forma = e.target.value as FormaPagamento;
+            // Dinheiro não usa conta — limpa o que já tinha sido escolhido
+            // pra não enviar uma conta escondida sem o usuário perceber.
+            set(forma === 'dinheiro' ? { formaPagamento: forma, contaFinanceiraId: '' } : { formaPagamento: forma });
+          }}
           aria-invalid={!!erros.formaPagamento}
           autoFocus={!precisaEmpresa}
         >
@@ -166,30 +172,32 @@ export function FormQuitacao({ titulo, precisaEmpresa = false, empresaId, onConf
         )}
       </div>
 
-      <div className="fin-campo">
-        <label htmlFor="qt-conta">Conta *</label>
-        <select
-          id="qt-conta"
-          value={dados.contaFinanceiraId}
-          onChange={(e) => set({ contaFinanceiraId: e.target.value })}
-          aria-invalid={!!erros.contaFinanceiraId}
-        >
-          <option value="">— selecione —</option>
-          {contas.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.instituicao} ({ROTULO_TIPO_CONTA[c.tipo]})
-            </option>
-          ))}
-        </select>
-        {erros.contaFinanceiraId && (
-          <span className="fin-erro" aria-live="polite">
-            {erros.contaFinanceiraId}
-          </span>
-        )}
-        {contas.length === 0 && (
-          <span className="fin-aviso">Cadastre uma conta financeira em Cadastros antes de continuar.</span>
-        )}
-      </div>
+      {dados.formaPagamento !== 'dinheiro' && (
+        <div className="fin-campo">
+          <label htmlFor="qt-conta">Conta *</label>
+          <select
+            id="qt-conta"
+            value={dados.contaFinanceiraId}
+            onChange={(e) => set({ contaFinanceiraId: e.target.value })}
+            aria-invalid={!!erros.contaFinanceiraId}
+          >
+            <option value="">— selecione —</option>
+            {contas.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.instituicao} ({ROTULO_TIPO_CONTA[c.tipo]})
+              </option>
+            ))}
+          </select>
+          {erros.contaFinanceiraId && (
+            <span className="fin-erro" aria-live="polite">
+              {erros.contaFinanceiraId}
+            </span>
+          )}
+          {contas.length === 0 && (
+            <span className="fin-aviso">Cadastre uma conta financeira em Cadastros antes de continuar.</span>
+          )}
+        </div>
+      )}
 
       {erroSalvar && (
         <p className="fin-erro" aria-live="polite">

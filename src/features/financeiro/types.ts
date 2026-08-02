@@ -209,7 +209,9 @@ export const dadosQuitacaoVazio = (): DadosQuitacao => ({
 export function validarQuitacao(d: DadosQuitacao, precisaEmpresa: boolean): ErrosValidacao {
   const erros: ErrosValidacao = {};
   if (!d.formaPagamento) erros.formaPagamento = 'Selecione a forma de pagamento.';
-  if (!d.contaFinanceiraId) erros.contaFinanceiraId = 'Selecione a conta.';
+  // Dinheiro não passa por banco/cartão, não tem o que rastrear — mesma
+  // exceção já aplicada em Faturar OS/Finalizar venda (ver validarFaturamento).
+  if (d.formaPagamento !== 'dinheiro' && !d.contaFinanceiraId) erros.contaFinanceiraId = 'Selecione a conta.';
   if (!d.dataPagamento) erros.dataPagamento = 'Informe a data do pagamento.';
   if (precisaEmpresa && !d.empresaId) erros.empresaId = 'Selecione a empresa que pagou/recebeu.';
   return erros;

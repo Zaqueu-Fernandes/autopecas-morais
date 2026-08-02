@@ -13,7 +13,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
-import type { TipoFinanceiro } from '../types';
+import type { TipoFinanceiro, FormaPagamento } from '../types';
 import { buscarIdsOcultosParaUsuario } from './ocultacoes.service';
 
 export interface MovimentoCaixa {
@@ -22,6 +22,7 @@ export interface MovimentoCaixa {
   categoria: string;
   descricao: string;
   valor: number;
+  formaPagamento: FormaPagamento | null;
   dataPagamento: string;
   saldoAcumulado: number;
 }
@@ -40,6 +41,7 @@ interface LinhaMovimento {
   categoria: string;
   descricao: string;
   valor: number;
+  forma_pagamento: FormaPagamento | null;
   data_pagamento: string;
 }
 
@@ -77,7 +79,7 @@ export async function buscarFluxoCaixa(
 
   let query = supabase
     .from('financeiro')
-    .select('id, tipo, categoria, descricao, valor, data_pagamento')
+    .select('id, tipo, categoria, descricao, valor, forma_pagamento, data_pagamento')
     .eq('pago', true)
     .gte('data_pagamento', inicioISO)
     .lte('data_pagamento', fimISO)
@@ -106,6 +108,7 @@ export async function buscarFluxoCaixa(
       categoria: r.categoria,
       descricao: r.descricao,
       valor,
+      formaPagamento: r.forma_pagamento,
       dataPagamento: r.data_pagamento,
       saldoAcumulado: saldo,
     };

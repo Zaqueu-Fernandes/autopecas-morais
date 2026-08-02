@@ -68,7 +68,7 @@ export function PedidoFornecedorPage() {
     return (
       <div className="pg">
         <div className="pg-head">
-          <h1>Fazer Pedido</h1>
+          <h1>Fazer Pedido ao Fornecedor</h1>
         </div>
         <FormPedidoFornecedor
           itensIniciais={itensGerados}
@@ -96,7 +96,7 @@ export function PedidoFornecedorPage() {
     return (
       <div className="pg">
         <div className="pg-head">
-          <h1>Fazer Pedido</h1>
+          <h1>Fazer Pedido ao Fornecedor</h1>
           <div className="pg-head-acoes">
             <BotoesImpressaoLista documento={documentoImpressao} className="ped-btn-sec" />
             <button type="button" className="ped-btn" onClick={handleNovoPedido}>
@@ -145,7 +145,7 @@ export function PedidoFornecedorPage() {
   return (
     <div className="pg">
       <div className="pg-head">
-        <h1>Fazer Pedido</h1>
+        <h1>Fazer Pedido ao Fornecedor</h1>
       </div>
 
       <p className="ped-intro">
