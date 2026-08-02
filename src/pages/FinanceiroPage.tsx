@@ -20,8 +20,8 @@ import { ExtratoFinanceiroPage } from './ExtratoFinanceiroPage';
 import { FluxoCaixaPage } from './FluxoCaixaPage';
 
 const SUBABAS = [
-  { id: 'pagar', label: 'Contas a Pagar', Icone: ArrowUpCircle, Componente: ContasPagarPage },
   { id: 'receber', label: 'Contas a Receber', Icone: ArrowDownCircle, Componente: ContasReceberPage },
+  { id: 'pagar', label: 'Contas a Pagar', Icone: ArrowUpCircle, Componente: ContasPagarPage },
   { id: 'extrato', label: 'Extrato', Icone: ScrollText, Componente: ExtratoFinanceiroPage },
   { id: 'fluxo-caixa', label: 'Fluxo de Caixa', Icone: ArrowLeftRight, Componente: FluxoCaixaPage },
 ] as const;
@@ -29,7 +29,7 @@ const SUBABAS = [
 type IdSubaba = (typeof SUBABAS)[number]['id'];
 
 export function FinanceiroPage() {
-  const [subAbaAtiva, setSubAbaAtiva] = useState<IdSubaba>('pagar');
+  const [subAbaAtiva, setSubAbaAtiva] = useState<IdSubaba>('receber');
   const SubAbaAtual = SUBABAS.find((a) => a.id === subAbaAtiva)!.Componente;
 
   return (
