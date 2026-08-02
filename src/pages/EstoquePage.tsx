@@ -15,6 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
   FileUp,
+  FileDown,
   Ban,
   RotateCcw,
   ArrowUp,
@@ -30,17 +31,19 @@ import {
   definirAtivoPeca,
 } from '@/features/estoque';
 import { ImportarXmlNFe } from '@/features/importacao-nfe';
+import { CHAVE_URL_XML_NFE, buscarConfiguracao } from '@/features/configuracoes';
 import { type DocumentoListaImpressao, BotoesImpressaoLista } from '@/features/impressao';
 import { useConfirmacao } from '@/shared/hooks/useConfirmacao';
 import { formatarMoeda } from '@/shared/utils/formatadores';
 
 export function EstoquePage() {
-  const { confirmar } = useConfirmacao();
+  const { confirmar, avisar } = useConfirmacao();
   const [pecas, setPecas] = useState<Peca[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [busca, setBusca] = useState('');
   const [mostrarInativas, setMostrarInativas] = useState(false);
+  const [urlXmlNfe, setUrlXmlNfe] = useState<string | null>(null);
 
   const [mostrarForm, setMostrarForm] = useState(false);
   const [mostrarImportarNFe, setMostrarImportarNFe] = useState(false);
@@ -64,6 +67,25 @@ export function EstoquePage() {
     carregar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mostrarInativas]);
+
+  useEffect(() => {
+    buscarConfiguracao(CHAVE_URL_XML_NFE)
+      .then(setUrlXmlNfe)
+      .catch(() => setUrlXmlNfe(null));
+  }, []);
+
+  async function handleBaixarXmlNfe() {
+    if (!urlXmlNfe) {
+      await avisar({
+        titulo: 'URL ainda não configurada',
+        tom: 'aviso',
+        mensagem:
+          'Peça pro admin cadastrar o link do serviço de consulta de NF-e em Admin > URL para baixar XML.',
+      });
+      return;
+    }
+    window.open(urlXmlNfe, '_blank', 'noopener,noreferrer');
+  }
 
   async function handleSalvar(p: Peca) {
     await salvarPeca(p);
@@ -146,6 +168,14 @@ export function EstoquePage() {
         <h1>Estoque</h1>
         <div className="pg-head-acoes">
           <BotoesImpressaoLista documento={documentoImpressao} className="est-btn-sec" />
+          <button
+            type="button"
+            className="est-btn-sec"
+            onClick={handleBaixarXmlNfe}
+            title="Para baixar o XML você deve ter em mãos o código da chave de acesso da Nota Fiscal"
+          >
+            <FileDown size={16} /> Baixar XML de Nota Fiscal
+          </button>
           <button type="button" className="est-btn-sec" onClick={() => setMostrarImportarNFe(true)}>
             <FileUp size={16} /> Importar XML
           </button>

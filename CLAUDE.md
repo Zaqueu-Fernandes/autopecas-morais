@@ -250,6 +250,23 @@ Usuário único inicialmente (dono da oficina), rodando em Windows e Android.
   em nfe_importadas (chave_acesso é única) — reimportar a mesma nota é
   bloqueado antes mesmo de mostrar a tela de revisão.
 - Acessível pelo botão "Importar XML" na tela de Estoque.
+- **"Baixar XML de Nota Fiscal"** (botão ao lado de "Importar XML", mesma
+  tela) é DIFERENTE — não faz nada sozinho, só abre numa aba nova a URL de
+  um serviço externo (configurada pelo admin) onde o usuário cola a chave
+  de acesso de 44 dígitos manualmente e baixa o XML por fora, pra depois
+  importar aqui do jeito de sempre. Não existe integração automática
+  "chave → itens": a chave sozinha não carrega os dados da nota, só um
+  webservice autenticado da SEFAZ (exige certificado digital) ou um
+  serviço terceiro pago (PlugNotas/Focus/eNotas) conseguiriam buscar isso
+  de verdade — decisão consciente de NÃO implementar nenhum dos dois por
+  enquanto (mesma cautela de "Documentos fiscais" abaixo), então o botão é
+  só um atalho de conveniência pra um passo manual que já existia.
+  - URL configurável em Admin > URL para baixar XML (`ConfiguracoesPage.tsx`,
+    feature `src/features/configuracoes`, tabela `configuracoes_sistema`
+    — chave/valor genérico, pensado pra guardar outras configurações
+    futuras do sistema também, não só essa). RLS: qualquer logado LÊ, só
+    admin ESCREVE (mesmo padrão `is_admin()` de `permissoes_usuario`).
+    Sem URL cadastrada, o botão mostra um aviso em vez de abrir algo.
 
 ### Ordem de Serviço (feature já pronta em src/features/ordens-servico)
 

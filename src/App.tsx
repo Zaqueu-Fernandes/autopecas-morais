@@ -22,6 +22,7 @@ import '@/features/dashboard/dashboard.css';
 import '@/features/importacao-nfe/importacao-nfe.css';
 import '@/features/permissoes/permissoes.css';
 import '@/features/pedido-fornecedor/pedido-fornecedor.css';
+import '@/features/configuracoes/configuracoes.css';
 import { CadastrosPage } from '@/pages/CadastrosPage';
 import { EstoquePage } from '@/pages/EstoquePage';
 import { OrdensServicoPage } from '@/pages/OrdensServicoPage';
@@ -46,7 +47,7 @@ const ABAS = [
   { id: 'estoque', label: 'Estoque', Icone: Package, Componente: EstoquePage },
   { id: 'pedido-fornecedor', label: 'Fazer Pedido', Icone: ClipboardList, Componente: PedidoFornecedorPage },
   { id: 'cadastros', label: 'Cadastros', Icone: FolderCog, Componente: CadastrosPage },
-  { id: 'permissoes', label: 'Permissões', Icone: ShieldCheck, Componente: AdministracaoPage, adminOnly: true },
+  { id: 'permissoes', label: 'Admin', Icone: ShieldCheck, Componente: AdministracaoPage, adminOnly: true },
 ] as const;
 
 type IdAba = (typeof ABAS)[number]['id'];

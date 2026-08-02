@@ -1,0 +1,73 @@
+/* ==========================================================================
+   CONFIGURAÇÕES (admin) — estilos base. Prefixo .cfg- pra não colidir com
+   outras features. O modal em si reaproveita .confirm-overlay/.confirm-cartao
+   (shared.css) — aqui só o cartão de exibição e o campo do formulário.
+   ========================================================================== */
+
+.cfg-cartao {
+  max-width: 560px;
+  background: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.cfg-cartao-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cor-texto);
+  margin-bottom: 6px;
+}
+.cfg-cartao-cabecalho h2 { font-size: 15px; margin: 0; }
+
+.cfg-cartao-descricao {
+  font-size: 13px;
+  color: var(--cor-texto-secundario);
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.cfg-cartao-valor {
+  font-size: 13.5px;
+  margin: 0 0 14px;
+  word-break: break-all;
+}
+.cfg-cartao-valor a { color: #D62839; }
+.cfg-vazio { color: var(--cor-texto-secundario); font-style: italic; }
+
+.cfg-campo { display: flex; flex-direction: column; gap: 4px; margin: 14px 0; }
+.cfg-campo label { font-size: 12px; color: var(--cor-texto-secundario); font-weight: 500; }
+.cfg-campo input {
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--cor-fundo-cartao);
+  color: var(--cor-texto);
+  outline: none;
+  transition: border-color .12s;
+}
+.cfg-campo input:focus-visible {
+  border-color: #D62839;
+  box-shadow: 0 0 0 3px rgba(214, 40, 57, .16);
+}
+.cfg-campo input[aria-invalid="true"] { border-color: #dc2626; }
+.cfg-erro { color: #dc2626; font-size: 11px; }
+
+.cfg-btn-sec {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--cor-fundo-secundario);
+  color: var(--cor-texto);
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: filter .15s ease, transform .05s ease;
+}
+.cfg-btn-sec:hover { filter: brightness(.96); }
+.cfg-btn-sec:active { transform: scale(.97); }
